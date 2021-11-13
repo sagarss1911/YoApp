@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>{{title}}</title>
+  </head>
+
+  <body>
+    <style type="text/css">
+      .main-page-wrapper {
+        position: relative;
+        width: 100%;
+        height: 100vh;
+        display: table;
+      }
+
+      .main-page-wrapper > div {
+        vertical-align: middle;
+        display: table-cell;
+        text-align: center;
+      }
+
+      .main-page-wrapper a {
+          font-size: 50px;
+          color: white;
+          font-weight: bold;
+          vertical-align: middle;
+          text-align: center;
+          margin: 0 auto;
+          padding: 25px 50px;
+          border: 1px solid yellow;
+          border-radius: 6px;
+          background: rgb(246,195,17);
+      }
+    </style>
+    <script type="text/javascript" src="scripts/deeplink.js"></script>
+    <script type="text/javascript">
+      var options = {
+        fallback: '{{fallback}}',
+        url: '{{url}}',
+        ios_store_link: '{{ios_store_link}}',
+        android_package_name: '{{android_package_name}}'
+      };
+
+      var ua = window.navigator.userAgent;
+      var OSName = "web";
+      if (/Android/i.test(ua)) {
+        OSName="Android"
+      } else if (/iPhone|iPad|iPod/i.test(ua)) {
+        OSName="iPhone";
+        deepLink(options);
+      } else {
+        window.location = options.fallback;
+      }
+    </script>
+    <div class="main-page-wrapper">
+      <div>
+        <a onclick="return deepLink(options);">Open Mango App</a>
+      </div>
+    </div>
+  </body>
+</html>

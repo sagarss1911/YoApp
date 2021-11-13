@@ -1,25 +1,97 @@
-const express = require('express');
-const app = express();
-const port = 3000;
+'use strict';
+require('dotenv').config()
+let constant = "./config/config.js";
+process.config.global_config = require(constant);
 
-app.get('/', (req, res) => {
-  res.send('<h1>Express Demo App</h1> <h4>Message: Success</h4> <p>Version 1.1</p>');
-})
+let express         = require('express'),
+    app             = express(),
+    cors            = require("cors"),
+    responseHandler = require('./modules/middleware/responseHandler'),
+    multer          = require('multer'),
+    bodyParser      = require('body-parser'),
+    swaggerJSDoc    = require("swagger-jsdoc"),
+    swaggerUi = require("swagger-ui-express");
+   
 
-app.get('/products', (req, res) => {
-  res.send([
-    {
-      productId: '103',
-      price: 200
+console.log('Initializing Server.',new Date().toString() );
+console.log("Environment: " +process.env.NODE_ENV);
+console.log("Loading Environment Constant: " +constant);
+
+
+app.use(cors());
+app.use(function (req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization,API-KEY");
+    next();
+});
+
+
+app.use(bodyParser.urlencoded({
+	limit: '50mb',
+    extended: true,
+}));
+app.use(bodyParser.json({limit: '50mb'}));
+
+const docOptions = {
+    definition: {
+        openapi: '3.0.0',
+        info: {
+            title: 'YoApp',
+            version: '1',
+        },
+        servers: [{
+          url: process.config.global_config.base_url,
+          description: 'Development server',
+        }],
+        components: {
+          securitySchemes: {
+            ApiKeyAuth: {
+              type: "apiKey",
+              in: "header",     
+              name: "x-auth-token"
+            }
+          }
+        },
+        security: [{
+          ApiKeyAuth: []
+        }]
     },
-    {
-      productId: '102',
-      price: 150
-    }
-  ])
-})
+    apis: ['./modules/controllers/*.js'],
+};
+const swaggerSpec = swaggerJSDoc(docOptions);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-app.listen(port, ()=> {
-  console.log(`Demo app is up and listening to port: ${port}`);
-})
- 
+app.use('/uploads', express.static(__dirname + '/uploads'));
+app.use(express.static('views'))
+
+app.disable('x-powered-by');
+
+console.log('Setting up success listener.');
+app.use(responseHandler.onSuccess);
+
+console.log('Setting up routes.');
+require('./routes')(app);
+
+console.log('Plugging the error leaks.');
+app.use(responseHandler.onError);
+
+module.exports = app;
+
+console.log('Ready for requests.');
+
+
+
+let port = Number(process.env.PORT || process.config.global_config.server.port);
+let server = app.listen(port, function() {
+    console.log('server listening on port ' + server.address().port);
+});
+// initialNotification.sendAppRestartNotifications();
+
+let socket = require("./modules/socket/global_socket").initialize(server);
+let socketHandle = require("./modules/socket/socket")(socket);
+
+server.timeout = process.config.global_config.server.networkCallTimeout;
+
+/*let merchantStripe = require('./modules/helpers/stripe');
+merchantStripe.onBoardMerchant({});*/
