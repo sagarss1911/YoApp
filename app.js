@@ -12,7 +12,7 @@ let express         = require('express'),
     swaggerJSDoc    = require("swagger-jsdoc"),
     swaggerUi = require("swagger-ui-express");
     
-
+ 
 console.log('Initializing Server.',new Date().toString() );
 console.log("Environment: " +process.env.NODE_ENV);
 console.log("Loading Environment Constant: " +constant);
