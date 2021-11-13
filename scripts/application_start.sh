@@ -1,10 +1,10 @@
 #!/bin/bash
 
-#give permission for everything in the express-app directory
-sudo chmod -R 777 /home/ec2-user/express-app
+#give permission for everything in the YoApp directory
+sudo chmod -R 777 /home/ec2-user/YoApp
 
 #navigate into our working directory where we have all our github files
-cd /home/ec2-user/express-app
+cd /home/ec2-user/YoApp
 
 #add npm and node to path
 export NVM_DIR="$HOME/.nvm"	

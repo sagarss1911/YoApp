@@ -1,5 +1,5 @@
 {
-  "name": "nodejs-express-on-aws-ec2",
+  "name": "yo-app",
   "version": "0.0.1",
   "dependencies": {
     "express": "4.17.1"
