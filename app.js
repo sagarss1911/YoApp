@@ -15,7 +15,7 @@ let express         = require('express'),
 
 console.log('Initializing Server.',new Date().toString() );
 console.log("Environment: " +process.env.NODE_ENV);
-console.log("Loading Environment Constant: " +constant); 
+console.log("Loading Environment Constant: " +constant);
 
 
 app.use(cors());
