@@ -5,7 +5,7 @@ sudo chmod -R 777 /home/ec2-user/YoApp
 
 #navigate into our working directory where we have all our github files
 cd /home/ec2-user/YoApp
-
+source ~/.bash_profile
 #add npm and node to path
 export NVM_DIR="$HOME/.nvm"	
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # loads nvm	
