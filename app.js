@@ -1,5 +1,4 @@
 'use strict';
-require('dotenv').config()
 let constant = "./config/config.js";
 process.config.global_config = require(constant);
 
