@@ -33,7 +33,8 @@ let isValidAdmin = (req,res,next)=>{
 }
 let isValidUser = (req,res,next)=>{
     let auth_token = req.get("x-auth-token");
-    let sqlQuery = 'select id,customer_id from users where isactive=1 and id=\
+    
+    let sqlQuery = 'select id from users where isactive=1 and id=\
                     (select userid from users_auth where token=:auth_token limit 1) limit 1;'
     CustomQueryModel
     .query(sqlQuery,{
@@ -43,7 +44,7 @@ let isValidUser = (req,res,next)=>{
         type: SequelizeObj.QueryTypes.SELECT,
         raw:true
       })
-      .then(merchant =>{        
+      .then(merchant =>{
         if(!merchant || merchant.length == 0){
           throw new AccessDeniedError("You are not authorized to access api ");
         } else {          

@@ -62,8 +62,7 @@ const docOptions = {
 const swaggerSpec = swaggerJSDoc(docOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-app.use('/uploads', express.static(__dirname + '/uploads'));
-app.use(express.static('views'))
+app.use('/public', express.static(__dirname + '/public'));
 
 app.disable('x-powered-by');
 
@@ -95,3 +94,8 @@ server.timeout = process.config.global_config.server.networkCallTimeout;
 
 /*let merchantStripe = require('./modules/helpers/stripe');
 merchantStripe.onBoardMerchant({});*/
+
+
+
+
+
