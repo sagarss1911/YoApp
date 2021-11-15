@@ -6,10 +6,16 @@ let express    = require("express"),
     fileUploadHelper  = require("../helpers/file_upload"),
     validateAccess = require('../policies/Validate_request_access');
 
-router.post("/signup",controller.signup);
+router.get("/country_list",controller.countryList);
+
+router.post("/register",controller.signup);
+router.post("/resend_otp",validateAccess.isValidUser,controller.resendOTP);
+router.post("/verify_otp", validateAccess.isValidUser,controller.verifyOTP);
+
+
 router.post("/upload_images",validateAccess.isValidUser, fileUploadHelper.uploadUserImages.fields([{ name: 'image', maxCount: 6 }]),controller.uploadImages);
 router.post("/send_otp", controller.sendOTP);
-router.post("/verify_otp", controller.verifyOTP);
+
 router.post("/phone_sign_in", controller.phoneSignIn);
 router.post("/phone_sign_in_verification", controller.phoneSignInVerification);
 router.post("/signout",validateAccess.isValidUser,controller.signout);

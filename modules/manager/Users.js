@@ -5,10 +5,11 @@ let helper = require("../helpers/helpers"),
     _ = require("lodash"),
     md5 = require('md5'),
     SEND_SMS = require("../helpers/send_sms"),
+    CountryModel = require("../models/Country"),
     UserModel = require("../models/Users"),
     UserAuthModel = require("../models/Users_auth"),
     UserImagesModel = require("../models/User_images"),
-    OTPModel = require("../models/OTP"),
+    OTPModel = require("../models/OTP"),  
     config = process.config.global_config,
     BadRequestError = require('../errors/badRequestError'),
     fs = require('fs'),
@@ -19,31 +20,30 @@ let signup = async (req) => {
     if (helper.undefinedOrNull(req_body)) {
         throw new BadRequestError('Request body comes empty');
     }
-    ['name', 'email', 'phone', 'countrycode', 'countryname', 'device_id', 'socialtoken', 'currency', 'dob', 'latitude', 'longitude', 'gender'].forEach(x => {
+    ['name', 'email', 'phone', 'region', 'password', 'gender' ].forEach(x => {
         if (!req_body[x]) {
             throw new BadRequestError(x + " is required");
         }
     });
-    let customer = await UserModel
-        .findOne({ where: { phone: req_body.phone }, attributes: ['id', 'phone'] });
+    let findData = {}
+    findData["$or"] = [
+        {phone: {$eq:  req_body.phone}},
+        {email: { $eq: req_body.email}}
+    ]
+    let user = await UserModel
+        .findOne({ where: findData, attributes: ['id', 'phone'] });
 
-    if (customer) {
+    if (user) {
         throw new BadRequestError("User already exit. Please signin");
     }
     let createData = {
         name: req_body.name,
         email: req_body.email,
         phone: req_body.phone,
-        countrycode: req_body.countrycode,
-        countryname: req_body.countryname,
-        device_id: req_body.device_id,
-        socialtoken: req_body.device_id,
-        currency: req_body.currency,
-        dob: req_body.dob,
-        dobformatted: moment(req_body.dob,'DD/MM/YYYY').format('YYYY-MM-DD'),
-        latitude: req_body.latitude,
-        longitude: req_body.longitude,
-        gender: req_body.gender
+        region: req_body.region,
+        password: md5(req_body.password),
+        gender: req_body.gender,
+        
     }
     
     try {
@@ -51,12 +51,16 @@ let signup = async (req) => {
         let customer = await UserModel.create(createData);
         _customer = customer.toJSON();
         let authToken = md5(Date.now() + _customer.phone);
+        let otp = Date.now().toString().slice(-6);
         let authRecord = {
             userid: _customer.id,
-            token: authToken
+            token: authToken,
+            otp: otp
         }
         await UserAuthModel.destroy({ where: { userid: _customer.id } });
         await UserAuthModel.create(authRecord);
+        let country = await CountryModel.findOne({ where: { iso_code_2: _customer.region }, raw: true })
+        await SEND_SMS.sms(otp, "+"+country.isd_code + _customer.phone);
         return authRecord;
     } catch (error) {
         if (error && error.errors && error.errors[0] && error.errors[0].message && error.errors[0].message.indexOf("unique") != -1) {
@@ -68,6 +72,7 @@ let signup = async (req) => {
     }
 
 }
+
 let uploadImages = async (req) => {
     let userid = req.user ? req.user.userId : null;
     for (var x in req.files.image) {
@@ -99,6 +104,39 @@ let uploadImages = async (req) => {
     return true
 
 }
+let resendOTP = async (userid) => {
+    if (helper.undefinedOrNull(userid)) {
+        throw new BadRequestError('User Not Found With Provided Token');
+    }
+    let user = await UserModel.findOne({ where: { id: userid }, attributes: ['id','region', 'phone'], raw: true })
+    let authToken = md5(Date.now() + user.phone);
+    let otp = Date.now().toString().slice(-6);
+    let authRecord = {
+        userid: user.id,
+        token: authToken,
+        otp: otp
+    }
+    await UserAuthModel.destroy({ where: { userid: user.id } });
+    await UserAuthModel.create(authRecord);
+    let country = await CountryModel.findOne({ where: { iso_code_2: user.region }, raw: true })
+    await SEND_SMS.sms(otp, "+"+country.isd_code + user.phone);
+    return { token: authToken }
+}
+
+let verifyOTP = async (userid,otp) => {
+    
+    
+    let userAuth = await UserAuthModel.findOne({ where: { userid: userid, otp: otp }, raw: true, attributes: ['userid', 'token'] });
+    
+    if (!userAuth || !userAuth.userid) {
+        throw new BadRequestError("Invalid OTP");
+    }
+    await UserAuthModel.update({ otp: null }, { where: {  userid: userid, otp: otp }, raw: true });
+    return { token: userAuth.token };
+
+}
+
+
 let sendOTP = async (req_body) => {
     if (helper.undefinedOrNull(req_body)) {
         throw new BadRequestError('Request body comes empty');
@@ -143,25 +181,7 @@ let phoneSignIn = async (req_body) => {
     return await OTPModel.create({ phone: req_body.phone, country: req_body.countrycode, otp: otp });
 }
 
-let verifyOTP = async (req_body) => {
-    if (helper.undefinedOrNull(req_body)) {
-        throw new BadRequestError('Request body comes empty');
-    }
 
-
-    if (helper.undefinedOrNull(req_body.otp)) {
-        throw new BadRequestError("otp is required");
-    }
-    if (helper.undefinedOrNull(req_body.phone)) {
-        throw new BadRequestError("Phone is required");
-    }
-    let OTPAvailable = await OTPModel.findOne({ where: { phone: req_body.phone, otp: req_body.otp }, raw: true })
-    if (!OTPAvailable) {
-        throw new BadRequestError("Invalid OTP")
-    }
-    return true;
-
-}
 
 let signout = async (userid) => {
     if (!userid) {
@@ -216,8 +236,15 @@ let isUserAvailable = async (req_body) => {
     return true;
 
 }
+let countryList = async (req_body) => {
+    return await CountryModel.findAll({order: [['name', 'ASC']],raw: true})
+
+}
+
 module.exports = {
+    countryList: countryList,
     signup: signup,
+    resendOTP:resendOTP,
     uploadImages: uploadImages,
     phoneSignIn: phoneSignIn,
     verifyOTP: verifyOTP,
