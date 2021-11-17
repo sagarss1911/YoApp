@@ -45,10 +45,10 @@ let usersManager = require('../manager/Users');
 let countryList = (req, res, next) => {
 
     return usersManager
-        .countryList(req.body)
+        .countryList()
         .then(data => {
             let result = {
-                status:200,
+                status: 200,
                 data: data
             }
             return res.json(result);
@@ -138,10 +138,10 @@ let countryList = (req, res, next) => {
 */
 let signup = (req, res, next) => {
     return usersManager
-        .signup(req)
+        .signup(req.body)
         .then(data => {
             let result = {
-                status:200,
+                status: 200,
                 data: data
             }
             return res.json(result);
@@ -189,14 +189,14 @@ let signup = (req, res, next) => {
  *                   type: integer
  *                   example: 400
 */
-let resendOTP = (req,res,next) => {
+let resendOTP = (req, res, next) => {
     let userid = req.user ? req.user.userId : null;
 
     return usersManager
         .resendOTP(userid)
         .then(data => {
             let result = {
-                status:200,
+                status: 200,
                 data: data
             }
             return res.json(result);
@@ -259,142 +259,10 @@ let resendOTP = (req,res,next) => {
 let verifyOTP = (req, res, next) => {
     let userid = req.user ? req.user.userId : null;
     return usersManager
-        .verifyOTP(userid,req.body.otp)
+        .verifyOTP(userid, req.body.otp)
         .then(data => {
             let result = {
-                status:200,
-                data: data
-            }
-            return res.json(result);
-        })
-        .catch(next);
-}
-
-/**
- * @swagger
- * /api/v1/user/send_otp:
- *   post:
- *     summary: send_otp.
- *     tags:
- *      - signup
- *     parameters :
- *     - name: x-auth-api-key
- *       in: header   
- *       description: an authorization header
- *       required: true
- *       type: string 
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties: 
- *               phone:
- *                 type: string 
- *                 example: 9377690348
- *                 paramType: body 
- *               countrycode:
- *                 type: string 
- *                 example: +91
- *                 paramType: body 
- *     responses:
- *       200:
- *         description: user object
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 data:
- *                   type: object
- *       400:
- *         description: error in request processing
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                 status:
- *                   type: integer
- *                   example: 400
-*/
-let sendOTP = (req, res, next) => {
-    return usersManager
-        .sendOTP(req.body)
-        .then(data => {
-            let result = {
-                status:200,
-                data: data
-            }
-            return res.json(result);
-        })
-        .catch(next);
-}
-
-
-
-
-/**
- * @swagger
- * /api/v1/user/upload_images:
- *   post:
- *     summary: upload_images.
- *     tags:
- *      - signup
- *     parameters :
- *     - name: x-auth-api-key
- *       in: header   
- *       description: an authorization header
- *       required: true
- *       type: string 
- *     - name: x-auth-token
- *       in: header   
- *       description: an authorization header
- *       required: true
- *       type: string
- *     requestBody:
- *       required: true
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             properties: 
- *               images[]:
- *                 type: file
- *                 allowMultiple: true
- *                 paramType: body 
- *     responses:
- *       200:
- *         description: user object
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 data:
- *                   type: object
- *       400:
- *         description: error in request processing
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                 status:
- *                   type: integer
- *                   example: 400
-*/
-let uploadImages = (req, res, next) => {
-    return usersManager
-        .uploadImages(req)
-        .then(data => {
-            let result = {
-                status:200,
+                status: 200,
                 data: data
             }
             return res.json(result);
@@ -427,9 +295,9 @@ let uploadImages = (req, res, next) => {
  *                 type: string 
  *                 example: 9377690348
  *                 paramType: body 
- *               countrycode:
+ *               password:
  *                 type: string 
- *                 example: +91
+ *                 example: aavvcc
  *                 paramType: body 
  *     responses:
  *       200:
@@ -454,12 +322,12 @@ let uploadImages = (req, res, next) => {
  *                   type: integer
  *                   example: 400
 */
-   let phoneSignIn = (req, res, next) => {
+let phoneSignIn = (req, res, next) => {
     return usersManager
         .phoneSignIn(req.body)
         .then(data => {
             let result = {
-                status:200,
+                status: 200,
                 data: data
             }
             return res.json(result);
@@ -467,12 +335,11 @@ let uploadImages = (req, res, next) => {
         .catch(next);
 }
 
-
 /**
  * @swagger
- * /api/v1/user/phone_sign_in_verification:
+ * /api/v1/user/phone_sign_in_with_otp:
  *   post:
- *     summary: phone_sign_in_verification.
+ *     summary: phone_sign_in_with_otp.
  *     tags:
  *      - signup
  *     parameters :
@@ -492,9 +359,9 @@ let uploadImages = (req, res, next) => {
  *                 type: string 
  *                 example: 9377690348
  *                 paramType: body 
- *               otp:
+ *               region:
  *                 type: string 
- *                 example: +91
+ *                 example: IN
  *                 paramType: body 
  *     responses:
  *       200:
@@ -519,13 +386,12 @@ let uploadImages = (req, res, next) => {
  *                   type: integer
  *                   example: 400
 */
-let phoneSignInVerification = (req, res, next) => {
-
+let phoneSignInWithOTP = (req, res, next) => {
     return usersManager
-        .phoneSignInVerification(req.body)
+        .phoneSignInWithOTP(req.body)
         .then(data => {
             let result = {
-                status:200,
+                status: 200,
                 data: data
             }
             return res.json(result);
@@ -533,6 +399,134 @@ let phoneSignInVerification = (req, res, next) => {
         .catch(next);
 }
 
+/**
+ * @swagger
+ * /api/v1/user/forgot_password:
+ *   post:
+ *     summary: forgot_password.
+ *     tags:
+ *      - signup
+ *     parameters :
+ *     - name: x-auth-api-key
+ *       in: header   
+ *       description: an authorization header
+ *       required: true
+ *       type: string 
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               phone:
+ *                 type: string 
+ *                 example: 9377690348
+ *                 paramType: body 
+ *               region:
+ *                 type: string 
+ *                 example: IN
+ *                 paramType: body 
+ *     responses:
+ *       200:
+ *         description: user object
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: object
+ *       400:
+ *         description: error in request processing
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 status:
+ *                   type: integer
+ *                   example: 400
+*/
+let forgotPassword = (req, res, next) => {
+    return usersManager
+        .forgotPassword(req.body)
+        .then(data => {
+            let result = {
+                status: 200,
+                data: data
+            }
+            return res.json(result);
+        })
+        .catch(next);
+}
+
+/**
+ * @swagger
+ * /api/v1/user/change_password:
+ *   post:
+ *     summary: change_password.
+ *     tags:
+ *      - signup
+ *     parameters :
+ *     - name: x-auth-api-key
+ *       in: header   
+ *       description: an authorization header
+ *       required: true
+ *       type: string 
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               password:
+ *                 type: string 
+ *                 example: 12345678
+ *                 paramType: body 
+ *               confirmpassword:
+ *                 type: string 
+ *                 example: 12345678
+ *                 paramType: body 
+ *     responses:
+ *       200:
+ *         description: user object
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: object
+ *       400:
+ *         description: error in request processing
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 status:
+ *                   type: integer
+ *                   example: 400
+*/
+let changePassword = (req, res, next) => {
+    let userid = req.user ? req.user.userId : null;
+    return usersManager
+        .changePassword(userid, req.body)
+        .then(data => {
+            let result = {
+                status: 200,
+                data: data
+            }
+            return res.json(result);
+        })
+        .catch(next);
+}
 
 
 /**
@@ -576,75 +570,14 @@ let phoneSignInVerification = (req, res, next) => {
  *                   type: integer
  *                   example: 400
 */
-let signout = (req,res,next) => {
+let signout = (req, res, next) => {
     let userid = req.user ? req.user.userId : null;
 
     return usersManager
         .signout(userid)
         .then(data => {
             let result = {
-                status:200
-            }
-            return res.json(result);
-        })
-        .catch(next);
-}
-
-/**
- * @swagger
- * /api/v1/user/is_user_available:
- *   post:
- *     summary: is_user_available.
- *     tags:
- *      - signup
- *     parameters :
- *     - name: x-auth-api-key
- *       in: header   
- *       description: an authorization header
- *       required: true
- *       type: string 
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               phone:
- *                 type: string 
- *                 example: 9377690348
- *                 paramType: body 
- *     responses:
- *       200:
- *         description: user object
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 data:
- *                   type: object
- *       400:
- *         description: error in request processing
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                 status:
- *                   type: integer
- *                   example: 400
-*/
-let isUserAvailable = (req, res, next) => {
-
-    return usersManager
-        .isUserAvailable(req.body)
-        .then(data => {
-            let result = {
-                status:200,
-                data: data
+                status: 200
             }
             return res.json(result);
         })
@@ -654,14 +587,13 @@ let isUserAvailable = (req, res, next) => {
 
 
 module.exports = {
-    countryList:countryList,
-    signup           : signup,
-    resendOTP:resendOTP,
-    uploadImages:uploadImages,   
-    signout          : signout,
-    phoneSignIn      : phoneSignIn,   
-    verifyOTP:verifyOTP,
-    sendOTP:sendOTP,
-    phoneSignInVerification:phoneSignInVerification,
-    isUserAvailable:isUserAvailable    
+    countryList: countryList,
+    signup: signup,
+    resendOTP: resendOTP,
+    signout: signout,
+    phoneSignIn: phoneSignIn,
+    changePassword: changePassword,
+    phoneSignInWithOTP: phoneSignInWithOTP,
+    forgotPassword: forgotPassword,
+    verifyOTP: verifyOTP
 };
