@@ -188,7 +188,7 @@ let forgotPassword = async (body) => {
     }
 
 
-    let country = await CountryModel.findOne({ where: { iso_code_2: body.region }, raw: true })
+  //  let country = await CountryModel.findOne({ where: { iso_code_2: body.region }, raw: true })
     let findData = {}
     findData["$or"] = [
         { phone: { $eq: body.phone } },

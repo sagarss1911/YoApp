@@ -423,10 +423,6 @@ let phoneSignInWithOTP = (req, res, next) => {
  *                 type: string 
  *                 example: 9377690348
  *                 paramType: body 
- *               region:
- *                 type: string 
- *                 example: IN
- *                 paramType: body 
  *     responses:
  *       200:
  *         description: user object
