@@ -4,6 +4,7 @@
 let helper = require("../helpers/helpers"),
     md5 = require('md5'),
     SEND_SMS = require("../helpers/send_sms"),
+    SEND_EMAIL = require("../helpers/send_email"),
     CountryModel = require("../models/Country"),
     UserModel = require("../models/Users"),
     UserAuthModel = require("../models/Users_auth"),
@@ -191,13 +192,13 @@ let forgotPassword = async (body) => {
     let findData = {}
     findData["$or"] = [
         { phone: { $eq: body.phone } },
-        { email: { $eq: body.email } }
+        { email: { $eq: body.phone } }
     ]
-    findData["$and"] = [
-        { region: { $eq: body.region } }
-    ]
+    // findData["$and"] = [
+    //     { region: { $eq: body.region } }
+    // ]
     let user = await UserModel
-        .findOne({ where: findData, attributes: ['id', 'phone'], raw: true });
+        .findOne({ where: findData, attributes: ['id', 'phone', 'email'], raw: true });
     if (!user) {
         throw new BadRequestError("User Not Found");
     }
@@ -211,8 +212,8 @@ let forgotPassword = async (body) => {
     }
     await UserAuthModel.destroy({ where: { userid: user.id } });
     await UserAuthModel.create(authRecord);
-
-    await SEND_SMS.sms(otp, "+" + country.isd_code + user.phone);
+    await SEND_EMAIL.SendPasswordReesetOTP(user.email, otp);    
+    
     return { token: authToken }
 }
 let changePassword = async (userid, body) => {
@@ -231,7 +232,7 @@ let changePassword = async (userid, body) => {
     }
 
 
-    await UserModel.update({ password: md5(body.password) }, { where: { userid: userid }, raw: true });
+    await UserModel.update({ password: md5(body.password) }, { where: { id: userid }, raw: true });
     return { message: "Password Changed Successfully" }
 }
 

@@ -476,6 +476,11 @@ let forgotPassword = (req, res, next) => {
  *       description: an authorization header
  *       required: true
  *       type: string 
+ *     - name: x-auth-token
+ *       in: header   
+ *       description: an authorization header
+ *       required: true
+ *       type: string 
  *     requestBody:
  *       required: true
  *       content:
