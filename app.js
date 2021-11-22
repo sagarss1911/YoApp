@@ -60,7 +60,7 @@ const docOptions = {
 };
 const swaggerSpec = swaggerJSDoc(docOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-
+ 
 app.use('/public', express.static(__dirname + '/public'));
 
 app.disable('x-powered-by');
