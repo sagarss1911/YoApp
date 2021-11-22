@@ -125,6 +125,9 @@ let phoneSignIn = async (body) => {
 
     let user = await UserModel
         .findOne({ where: findData, attributes: ['id', 'phone'], raw: true });
+    if(!user){
+        throw new BadRequestError("Invalid Credentials");
+    }    
     let authToken = md5(Date.now() + user.phone);
     let authRecord = {
         userid: user.id,
@@ -245,8 +248,10 @@ let signout = async (userid) => {
 
 
 let countryList = async () => {
-    return await CountryModel.findAll({ order: [['name', 'ASC']], raw: true })
-
+    let Country = await CountryModel.findAll({ order: [['name', 'ASC']], raw: true })
+    Country = Country.map((country) => {country.flag = process.env.BASE_URL + process.env.FLAG_PATH +  country.iso_code_2.toLowerCase() + ".png"; return country})
+    return Country;
+    
 }
 
 module.exports = {
