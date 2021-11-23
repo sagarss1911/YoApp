@@ -46,7 +46,7 @@ let signup = async (body) => {
         let customer = await UserModel.create(createData);
         _customer = customer.toJSON();
         let authToken = md5(Date.now() + _customer.phone);
-        let otp = Date.now().toString().slice(-6);
+        let otp = Date.now().toString().slice(process.env.OTP_LENGTH);
         let authRecord = {
             userid: _customer.id,
             token: authToken,
@@ -75,7 +75,7 @@ let resendOTP = async (userid) => {
     }
     let user = await UserModel.findOne({ where: { id: userid }, attributes: ['id', 'region', 'phone'], raw: true })
     let authToken = md5(Date.now() + user.phone);
-    let otp = Date.now().toString().slice(-6);
+    let otp = Date.now().toString().slice(process.env.OTP_LENGTH);
     let authRecord = {
         userid: user.id,
         token: authToken,
@@ -163,7 +163,7 @@ let phoneSignInWithOTP = async (body) => {
     }
 
     let authToken = md5(Date.now() + user.phone);
-    let otp = Date.now().toString().slice(-6);
+    let otp = Date.now().toString().slice(process.env.OTP_LENGTH);
     let authRecord = {
         userid: user.id,
         token: authToken,
@@ -204,7 +204,7 @@ let forgotPassword = async (body) => {
     }
 
     let authToken = md5(Date.now() + user.phone);
-    let otp = Date.now().toString().slice(-6);
+    let otp = Date.now().toString().slice(process.env.OTP_LENGTH);
     let authRecord = {
         userid: user.id,
         token: authToken,
