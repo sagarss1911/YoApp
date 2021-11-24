@@ -45,8 +45,9 @@ let signup = async (body) => {
         let _customer;
         let customer = await UserModel.create(createData);
         _customer = customer.toJSON();
-        let authToken = md5(Date.now() + _customer.phone);
-        let otp = Date.now().toString().slice(process.env.OTP_LENGTH);
+        let authToken = await generateAuthToken(_customer.phone);
+        let otp = await generateOTP();
+
         let authRecord = {
             userid: _customer.id,
             token: authToken,
@@ -74,8 +75,8 @@ let resendOTP = async (userid) => {
         throw new BadRequestError('User Not Found With Provided Token');
     }
     let user = await UserModel.findOne({ where: { id: userid }, attributes: ['id', 'region', 'phone'], raw: true })
-    let authToken = md5(Date.now() + user.phone);
-    let otp = Date.now().toString().slice(process.env.OTP_LENGTH);
+    let authToken = await generateAuthToken(_customer.phone);
+    let otp = await generateOTP();
     let authRecord = {
         userid: user.id,
         token: authToken,
@@ -126,10 +127,10 @@ let phoneSignIn = async (body) => {
 
     let user = await UserModel
         .findOne({ where: findData, attributes: ['id', 'phone'], raw: true });
-    if(!user){
+    if (!user) {
         throw new BadRequestError("Invalid Credentials");
-    }    
-    let authToken = md5(Date.now() + user.phone);
+    }
+    let authToken = await generateAuthToken(_customer.phone);
     let authRecord = {
         userid: user.id,
         token: authToken
@@ -162,8 +163,8 @@ let phoneSignInWithOTP = async (body) => {
         throw new BadRequestError("User Not Found");
     }
 
-    let authToken = md5(Date.now() + user.phone);
-    let otp = Date.now().toString().slice(process.env.OTP_LENGTH);
+    let authToken = await generateAuthToken(_customer.phone);
+    let otp = await generateOTP();
     let authRecord = {
         userid: user.id,
         token: authToken,
@@ -187,24 +188,19 @@ let forgotPassword = async (body) => {
         throw new BadRequestError("Region is required");
     }
 
-
-  //  let country = await CountryModel.findOne({ where: { iso_code_2: body.region }, raw: true })
     let findData = {}
     findData["$or"] = [
         { phone: { $eq: body.phone } },
         { email: { $eq: body.phone } }
     ]
-    // findData["$and"] = [
-    //     { region: { $eq: body.region } }
-    // ]
     let user = await UserModel
         .findOne({ where: findData, attributes: ['id', 'phone', 'email'], raw: true });
     if (!user) {
         throw new BadRequestError("User Not Found");
     }
 
-    let authToken = md5(Date.now() + user.phone);
-    let otp = Date.now().toString().slice(process.env.OTP_LENGTH);
+    let authToken = await generateAuthToken(_customer.phone);
+    let otp = await generateOTP();
     let authRecord = {
         userid: user.id,
         token: authToken,
@@ -212,8 +208,8 @@ let forgotPassword = async (body) => {
     }
     await UserAuthModel.destroy({ where: { userid: user.id } });
     await UserAuthModel.create(authRecord);
-    await SEND_EMAIL.SendPasswordReesetOTP(user.email, otp);    
-    
+    await SEND_EMAIL.SendPasswordReesetOTP(user.email, otp);
+
     return { token: authToken }
 }
 let changePassword = async (userid, body) => {
@@ -250,9 +246,15 @@ let signout = async (userid) => {
 
 let countryList = async () => {
     let Country = await CountryModel.findAll({ order: [['name', 'ASC']], raw: true })
-    Country = Country.map((country) => {country.flag = process.env.BASE_URL + process.env.FLAG_PATH +  country.iso_code_2.toLowerCase() + ".png"; return country})
+    Country = Country.map((country) => { country.flag = process.env.BASE_URL + process.env.FLAG_PATH + country.iso_code_2.toLowerCase() + ".png"; return country })
     return Country;
-    
+
+}
+let generateAuthToken = async (phone) => {
+    return md5(Date.now() + phone);
+}
+let generateOTP = async () => {
+    return Date.now().toString().slice(process.env.OTP_LENGTH);
 }
 
 module.exports = {
@@ -264,5 +266,8 @@ module.exports = {
     forgotPassword: forgotPassword,
     phoneSignInWithOTP: phoneSignInWithOTP,
     verifyOTP: verifyOTP,
-    signout: signout
+    signout: signout,
+    generateAuthToken: generateAuthToken,
+    generateOTP: generateOTP,
+
 };
