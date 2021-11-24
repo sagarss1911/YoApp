@@ -75,7 +75,7 @@ let resendOTP = async (userid) => {
         throw new BadRequestError('User Not Found With Provided Token');
     }
     let user = await UserModel.findOne({ where: { id: userid }, attributes: ['id', 'region', 'phone'], raw: true })
-    let authToken = await generateAuthToken(_customer.phone);
+    let authToken = await generateAuthToken(user.phone);
     let otp = await generateOTP();
     let authRecord = {
         userid: user.id,
@@ -130,7 +130,7 @@ let phoneSignIn = async (body) => {
     if (!user) {
         throw new BadRequestError("Invalid Credentials");
     }
-    let authToken = await generateAuthToken(_customer.phone);
+    let authToken = await generateAuthToken(user.phone);
     let authRecord = {
         userid: user.id,
         token: authToken
@@ -163,7 +163,7 @@ let phoneSignInWithOTP = async (body) => {
         throw new BadRequestError("User Not Found");
     }
 
-    let authToken = await generateAuthToken(_customer.phone);
+    let authToken = await generateAuthToken(user.phone);
     let otp = await generateOTP();
     let authRecord = {
         userid: user.id,
@@ -199,7 +199,7 @@ let forgotPassword = async (body) => {
         throw new BadRequestError("User Not Found");
     }
 
-    let authToken = await generateAuthToken(_customer.phone);
+    let authToken = await generateAuthToken(user.phone);
     let otp = await generateOTP();
     let authRecord = {
         userid: user.id,
