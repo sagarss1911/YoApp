@@ -2,7 +2,7 @@ const sgMail = require('@sendgrid/mail');
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 
-let SendPasswordReesetOTP = async (to,otp) => {
+let SendPasswordResetOTP = async (to,otp) => {
 let html = "OTP is " + otp;
     let msg = {
         to: to,
@@ -20,5 +20,5 @@ let html = "OTP is " + otp;
 }
 
 module.exports = {  
-    SendPasswordReesetOTP:SendPasswordReesetOTP
+    SendPasswordResetOTP:SendPasswordResetOTP
 }

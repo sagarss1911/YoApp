@@ -184,9 +184,9 @@ let forgotPassword = async (body) => {
     if (helper.undefinedOrNull(body.phone)) {
         throw new BadRequestError("phone/email is required");
     }
-    if (helper.undefinedOrNull(body.region)) {
-        throw new BadRequestError("Region is required");
-    }
+    // if (helper.undefinedOrNull(body.region)) {
+    //     throw new BadRequestError("Region is required");
+    // }
 
     let findData = {}
     findData["$or"] = [
@@ -194,11 +194,11 @@ let forgotPassword = async (body) => {
         { email: { $eq: body.phone } }
     ]
     let user = await UserModel
-        .findOne({ where: findData, attributes: ['id', 'phone', 'email'], raw: true });
+        .findOne({ where: findData, attributes: ['id', 'phone', 'email','region'], raw: true });
     if (!user) {
         throw new BadRequestError("User Not Found");
     }
-
+    let country = await CountryModel.findOne({ where: { iso_code_2: user.region }, raw: true })
     let authToken = await generateAuthToken(user.phone);
     let otp = await generateOTP();
     let authRecord = {
@@ -208,8 +208,12 @@ let forgotPassword = async (body) => {
     }
     await UserAuthModel.destroy({ where: { userid: user.id } });
     await UserAuthModel.create(authRecord);
-    await SEND_EMAIL.SendPasswordReesetOTP(user.email, otp);
-
+    if(user.email){
+    await SEND_EMAIL.SendPasswordResetOTP(user.email, otp);
+    }
+    if(user.phone){
+    await SEND_SMS.sms(otp, "+" + country.isd_code + user.phone);
+    }
     return { token: authToken }
 }
 let changePassword = async (userid, body) => {
