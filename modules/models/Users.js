@@ -21,16 +21,16 @@ const UsersModal = sequelize_mysql.define("users",
         phone: {
             type: Sequelize.STRING,            
         },       
-        fb_token: {
+        facebook_id: {
             type: Sequelize.STRING,            
         },       
-        tw_token: {
+        twitter_id: {
             type: Sequelize.STRING,            
         },       
-        li_token: {
+        linkedin_id: {
             type: Sequelize.STRING,            
         },       
-        gp_token: {
+        gmail_id: {
             type: Sequelize.STRING,            
         },       
         region: {

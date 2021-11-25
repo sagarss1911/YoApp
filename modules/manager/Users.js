@@ -261,6 +261,51 @@ let generateOTP = async () => {
     return Date.now().toString().slice(process.env.OTP_LENGTH);
 }
 
+let loginWithSocial = async (body) => {
+    if (helper.undefinedOrNull(body)) {
+        throw new BadRequestError('Request body comes empty');
+    }
+    if (helper.undefinedOrNull(body.social_id)) {
+        throw new BadRequestError('Social ID comes empty');
+    }
+    if (helper.undefinedOrNull(body.type)) {
+        throw new BadRequestError('type comes empty');
+    }
+    let findData = {}
+    if(body.type == 1){
+        findData = {gmail_id:body.social_id};
+    }else if(body.type == 2){
+        findData = {twitter_id:body.social_id};
+    }else if(body.type == 3){
+        findData = {facebook_id:body.social_id};
+    }else if(body.type == 4){
+        findData = {linkedin_id:body.social_id};
+    }
+
+    let user = await UserModel
+    .findOne({ where: findData, attributes: ['id', 'phone', 'email','region'], raw: true });
+    if (!user) {        
+        let user = await UserModel.create(findData);    
+        let authToken = await generateAuthToken(user.phone);
+        let authRecord = {
+            userid: user.id,
+            token: authToken
+        }
+        await UserAuthModel.destroy({ where: { userid: user.id } });
+        await UserAuthModel.create(authRecord);
+        return { token: authToken }
+    }else{
+        let authToken = await generateAuthToken(user.phone);
+        let authRecord = {
+            userid: user.id,
+            token: authToken
+        }
+        await UserAuthModel.destroy({ where: { userid: user.id } });
+        await UserAuthModel.create(authRecord);
+        return { token: authToken }
+    }
+
+}
 module.exports = {
     countryList: countryList,
     signup: signup,
@@ -273,5 +318,6 @@ module.exports = {
     signout: signout,
     generateAuthToken: generateAuthToken,
     generateOTP: generateOTP,
+    loginWithSocial:loginWithSocial
 
 };
