@@ -13,6 +13,7 @@ router.post("/phone_sign_in", controller.phoneSignIn);
 router.post("/phone_sign_in_with_otp", controller.phoneSignInWithOTP);
 router.post("/forgot_password", controller.forgotPassword);
 router.post("/change_password", validateAccess.isValidUser, controller.changePassword);
+router.post("/login_with_social", controller.loginWithSocial);
 router.post("/signout", validateAccess.isValidUser, controller.signout);
 
 

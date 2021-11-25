@@ -421,7 +421,7 @@ let phoneSignInWithOTP = (req, res, next) => {
  *             properties:
  *               phone:
  *                 type: string 
- *                 example: 9377690348
+ *                 example: test@gmail.com
  *                 paramType: body 
  *     responses:
  *       200:
@@ -529,7 +529,70 @@ let changePassword = (req, res, next) => {
         .catch(next);
 }
 
-
+/**
+ * @swagger
+ * /api/v1/user/login_with_social:
+ *   post:
+ *     summary: login_with_social.
+ *     tags:
+ *      - signup
+ *     parameters :
+ *     - name: x-auth-api-key
+ *       in: header   
+ *       description: an authorization header
+ *       required: true
+ *       type: string 
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               social_id:
+ *                 type: string 
+ *                 example: 11223445748412
+ *                 paramType: body 
+ *               type:
+ *                 type: integer 
+ *                 example: 1
+ *                 description: 1=gmail,2=twitter,3=facebook,4=linkedin
+ *                 paramType: body 
+ *     responses:
+ *       200:
+ *         description: user object
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: object
+ *       400:
+ *         description: error in request processing
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 status:
+ *                   type: integer
+ *                   example: 400
+*/
+let loginWithSocial = (req, res, next) => {
+    return usersManager
+        .loginWithSocial(req.body)
+        .then(data => {
+            let result = {
+                status: 200,
+                data: data
+            }
+            return res.json(result);
+        })
+        .catch(next);
+}
 /**
  * @swagger
  * /api/v1/user/signout:
@@ -595,6 +658,7 @@ module.exports = {
     phoneSignIn: phoneSignIn,
     changePassword: changePassword,
     phoneSignInWithOTP: phoneSignInWithOTP,
+    loginWithSocial:loginWithSocial,
     forgotPassword: forgotPassword,
     verifyOTP: verifyOTP
 };
