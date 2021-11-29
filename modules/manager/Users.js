@@ -48,8 +48,7 @@ let signup = async (body) => {
         let authToken = await generateAuthToken(_customer.phone);
         let otp = await generateOTP();
 
-        let authRecord = {
-            userid: _customer.id,
+        let authRecord = {            
             token: authToken,
             otp: otp
         }
