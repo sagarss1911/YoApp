@@ -48,7 +48,8 @@ let signup = async (body) => {
         let authToken = await generateAuthToken(_customer.phone);
         let otp = await generateOTP();
 
-        let authRecord = {            
+        let authRecord = {
+            userid: _customer.id,      
             token: authToken,
             otp: otp
         }
@@ -56,6 +57,7 @@ let signup = async (body) => {
         await UserAuthModel.create(authRecord);
         let country = await CountryModel.findOne({ where: { iso_code_2: _customer.region }, raw: true })
         await SEND_SMS.sms(otp, "+" + country.isd_code + _customer.phone);
+        delete authRecord.userid;
         return authRecord;
     } catch (error) {
         if (error && error.errors && error.errors[0] && error.errors[0].message && error.errors[0].message.indexOf("unique") != -1) {
