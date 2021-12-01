@@ -58,6 +58,103 @@ let countryList = (req, res, next) => {
 
 /**
  * @swagger
+ * /api/v1/user/send_otp_for_registration:
+ *   post:
+ *     summary: register.
+ *     tags:
+ *      - signup
+ *     parameters :
+ *     - name: x-auth-api-key
+ *       in: header   
+ *       description: an authorization header
+ *       required: true
+ *       type: string 
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               phone:
+ *                 type: string
+ *                 example: 9377690348
+ *                 paramType: body
+ *               name:
+ *                 type: string
+ *                 example: johm Smith
+ *                 paramType: body
+ *               email:
+ *                 type: string
+ *                 example: test@gmail.com
+ *                 paramType: body
+ *               region:
+ *                 type: string
+ *                 example: IN
+ *                 paramType: body
+ *               password:
+ *                 type: string
+ *                 example: aavvcc
+ *                 paramType: body  
+ *               gender:
+ *                 type: integer
+ *                 example: 1
+ *                 description: 1=male,2=female,3=other
+ *                 paramType: body 
+ *               termscondition:
+ *                 type: integer
+ *                 example: 1
+ *                 description: 0=not agree, 1=agreed
+ *               latitude:
+ *                 type: string
+ *                 example: 11.25
+ *                 paramType: body 
+ *               longitude:
+ *                 type: string
+ *                 example: 12.256
+ *                 paramType: body
+ *               notification_token:
+ *                 type: string
+ *                 example: asdghfasdftASawaew2652ASads
+ *                 paramType: body 
+ *     responses:
+ *       200:
+ *         description: user object
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: object
+ *       400:
+ *         description: error in request processing
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 status:
+ *                   type: integer
+ *                   example: 400
+*/
+let sendOtpForRegistration = (req, res, next) => {
+    return usersManager
+        .sendOtpForRegistration(req.body)
+        .then(data => {
+            let result = {
+                status: 200,
+                data: data
+            }
+            return res.json(result);
+        })
+        .catch(next);
+}
+
+/**
+ * @swagger
  * /api/v1/user/register:
  *   post:
  *     summary: register.
@@ -100,6 +197,11 @@ let countryList = (req, res, next) => {
  *                 type: integer
  *                 example: 1
  *                 description: 1=male,2=female,3=other
+ *                 paramType: body 
+ *               termscondition:
+ *                 type: integer
+ *                 example: 1
+ *                 description: 0=not agree, 1=agreed
  *                 paramType: body 
  *               latitude:
  *                 type: string
@@ -652,6 +754,7 @@ let signout = (req, res, next) => {
 
 module.exports = {
     countryList: countryList,
+    sendOtpForRegistration:sendOtpForRegistration,
     signup: signup,
     resendOTP: resendOTP,
     signout: signout,

@@ -69,6 +69,26 @@ const UsersModal = sequelize_mysql.define("users",
             type: Sequelize.DATE,          
             defaultValue: ()=>new Date()
         },
+        isVerified: {
+            type: Sequelize.INTEGER,           
+            defaultValue: 0
+        },
+        isSound: {
+            type: Sequelize.INTEGER,           
+            defaultValue: 0
+        },
+        isVibration: {
+            type: Sequelize.INTEGER,           
+            defaultValue: 0
+        },
+        isNotification: {
+            type: Sequelize.INTEGER,           
+            defaultValue: 0
+        },
+        isTermsConditionAccepted: {
+            type: Sequelize.INTEGER,           
+            defaultValue: 0
+        },
     },
     {
         freezeTableName: true,

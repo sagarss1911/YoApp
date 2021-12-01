@@ -10,6 +10,48 @@ let helper = require("../helpers/helpers"),
     UserAuthModel = require("../models/Users_auth"),
     BadRequestError = require('../errors/badRequestError');
 
+let sendOtpForRegistration = async (body) => {
+
+    if (helper.undefinedOrNull(body)) {
+        throw new BadRequestError('Request body comes empty');
+    }
+    ['name', 'email', 'phone', 'region', 'password', 'gender'].forEach(x => {
+        if (!body[x]) {
+            throw new BadRequestError(x + " is required");
+        }
+    });
+    let findData = {}
+    findData["$or"] = [
+        { phone: { $eq: body.phone } },
+        { email: { $eq: body.email } }
+    ]
+    let user = await UserModel
+        .findOne({ where: findData, attributes: ['id', 'phone'] });
+    
+    if (user) {
+        throw new BadRequestError("User already exit. Please signin");
+    }
+
+    try {
+        let otp = await generateOTP();
+        let authRecord = {
+            otp: otp
+        }
+        let country = await CountryModel.findOne({ where: { iso_code_2: body.region }, raw: true })
+    
+       await SEND_SMS.sms(otp, "+" + country.isd_code + body.phone);
+    
+        return authRecord;
+    } catch (error) {
+        if (error && error.errors && error.errors[0] && error.errors[0].message && error.errors[0].message.indexOf("unique") != -1) {
+            let uniqueText = error.errors[0].path == "email" ? "email" : "mobile number"
+            throw new BadRequestError('The ' + uniqueText + ' is already registered, please use login option or use alternate ' + uniqueText + ' to sign up');
+        } else {
+            throw new BadRequestError(error);
+        };
+    }
+
+}
 let signup = async (body) => {
 
     if (helper.undefinedOrNull(body)) {
@@ -38,6 +80,8 @@ let signup = async (body) => {
         region: body.region,
         password: md5(body.password),
         gender: body.gender,
+        isVerified:1,
+        isTermsConditionAccepted:body.termscondition
 
     }
 
@@ -46,17 +90,12 @@ let signup = async (body) => {
         let customer = await UserModel.create(createData);
         _customer = customer.toJSON();
         let authToken = await generateAuthToken(_customer.phone);
-        let otp = await generateOTP();
-
         let authRecord = {
-            userid: _customer.id,      
-            token: authToken,
-            otp: otp
+            userid: _customer.id,
+            token: authToken,        
         }
         await UserAuthModel.destroy({ where: { userid: _customer.id } });
-        await UserAuthModel.create(authRecord);
-        let country = await CountryModel.findOne({ where: { iso_code_2: _customer.region }, raw: true })
-        await SEND_SMS.sms(otp, "+" + country.isd_code + _customer.phone);
+        await UserAuthModel.create(authRecord);                
         delete authRecord.userid;
         return authRecord;
     } catch (error) {
@@ -195,7 +234,7 @@ let forgotPassword = async (body) => {
         { email: { $eq: body.phone } }
     ]
     let user = await UserModel
-        .findOne({ where: findData, attributes: ['id', 'phone', 'email','region'], raw: true });
+        .findOne({ where: findData, attributes: ['id', 'phone', 'email', 'region'], raw: true });
     if (!user) {
         throw new BadRequestError("User Not Found");
     }
@@ -209,11 +248,11 @@ let forgotPassword = async (body) => {
     }
     await UserAuthModel.destroy({ where: { userid: user.id } });
     await UserAuthModel.create(authRecord);
-    if(user.email){
-    await SEND_EMAIL.SendPasswordResetOTP(user.email, otp);
+    if (user.email) {
+        await SEND_EMAIL.SendPasswordResetOTP(user.email, otp);
     }
-    if(user.phone){
-    await SEND_SMS.sms(otp, "+" + country.isd_code + user.phone);
+    if (user.phone) {
+        await SEND_SMS.sms(otp, "+" + country.isd_code + user.phone);
     }
     return { token: authToken }
 }
@@ -273,20 +312,20 @@ let loginWithSocial = async (body) => {
         throw new BadRequestError('type comes empty');
     }
     let findData = {}
-    if(body.type == 1){
-        findData = {gmail_id:body.social_id};
-    }else if(body.type == 2){
-        findData = {twitter_id:body.social_id};
-    }else if(body.type == 3){
-        findData = {facebook_id:body.social_id};
-    }else if(body.type == 4){
-        findData = {linkedin_id:body.social_id};
+    if (body.type == 1) {
+        findData = { gmail_id: body.social_id };
+    } else if (body.type == 2) {
+        findData = { twitter_id: body.social_id };
+    } else if (body.type == 3) {
+        findData = { facebook_id: body.social_id };
+    } else if (body.type == 4) {
+        findData = { linkedin_id: body.social_id };
     }
 
     let user = await UserModel
-    .findOne({ where: findData, attributes: ['id', 'phone', 'email','region'], raw: true });
-    if (!user) {        
-        let user = await UserModel.create(findData);    
+        .findOne({ where: findData, attributes: ['id', 'phone', 'email', 'region'], raw: true });
+    if (!user) {
+        let user = await UserModel.create(findData);
         let authToken = await generateAuthToken(user.phone);
         let authRecord = {
             userid: user.id,
@@ -295,7 +334,7 @@ let loginWithSocial = async (body) => {
         await UserAuthModel.destroy({ where: { userid: user.id } });
         await UserAuthModel.create(authRecord);
         return { token: authToken }
-    }else{
+    } else {
         let authToken = await generateAuthToken(user.phone);
         let authRecord = {
             userid: user.id,
@@ -310,6 +349,7 @@ let loginWithSocial = async (body) => {
 module.exports = {
     countryList: countryList,
     signup: signup,
+    sendOtpForRegistration: sendOtpForRegistration,
     resendOTP: resendOTP,
     changePassword: changePassword,
     phoneSignIn: phoneSignIn,
@@ -319,6 +359,6 @@ module.exports = {
     signout: signout,
     generateAuthToken: generateAuthToken,
     generateOTP: generateOTP,
-    loginWithSocial:loginWithSocial
+    loginWithSocial: loginWithSocial
 
 };
