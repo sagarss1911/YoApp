@@ -1,8 +1,15 @@
-let axios = require('axios');
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
+const client = require('twilio')(accountSid, authToken);
 let sms = async (message, phone) => {   
-  var msgbody  ="Thanks for using YoApp! Your OTP is "+message+". Please do not share your OTP with anyone else. Have a great day."
-  let url = process.env.OTP_BASE_URL +"&username="+process.env.OTP_USERNAME+"&password="+process.env.OTP_PASSWORD+"&recipient="+phone+"&messagetype="+process.env.OTP_MESSAGETYPE+"&messagedata="+msgbody
-  return await axios.get(url);
+  let msgbody  ="Thanks for using YoApp! Your OTP is "+message+". Please do not share your OTP with anyone else. Have a great day."
+  let sentmessage = await client.messages 
+      .create({ 
+         body: msgbody,  
+         messagingServiceSid: process.env.MESSAGE_SERVICE_SID,      
+         to: phone 
+       });
+  return sentmessage.sid
 };
 
 module.exports = {
