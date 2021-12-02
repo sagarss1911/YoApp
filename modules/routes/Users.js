@@ -3,6 +3,7 @@
 let express = require("express"),
     router = express.Router(),
     controller = require("../controllers/Users"),
+    fileUploadHelper  = require("../helpers/file_upload"),
     validateAccess = require('../policies/Validate_request_access');
 
 router.get("/country_list", controller.countryList);
@@ -15,6 +16,13 @@ router.post("/phone_sign_in_with_otp", controller.phoneSignInWithOTP);
 router.post("/forgot_password", controller.forgotPassword);
 router.post("/change_password", validateAccess.isValidUser, controller.changePassword);
 router.post("/login_with_social", controller.loginWithSocial);
+router.get("/get_profile",validateAccess.isValidUser, controller.getProfile);
+router.post("/update_profile",validateAccess.isValidUser,fileUploadHelper.uploadUserProfileImage.fields([{ name: 'profileimage'}]), controller.updateProfile);
+router.post("/update_username",validateAccess.isValidUser, controller.updateUsername);
+router.post("/update_email",validateAccess.isValidUser, controller.updateEmail);
+router.post("/update_password",validateAccess.isValidUser, controller.updatePassword);
+router.post("/update_phone",validateAccess.isValidUser, controller.updatePhone);
+router.get("/get_terms_condition", controller.getTermsCondition);
 router.post("/signout", validateAccess.isValidUser, controller.signout);
 
 

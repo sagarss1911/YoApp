@@ -15,9 +15,9 @@ const mime_type = {
 	"image/gif": "gif",
 };
 
-let uploadUserImages = multer({
+let uploadUserProfileImage = multer({
 	storage: multer.diskStorage({
-		destination: function (req, file, callback) {
+		destination: function (req, file, callback) {			
 			callback(null, config.upload_folder + config.upload_entities.user_images);
 		},
 		filename: function (req, file, callback) {
@@ -28,5 +28,5 @@ let uploadUserImages = multer({
 });
 	
 module.exports = {
-	uploadUserImages: uploadUserImages
+	uploadUserProfileImage: uploadUserProfileImage
 };

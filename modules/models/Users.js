@@ -10,9 +10,12 @@ const UsersModal = sequelize_mysql.define("users",
             primaryKey: true
         },
         user_unique_id: {
-            type: Sequelize.INTEGER
+            type: Sequelize.STRING
         },
         name: {
+            type: Sequelize.STRING
+        },
+        username: {
             type: Sequelize.STRING
         },
         email: {
@@ -32,6 +35,9 @@ const UsersModal = sequelize_mysql.define("users",
         },       
         gmail_id: {
             type: Sequelize.STRING,            
+        },
+        profileimage: {
+            type: Sequelize.STRING
         },       
         region: {
             type: Sequelize.STRING,            

@@ -12,7 +12,7 @@ let usersManager = require('../manager/Users');
  *   get:
  *     summary: fetch all country.
  *     tags:
- *      - country
+ *      - Country List
  *     parameters :
  *     - name: x-auth-api-key
  *       in: header   
@@ -62,7 +62,7 @@ let countryList = (req, res, next) => {
  *   post:
  *     summary: register.
  *     tags:
- *      - signup
+ *      - Login/Register
  *     parameters :
  *     - name: x-auth-api-key
  *       in: header   
@@ -83,6 +83,10 @@ let countryList = (req, res, next) => {
  *               name:
  *                 type: string
  *                 example: johm Smith
+ *                 paramType: body
+ *               username:
+ *                 type: string
+ *                 example: ABC
  *                 paramType: body
  *               email:
  *                 type: string
@@ -159,7 +163,7 @@ let sendOtpForRegistration = (req, res, next) => {
  *   post:
  *     summary: register.
  *     tags:
- *      - signup
+ *      - Login/Register
  *     parameters :
  *     - name: x-auth-api-key
  *       in: header   
@@ -180,6 +184,10 @@ let sendOtpForRegistration = (req, res, next) => {
  *               name:
  *                 type: string
  *                 example: johm Smith
+ *                 paramType: body
+ *               username:
+ *                 type: string
+ *                 example: ABC
  *                 paramType: body
  *               email:
  *                 type: string
@@ -256,7 +264,7 @@ let signup = (req, res, next) => {
  *   post:
  *     summary: resendOTP.
  *     tags:
- *      - signup
+ *      - Login/Register
  *     parameters :
  *     - name: x-auth-api-key
  *       in: header   
@@ -312,7 +320,7 @@ let resendOTP = (req, res, next) => {
  *   post:
  *     summary: verify_otp.
  *     tags:
- *      - signup
+ *      - Login/Register
  *     parameters :
  *     - name: x-auth-api-key
  *       in: header   
@@ -379,7 +387,7 @@ let verifyOTP = (req, res, next) => {
  *   post:
  *     summary: phone_sign_in.
  *     tags:
- *      - signup
+ *      - Login/Register
  *     parameters :
  *     - name: x-auth-api-key
  *       in: header   
@@ -443,7 +451,7 @@ let phoneSignIn = (req, res, next) => {
  *   post:
  *     summary: phone_sign_in_with_otp.
  *     tags:
- *      - signup
+ *      - Login/Register
  *     parameters :
  *     - name: x-auth-api-key
  *       in: header   
@@ -507,7 +515,7 @@ let phoneSignInWithOTP = (req, res, next) => {
  *   post:
  *     summary: forgot_password.
  *     tags:
- *      - signup
+ *      - Login/Register
  *     parameters :
  *     - name: x-auth-api-key
  *       in: header   
@@ -567,7 +575,7 @@ let forgotPassword = (req, res, next) => {
  *   post:
  *     summary: change_password.
  *     tags:
- *      - signup
+ *      - Login/Register
  *     parameters :
  *     - name: x-auth-api-key
  *       in: header   
@@ -637,7 +645,7 @@ let changePassword = (req, res, next) => {
  *   post:
  *     summary: login_with_social.
  *     tags:
- *      - signup
+ *      - Login/Register
  *     parameters :
  *     - name: x-auth-api-key
  *       in: header   
@@ -695,13 +703,460 @@ let loginWithSocial = (req, res, next) => {
         })
         .catch(next);
 }
+
+
+/**
+ * @swagger
+ * /api/v1/user/get_profile:
+ *   get:
+ *     summary: get_profile.
+ *     tags:
+ *      - Profile
+ *     parameters :
+ *     - name: x-auth-api-key
+ *       in: header   
+ *       description: an authorization header
+ *       required: true
+ *       type: string 
+ *     - name: x-auth-token
+ *       in: header   
+ *       description: an authorization header
+ *       required: true
+ *       type: string 
+ *     responses:
+ *       200:
+ *         description: user object
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: object
+ *       400:
+ *         description: error in request processing
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 status:
+ *                   type: integer
+ *                   example: 400
+*/
+let getProfile = (req, res, next) => {
+    let userid = req.user ? req.user.userId : null;
+
+    return usersManager
+        .getProfile(userid)
+        .then(data => {
+            let result = {
+                status: 200,
+                data: data
+            }
+            return res.json(result);
+        })
+        .catch(next);
+}
+/**
+ * @swagger
+ * /api/v1/user/update_profile:
+ *   post:
+ *     summary: update_profile.
+ *     tags:
+ *      - Profile
+ *     parameters :
+ *     - name: x-auth-api-key
+ *       in: header   
+ *       description: an authorization header
+ *       required: true
+ *       type: string 
+ *     - name: x-auth-token
+ *       in: header   
+ *       description: an authorization header
+ *       required: true
+ *       type: string 
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties: 
+ *               profileimage:
+ *                 type: file 
+ *                 paramType: body 
+ *               name:
+ *                 type: string
+ *                 example: johm Smith
+ *                 paramType: body
+ *               gender:
+ *                 type: integer
+ *                 example: 1
+ *                 description: 1=male,2=female,3=other
+ *                 paramType: body
+ *               latitude:
+ *                 type: string
+ *                 example: 11.25
+ *                 paramType: body 
+ *               longitude:
+ *                 type: string
+ *                 example: 12.256
+ *                 paramType: body
+ *               notification_token:
+ *                 type: string
+ *                 example: asdghfasdftASawaew2652ASads
+ *                 paramType: body  
+ *               isSound:
+ *                 type: integer
+ *                 example: 1
+ *                 description: 1=on,0=off
+ *                 paramType: body 
+ *               isVibration:
+ *                 type: integer
+ *                 example: 1
+ *                 description: 1=on,0=off
+ *                 paramType: body
+ *               isNotification:
+ *                 type: integer
+ *                 example: 1
+ *                 description: 1=on,0=off
+ *                 paramType: body 
+ *               isTermsConditionAccepted:
+ *                 type: integer
+ *                 example: 1
+ *                 description: 1=on,0=off
+ *                 paramType: body 
+ *     responses:
+ *       200:
+ *         description: user object
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: object
+ *       400:
+ *         description: error in request processing
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 status:
+ *                   type: integer
+ *                   example: 400
+*/
+let updateProfile = (req, res, next) => {
+    let userid = req.user ? req.user.userId : null;
+
+    return usersManager
+        .updateProfile(userid, req)
+        .then(data => {
+            let result = {
+                status: 200,
+                data: data
+            }
+            return res.json(result);
+        })
+        .catch(next);
+}
+
+/**
+ * @swagger
+ * /api/v1/user/update_username:
+ *   post:
+ *     summary: update_username.
+ *     tags:
+ *      - Profile
+ *     parameters :
+ *     - name: x-auth-api-key
+ *       in: header   
+ *       description: an authorization header
+ *       required: true
+ *       type: string 
+ *     - name: x-auth-token
+ *       in: header   
+ *       description: an authorization header
+ *       required: true
+ *       type: string 
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties: 
+ *               username:
+ *                 type: string
+ *                 example: ABC
+ *                 paramType: body  
+ *     responses:
+ *       200:
+ *         description: user object
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: object
+ *       400:
+ *         description: error in request processing
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 status:
+ *                   type: integer
+ *                   example: 400
+*/
+let updateUsername = (req, res, next) => {
+    let userid = req.user ? req.user.userId : null;
+
+    return usersManager
+        .updateUsername(userid, req.body)
+        .then(data => {
+            let result = {
+                status: 200,
+                data: data
+            }
+            return res.json(result);
+        })
+        .catch(next);
+}
+/**
+ * @swagger
+ * /api/v1/user/update_email:
+ *   post:
+ *     summary: update_email.
+ *     tags:
+ *      - Profile
+ *     parameters :
+ *     - name: x-auth-api-key
+ *       in: header   
+ *       description: an authorization header
+ *       required: true
+ *       type: string 
+ *     - name: x-auth-token
+ *       in: header   
+ *       description: an authorization header
+ *       required: true
+ *       type: string 
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties: 
+ *               email:
+ *                 type: string
+ *                 example: test@gmail.com
+ *                 paramType: body
+ *               isVerified:
+ *                 type: integer
+ *                 paramType: body 
+ *     responses:
+ *       200:
+ *         description: user object
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: object
+ *       400:
+ *         description: error in request processing
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 status:
+ *                   type: integer
+ *                   example: 400
+*/
+let updateEmail = (req, res, next) => {
+    let userid = req.user ? req.user.userId : null;
+
+    return usersManager
+        .updateEmail(userid, req.body)
+        .then(data => {
+            let result = {
+                status: 200,
+                data: data
+            }
+            return res.json(result);
+        })
+        .catch(next);
+}
+/**
+ * @swagger
+ * /api/v1/user/update_phone:
+ *   post:
+ *     summary: update_phone.
+ *     tags:
+ *      - Profile
+ *     parameters :
+ *     - name: x-auth-api-key
+ *       in: header   
+ *       description: an authorization header
+ *       required: true
+ *       type: string 
+ *     - name: x-auth-token
+ *       in: header   
+ *       description: an authorization header
+ *       required: true
+ *       type: string 
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties: 
+ *               phone:
+ *                 type: string
+ *                 example: 9377690348
+ *                 paramType: body
+ *               region:
+ *                 type: string
+ *                 example: IN
+ *                 paramType: body
+ *               isVerified:
+ *                 type: integer
+ *                 example: !
+ *                 paramType: body 
+ *     responses:
+ *       200:
+ *         description: user object
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: object
+ *       400:
+ *         description: error in request processing
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 status:
+ *                   type: integer
+ *                   example: 400
+*/
+let updatePhone = (req, res, next) => {
+    let userid = req.user ? req.user.userId : null;
+
+    return usersManager
+        .updatePhone(userid, req.body)
+        .then(data => {
+            let result = {
+                status: 200,
+                data: data
+            }
+            return res.json(result);
+        })
+        .catch(next);
+}
+/**
+ * @swagger
+ * /api/v1/user/update_password:
+ *   post:
+ *     summary: update_password.
+ *     tags:
+ *      - Profile
+ *     parameters :
+ *     - name: x-auth-api-key
+ *       in: header   
+ *       description: an authorization header
+ *       required: true
+ *       type: string 
+ *     - name: x-auth-token
+ *       in: header   
+ *       description: an authorization header
+ *       required: true
+ *       type: string 
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:  
+ *               oldpassword:
+ *                 type: string
+ *                 example: 1234
+ *                 paramType: body
+ *               newpassword:
+ *                 type: string
+ *                 example: 1234
+ *                 paramType: body
+ *               confirmpassword:
+ *                 type: integer
+ *                 example: 1234
+ *                 paramType: body
+ *     responses:
+ *       200:
+ *         description: user object
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: object
+ *       400:
+ *         description: error in request processing
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 status:
+ *                   type: integer
+ *                   example: 400
+*/
+let updatePassword = (req, res, next) => {
+    let userid = req.user ? req.user.userId : null;
+
+    return usersManager
+        .updatePassword(userid, req.body)
+        .then(data => {
+            let result = {
+                status: 200,
+                data: data
+            }
+            return res.json(result);
+        })
+        .catch(next);
+}
 /**
  * @swagger
  * /api/v1/user/signout:
  *   post:
  *     summary: signout.
  *     tags:
- *      - signup
+ *      - Login/Register
  *     parameters :
  *     - name: x-auth-api-key
  *       in: header   
@@ -750,18 +1205,73 @@ let signout = (req, res, next) => {
         .catch(next);
 }
 
+/**
+ * @swagger
+ * /api/v1/user/get_terms_condition:
+ *   get:
+ *     summary: get_terms_condition.
+ *     tags:
+ *      - TermsCondition
+ *     parameters :
+ *     - name: x-auth-api-key
+ *       in: header   
+ *       description: an authorization header
+ *       required: true
+ *       type: string 
+ *     responses:
+ *       200:
+ *         description: user object
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: object
+ *       400:
+ *         description: error in request processing
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 status:
+ *                   type: integer
+ *                   example: 400
+*/
+let getTermsCondition = (req, res, next) => {
+    return usersManager
+        .getTermsCondition(req.body)
+        .then(data => {
+            let result = {
+                status: 200,
+                data: data
+            }
+            return res.json(result);
+        })
+        .catch(next);
+}
 
 
 module.exports = {
     countryList: countryList,
-    sendOtpForRegistration:sendOtpForRegistration,
+    sendOtpForRegistration: sendOtpForRegistration,
     signup: signup,
     resendOTP: resendOTP,
     signout: signout,
     phoneSignIn: phoneSignIn,
     changePassword: changePassword,
     phoneSignInWithOTP: phoneSignInWithOTP,
-    loginWithSocial:loginWithSocial,
+    loginWithSocial: loginWithSocial,
     forgotPassword: forgotPassword,
+    getTermsCondition, getTermsCondition,
+    getProfile: getProfile,
+    updateProfile: updateProfile,
+    updateUsername: updateUsername,
+    updateEmail: updateEmail,
+    updatePassword: updatePassword,
+    updatePhone: updatePhone,
     verifyOTP: verifyOTP
 };

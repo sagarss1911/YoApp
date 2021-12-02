@@ -7,7 +7,9 @@ let helper = require("../helpers/helpers"),
     SEND_EMAIL = require("../helpers/send_email"),
     CountryModel = require("../models/Country"),
     UserModel = require("../models/Users"),
+    TermsConditionModel = require("../models/TermsCondition"),
     UserAuthModel = require("../models/Users_auth"),
+    config = process.config.global_config,
     BadRequestError = require('../errors/badRequestError');
 
 let sendOtpForRegistration = async (body) => {
@@ -15,32 +17,38 @@ let sendOtpForRegistration = async (body) => {
     if (helper.undefinedOrNull(body)) {
         throw new BadRequestError('Request body comes empty');
     }
-    ['name', 'email', 'phone', 'region', 'password', 'gender'].forEach(x => {
+    ['name', 'email', 'username', 'phone', 'region', 'password', 'gender'].forEach(x => {
         if (!body[x]) {
             throw new BadRequestError(x + " is required");
         }
     });
-    let findData = {}
-    findData["$or"] = [
-        { phone: { $eq: body.phone } },
-        { email: { $eq: body.email } }
-    ]
     let user = await UserModel
-        .findOne({ where: findData, attributes: ['id', 'phone'] });
-    
-    if (user) {
-        throw new BadRequestError("User already exit. Please signin");
-    }
+        .findOne({ where: { username: body.username.trim() }, attributes: ['id', 'phone'] });
 
+    if (user) {
+        throw new BadRequestError("UserName already taken.");
+    }
+    user = await UserModel
+        .findOne({ where: { phone: body.phone.trim() }, attributes: ['id', 'phone'] });
+
+    if (user) {
+        throw new BadRequestError("Phone already taken.");
+    }
+    user = await UserModel
+        .findOne({ where: { email: body.email.trim() }, attributes: ['id', 'phone'] });
+
+    if (user) {
+        throw new BadRequestError("Email already taken.");
+    }
     try {
         let otp = await generateOTP();
         let authRecord = {
             otp: otp
         }
         let country = await CountryModel.findOne({ where: { iso_code_2: body.region }, raw: true })
-    
-       await SEND_SMS.sms(otp, "+" + country.isd_code + body.phone);
-    
+
+        await SEND_SMS.sms(otp, "+" + country.isd_code + body.phone);
+
         return authRecord;
     } catch (error) {
         if (error && error.errors && error.errors[0] && error.errors[0].message && error.errors[0].message.indexOf("unique") != -1) {
@@ -57,31 +65,45 @@ let signup = async (body) => {
     if (helper.undefinedOrNull(body)) {
         throw new BadRequestError('Request body comes empty');
     }
-    ['name', 'email', 'phone', 'region', 'password', 'gender'].forEach(x => {
+    ['name', 'email', 'phone', 'username', 'region', 'password', 'gender'].forEach(x => {
         if (!body[x]) {
             throw new BadRequestError(x + " is required");
         }
     });
-    let findData = {}
-    findData["$or"] = [
-        { phone: { $eq: body.phone } },
-        { email: { $eq: body.email } }
-    ]
+
     let user = await UserModel
-        .findOne({ where: findData, attributes: ['id', 'phone'] });
+        .findOne({ where: { username: body.username.trim() }, attributes: ['id', 'phone'] });
 
     if (user) {
-        throw new BadRequestError("User already exit. Please signin");
+        throw new BadRequestError("UserName already taken.");
     }
+    user = await UserModel
+        .findOne({ where: { phone: body.phone.trim() }, attributes: ['id', 'phone'] });
+
+    if (user) {
+        throw new BadRequestError("Phone already taken.");
+    }
+    user = await UserModel
+        .findOne({ where: { email: body.email.trim() }, attributes: ['id', 'phone'] });
+
+    if (user) {
+        throw new BadRequestError("Email already taken.");
+    }
+
     let createData = {
-        name: body.name,
-        email: body.email,
-        phone: body.phone,
-        region: body.region,
-        password: md5(body.password),
+        name: body.name.trim(),
+        email: body.email.trim(),
+        phone: body.phone.trim(),
+        region: body.region.trim(),
+        username: body.username.trim(),
+        password: md5(body.password.trim()),
         gender: body.gender,
-        isVerified:1,
-        isTermsConditionAccepted:body.termscondition
+        latitude: body.latitude,
+        longitude: body.longitude,
+        notification_token: body.notification_token,
+        isVerified: 1,
+        isTermsConditionAccepted: body.termscondition,
+        user_unique_id: Date.now().toString()
 
     }
 
@@ -92,10 +114,10 @@ let signup = async (body) => {
         let authToken = await generateAuthToken(_customer.phone);
         let authRecord = {
             userid: _customer.id,
-            token: authToken,        
+            token: authToken,
         }
         await UserAuthModel.destroy({ where: { userid: _customer.id } });
-        await UserAuthModel.create(authRecord);                
+        await UserAuthModel.create(authRecord);
         delete authRecord.userid;
         return authRecord;
     } catch (error) {
@@ -159,7 +181,8 @@ let phoneSignIn = async (body) => {
     let findData = {}
     findData["$or"] = [
         { phone: { $eq: body.phone } },
-        { email: { $eq: body.phone } }
+        { email: { $eq: body.phone } },
+        { username: { $eq: body.phone } }
     ]
     findData["$and"] = [
         { password: { $eq: md5(body.password) } }
@@ -231,7 +254,8 @@ let forgotPassword = async (body) => {
     let findData = {}
     findData["$or"] = [
         { phone: { $eq: body.phone } },
-        { email: { $eq: body.phone } }
+        { email: { $eq: body.phone } },
+        { username: { $eq: body.phone } }
     ]
     let user = await UserModel
         .findOne({ where: findData, attributes: ['id', 'phone', 'email', 'region'], raw: true });
@@ -346,6 +370,131 @@ let loginWithSocial = async (body) => {
     }
 
 }
+let getTermsCondition = async (body) => {
+    return await TermsConditionModel.findAll({ order: [['displayorder', 'ASC']], raw: true })
+}
+let getProfile = async (userid) => {
+
+    let user = await UserModel
+        .findOne({ where: { id: userid }, attributes: ['user_unique_id', 'name', 'profileimage', 'username', 'email', 'phone', 'region', 'dob', 'latitude', 'longitude', 'gender', 'isactive', 'notification_token', 'isSound', 'isVibration', 'isNotification', 'isTermsConditionAccepted'] });
+    if (user.profileimage) {
+        user.profileimage = process.env.IMG_BASEPATH + config.upload_folder + config.upload_entities.user_images + user.profileimage
+    }
+
+    return user;
+}
+let updateProfile = async (userid, req) => {
+
+    let body = req.body;
+    if (helper.undefinedOrNull(body)) {
+        throw new BadRequestError('Request body comes empty');
+    }
+    let updatedData = {}
+    let optionalFiled = ['name', 'latitude', 'longitude', 'gender', 'notification_token', 'isSound', 'isVibration', 'isNotification', 'isTermsConditionAccepted'];
+    optionalFiled.forEach(x => {
+        updatedData[x] = body[x]
+    });
+    if (req.files.profileimage && req.files.profileimage.length > 0) {
+        updatedData.profileimage = req.files.profileimage[0].filename
+    }
+    await UserModel.update(updatedData, { where: { id: userid }, raw: true });
+    return { message: "Profile Updated Successfully" };
+}
+let updateUsername = async (userid, body) => {
+    if (helper.undefinedOrNull(body)) {
+        throw new BadRequestError('Request body comes empty');
+    }
+    if (helper.undefinedOrNull(body.username)) {
+        throw new BadRequestError('Username is required');
+    }
+
+    let user = await UserModel
+        .findOne({ where: { username: body.username.trim() }, attributes: ['id'], raw: true });
+    if (user && user.id != userid) {
+        throw new BadRequestError("UserName already taken.");
+    }
+    await UserModel.update({ username: body.username.trim() }, { where: { id: userid }, raw: true });
+    return { message: "Username Updated Successfully" };
+
+}
+let updateEmail = async (userid, body) => {
+
+    if (helper.undefinedOrNull(body)) {
+        throw new BadRequestError('Request body comes empty');
+    }
+    if (helper.undefinedOrNull(body.email)) {
+        throw new BadRequestError('Email is Required');
+    }
+
+    let user = await UserModel
+        .findOne({ where: { email: body.email.trim() }, attributes: ['id'], raw: true });
+    if (user && user.id != userid) {
+        throw new BadRequestError("Email already taken.");
+    }
+    if (!body.isVerified) {
+        let otp = await generateOTP();
+        await SEND_EMAIL.SendUpdateEmailOTP(body.email.trim(), otp);
+        return { otp: otp }
+    }
+    await UserModel.update({ email: body.email.trim() }, { where: { id: userid }, raw: true });
+    return { message: "Email Updated Successfully" };
+}
+let updatePassword = async (userid, body) => {
+
+
+    if (helper.undefinedOrNull(body)) {
+        throw new BadRequestError('Request body comes empty');
+    }
+    if (helper.undefinedOrNull(body.oldpassword)) {
+        throw new BadRequestError('Old Password is required');
+    }
+    if (helper.undefinedOrNull(body.newpassword)) {
+        throw new BadRequestError('New Password is required');
+    }
+    if (helper.undefinedOrNull(body.confirmpassword)) {
+        throw new BadRequestError('Confirm Password is required');
+    }
+    if (body.newpassword != body.confirmpassword) {
+        throw new BadRequestError('New Password and Confirm Password does not match');
+    }
+    let user = await UserModel
+        .findOne({ where: { id: userid }, attributes: ['password'], raw: true });
+    if (user.password != md5(body.oldpassword)) {
+        throw new BadRequestError('Old Password does not match');
+    }
+    await UserModel.update({ password: md5(body.newpassword) }, { where: { id: userid }, raw: true });
+    return { message: "Password Updated Successfully" };
+}
+let updatePhone = async (userid, body) => {
+
+
+    if (helper.undefinedOrNull(body)) {
+        throw new BadRequestError('Request body comes empty');
+    }
+    if (helper.undefinedOrNull(body.phone)) {
+        throw new BadRequestError('Phone is required');
+    }
+    if (helper.undefinedOrNull(body.region)) {
+        throw new BadRequestError('Region is required');
+    }
+
+
+    let user = await UserModel
+        .findOne({ where: { phone: body.phone.trim(), region: body.region.trim() }, attributes: ['id'], raw: true });
+    if (user && user.id != userid) {
+        throw new BadRequestError("Phone already taken.");
+    }
+    if (!body.isVerified) {
+        let otp = await generateOTP();
+        let country = await CountryModel.findOne({ where: { iso_code_2: body.region }, raw: true })
+        await SEND_SMS.sms(otp, "+" + country.isd_code + body.phone);
+        return { otp: otp }
+    }
+    await UserModel.update({ phone: body.phone.trim(), region: body.region.trim() }, { where: { id: userid }, raw: true });
+    return { message: "Phone Updated Successfully" };
+}
+
+
 module.exports = {
     countryList: countryList,
     signup: signup,
@@ -359,6 +508,12 @@ module.exports = {
     signout: signout,
     generateAuthToken: generateAuthToken,
     generateOTP: generateOTP,
-    loginWithSocial: loginWithSocial
-
+    loginWithSocial: loginWithSocial,
+    getProfile: getProfile,
+    updateProfile: updateProfile,
+    updateUsername: updateUsername,
+    updateEmail: updateEmail,
+    updatePassword: updatePassword,
+    updatePhone: updatePhone,
+    getTermsCondition: getTermsCondition
 };
