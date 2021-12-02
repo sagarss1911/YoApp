@@ -62,6 +62,7 @@ const swaggerSpec = swaggerJSDoc(docOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
  
 app.use('/public', express.static(__dirname + '/public'));
+app.use('/uploads', express.static(__dirname + '/uploads'));
 
 app.disable('x-powered-by');
 

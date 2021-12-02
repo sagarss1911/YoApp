@@ -25,7 +25,7 @@ var config = {
         host: process.env.DBHOST,
         port: process.env.DBPORT
     },
-    upload_folder: '/uploads',
+    upload_folder: 'uploads',
     upload_entities: {
         user_images : '/user_image/'
     },    
