@@ -14,5 +14,5 @@ let sms = async (message, phone) => {
 
 module.exports = {
   
-    sms             : sms
+    sms: sms
 }
