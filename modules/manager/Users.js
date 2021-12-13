@@ -10,6 +10,10 @@ let helper = require("../helpers/helpers"),
     TermsConditionModel = require("../models/TermsCondition"),
     UserAuthModel = require("../models/Users_auth"),
     config = process.config.global_config,
+    s3Helper = require('../helpers/awsS3Helper'),
+    fs = require('fs'),
+    util = require('util'),
+    unlinkFile = util.promisify(fs.unlink),
     BadRequestError = require('../errors/badRequestError');
 
 let sendOtpForRegistration = async (body) => {
@@ -394,9 +398,22 @@ let updateProfile = async (userid, req) => {
     optionalFiled.forEach(x => {
         updatedData[x] = body[x]
     });
+    let user = await UserModel
+        .findOne({ where: { id: userid }, attributes: ['id','bucketKey'], raw: true });
+
+
     if (req.files.profileimage && req.files.profileimage.length > 0) {
-        updatedData.profileimage = req.files.profileimage[0].filename
-    }
+        const result = await s3Helper.uploadFile(req.files.profileimage[0])
+        await unlinkFile(req.files.profileimage[0].path)
+        if(user.bucketKey){
+            await s3Helper.deleteFileFromBucket(user.bucketKey)
+        }
+        updatedData.profileimage = result.Location
+        updatedData.bucketKey = result.Key        
+   }
+    
+    
+
     await UserModel.update(updatedData, { where: { id: userid }, raw: true });
     return { message: "Profile Updated Successfully" };
 }

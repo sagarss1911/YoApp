@@ -38,6 +38,9 @@ const UsersModal = sequelize_mysql.define("users",
         },
         profileimage: {
             type: Sequelize.STRING
+        },
+        bucketKey: {
+            type: Sequelize.STRING
         },       
         region: {
             type: Sequelize.STRING,            
