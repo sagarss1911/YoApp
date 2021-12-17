@@ -353,6 +353,7 @@ let loginWithSocial = async (body) => {
     let user = await UserModel
         .findOne({ where: findData, attributes: ['id', 'phone', 'email', 'region'], raw: true });
     if (!user) {
+        findData["user_unique_id"]= Date.now().toString()
         let user = await UserModel.create(findData);
         let authToken = await generateAuthToken(user.phone);
         let authRecord = {

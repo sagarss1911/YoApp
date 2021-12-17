@@ -1,7 +1,7 @@
 /**
  * @swagger
  * resourcePath: /Users
- * description: All Rider Login related api
+ * description: All Login related api
  */
 'use strict';
 
@@ -888,7 +888,7 @@ let updateProfile = (req, res, next) => {
  *     requestBody:
  *       required: true
  *       content:
- *         multipart/form-data:
+ *         application/json:
  *           schema:
  *             type: object
  *             properties: 
@@ -954,7 +954,7 @@ let updateUsername = (req, res, next) => {
  *     requestBody:
  *       required: true
  *       content:
- *         multipart/form-data:
+ *         application/json:
  *           schema:
  *             type: object
  *             properties: 
@@ -1023,7 +1023,7 @@ let updateEmail = (req, res, next) => {
  *     requestBody:
  *       required: true
  *       content:
- *         multipart/form-data:
+ *         application/json:
  *           schema:
  *             type: object
  *             properties: 
@@ -1097,7 +1097,7 @@ let updatePhone = (req, res, next) => {
  *     requestBody:
  *       required: true
  *       content:
- *         multipart/form-data:
+ *         application/json:
  *           schema:
  *             type: object
  *             properties:  
@@ -1110,7 +1110,7 @@ let updatePhone = (req, res, next) => {
  *                 example: 1234
  *                 paramType: body
  *               confirmpassword:
- *                 type: integer
+ *                 type: string
  *                 example: 1234
  *                 paramType: body
  *     responses:
