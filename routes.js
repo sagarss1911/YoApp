@@ -20,6 +20,7 @@ module.exports = app => {
 
     app.use(auth.validateApiKey);
     app.use('/api/v1/user', require('./modules/routes/Users'));
+    app.use('/api/v1/friends', require('./modules/routes/Friends'));
     /**
      * Throw 404 for all other routes.
      */
