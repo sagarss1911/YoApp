@@ -20,8 +20,6 @@ console.log('Initializing Server.',new Date().toString() );
 console.log("Environment: " +process.env.NODE_ENV);
 console.log("Loading Environment Constant: " +constant);
 
-
-
 app.use(cors());
 app.use(i18nMiddleware.handle(i18next));
 app.use(function (req, res, next) {
