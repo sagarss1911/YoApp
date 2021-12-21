@@ -316,7 +316,7 @@ let signout = async (userid) => {
 
 
 
-let countryList = async () => {
+let countryList = async (req) => {
     let Country = await CountryModel.findAll({ order: [['name', 'ASC']], raw: true })
     Country = Country.map((country) => { country.flag = process.env.BASE_URL + process.env.FLAG_PATH + country.iso_code_2.toLowerCase() + ".png"; return country })
     return Country;
@@ -463,9 +463,7 @@ let updatePassword = async (userid, body) => {
     if (helper.undefinedOrNull(body)) {
         throw new BadRequestError('Request body comes empty');
     }
-    if (helper.undefinedOrNull(body.oldpassword)) {
-        throw new BadRequestError('Old Password is required');
-    }
+   
     if (helper.undefinedOrNull(body.newpassword)) {
         throw new BadRequestError('New Password is required');
     }
@@ -474,12 +472,7 @@ let updatePassword = async (userid, body) => {
     }
     if (body.newpassword != body.confirmpassword) {
         throw new BadRequestError('New Password and Confirm Password does not match');
-    }
-    let user = await UserModel
-        .findOne({ where: { id: userid }, attributes: ['password'], raw: true });
-    if (user.password != md5(body.oldpassword)) {
-        throw new BadRequestError('Old Password does not match');
-    }
+    }    
     await UserModel.update({ password: md5(body.newpassword) }, { where: { id: userid }, raw: true });
     return { message: "Password Updated Successfully" };
 }

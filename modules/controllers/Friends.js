@@ -161,7 +161,18 @@
   *       in: header   
   *       description: an authorization header
   *       required: true
-  *       type: string   
+  *       type: string
+  *     requestBody:
+  *       required: true
+  *       content:
+  *         application/json:
+  *           schema:
+  *             type: object
+  *             properties:
+  *               keyword:
+  *                 type: string
+  *                 example: a
+  *                 paramType: body   
   *     responses:
   *       200:
   *         description: user object
@@ -188,7 +199,7 @@
   let myFriendListWithMutualCount = (req, res, next) => {
     let userid = req.user ? req.user.userId : null;
      return friendsManager
-         .myFriendListWithMutualCount(userid)
+         .myFriendListWithMutualCount(userid,req.body)
          .then(data => {
              let result = {
                  status: 200,
@@ -215,7 +226,18 @@
   *       in: header   
   *       description: an authorization header
   *       required: true
-  *       type: string 
+  *       type: string
+  *     requestBody:
+  *       required: true
+  *       content:
+  *         application/json:
+  *           schema:
+  *             type: object
+  *             properties:
+  *               keyword:
+  *                 type: string
+  *                 example: a
+  *                 paramType: body    
   *     responses:
   *       200:
   *         description: user object
@@ -242,7 +264,7 @@
   let myBlockedFriendListWithMutualCount = (req, res, next) => {
     let userid = req.user ? req.user.userId : null;    
      return friendsManager
-         .myBlockedFriendListWithMutualCount(userid)
+         .myBlockedFriendListWithMutualCount(userid,req.body)
          .then(data => {
              let result = {
                  status: 200,
@@ -317,11 +339,76 @@
          })
          .catch(next);
  }
- 
+  /**
+  * @swagger
+  * /api/v1/friends/all_user_list:
+  *   post:
+  *     summary: friends.
+  *     tags:
+  *      - Friends
+  *     parameters :
+  *     - name: x-auth-api-key
+  *       in: header   
+  *       description: an authorization header
+  *       required: true
+  *       type: string
+  *     - name: x-auth-token
+  *       in: header   
+  *       description: an authorization header
+  *       required: true
+  *       type: string
+  *     requestBody:
+  *       required: true
+  *       content:
+  *         application/json:
+  *           schema:
+  *             type: object
+  *             properties:
+  *               keyword:
+  *                 type: string
+  *                 example: a
+  *                 paramType: body    
+  *     responses:
+  *       200:
+  *         description: user object
+  *         content:
+  *           application/json:
+  *             schema:
+  *               type: object
+  *               properties:
+  *                 data:
+  *                   type: object
+  *       400:
+  *         description: error in request processing
+  *         content:
+  *           application/json:
+  *             schema:
+  *               type: object
+  *               properties:
+  *                 message:
+  *                   type: string
+  *                 status:
+  *                   type: integer
+  *                   example: 400
+ */
+   let allUserList = (req, res, next) => {
+    let userid = req.user ? req.user.userId : null;
+     return friendsManager
+         .allUserList(userid,req.body)
+         .then(data => {
+             let result = {
+                 status: 200,
+                 data: data
+             }
+             return res.json(result);
+         })
+         .catch(next);
+ }
  module.exports = {    
     addFriend: addFriend,
     ChangeFriendRequestStatus:ChangeFriendRequestStatus,
     myFriendListWithMutualCount:myFriendListWithMutualCount,
     myBlockedFriendListWithMutualCount:myBlockedFriendListWithMutualCount,
-    unBlockFriend:unBlockFriend    
+    unBlockFriend:unBlockFriend,
+    allUserList:allUserList   
  };

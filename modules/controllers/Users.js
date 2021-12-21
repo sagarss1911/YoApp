@@ -18,6 +18,11 @@ let usersManager = require('../manager/Users');
  *       in: header   
  *       description: an authorization header
  *       required: true
+ *       type: string
+ *     - name: Accept-Language
+ *       in: header   
+ *       description: Language
+ *       required: false
  *       type: string 
  *     responses:
  *       200:
@@ -45,7 +50,7 @@ let usersManager = require('../manager/Users');
 let countryList = (req, res, next) => {
 
     return usersManager
-        .countryList()
+        .countryList(req)
         .then(data => {
             let result = {
                 status: 200,
@@ -964,6 +969,7 @@ let updateUsername = (req, res, next) => {
  *                 paramType: body
  *               isVerified:
  *                 type: integer
+ *                 example: 1 
  *                 paramType: body 
  *     responses:
  *       200:
@@ -1037,7 +1043,7 @@ let updateEmail = (req, res, next) => {
  *                 paramType: body
  *               isVerified:
  *                 type: integer
- *                 example: !
+ *                 example: 1
  *                 paramType: body 
  *     responses:
  *       200:

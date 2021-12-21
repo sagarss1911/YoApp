@@ -10,6 +10,9 @@ let express         = require('express'),
     multer          = require('multer'),
     bodyParser      = require('body-parser'),
     swaggerJSDoc    = require("swagger-jsdoc"),
+    i18next         = require('i18next'),    
+    i18nFsBackend   = require('i18next-fs-backend'),
+    i18nMiddleware = require('i18next-http-middleware'),
     swaggerUi = require("swagger-ui-express");
     
 
@@ -17,8 +20,15 @@ console.log('Initializing Server.',new Date().toString() );
 console.log("Environment: " +process.env.NODE_ENV);
 console.log("Loading Environment Constant: " +constant);
 
+i18next.use(i18nFsBackend).use(i18nMiddleware.LanguageDetector).init({
+  fallbackLng: 'en',
+  backend: {
+    loadPath: 'locales/{{lng}}/translation.json'
+  }
+});
 
 app.use(cors());
+app.use(i18nMiddleware.handle(i18next));
 app.use(function (req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE");
