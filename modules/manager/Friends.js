@@ -192,19 +192,24 @@ let ChangeFriendRequestStatus = async (userid,  body) => {
         let updateData = {
             text: "Friend Request Deleted",
             friend_one: receiver.id,
-            friend_two: sender.id,
+            friend_two: sender.id
         }
         await UpdatesModel.create(updateData);
     }
     return true
 }
-let myFriendListWithMutualCount = async (userid) => {
-    var SearchSql = "SELECT u.id,u.username,u.profileimage, ( SELECT COUNT(*)" +
+let myFriendListWithMutualCount = async (userid,body) => {
+    let SearchKeywordsQuery = "";
+    if(body.keyword)
+    {
+        SearchKeywordsQuery = "and (u.name like '%" + body.keyword + "%' or u.username like '%" + body.keyword + "%' or u.email like '%" + body.keyword + "%' or u.phone like '%" + body.keyword + "%')";
+    }
+    var SearchSql = "SELECT u.id,u.username,u.name,u.profileimage, ( SELECT COUNT(*)" +
         "from friends f1 join " +
         "friends f2 " +
         "on f1.friend_two = f2.friend_two " +
         "WHERE f1.friend_one=" + userid + " AND f2.friend_one=u.id " +
-        "group by f1.friend_one, f2.friend_one ) AS mutualfriends FROM friends f inner join users u on f.friend_two=u.id WHERE f.friend_one=" + userid + " and f.status='1'";    
+        "group by f1.friend_one, f2.friend_one ) AS mutualfriends FROM friends f inner join users u on f.friend_two=u.id WHERE f.friend_one=" + userid + " and f.status='1'" + SearchKeywordsQuery;    
     let matchingProfiles = await CustomQueryModel.query(SearchSql, {
         type: SequelizeObj.QueryTypes.SELECT,
         raw: true
@@ -216,13 +221,18 @@ let myFriendListWithMutualCount = async (userid) => {
 
     return matchingProfiles;
 }
-let myBlockedFriendListWithMutualCount = async (userid) => {
-    var SearchSql = "SELECT u.id,u.username, u.profileimage,( SELECT COUNT(*)" +
+let myBlockedFriendListWithMutualCount = async (userid,body) => {
+    let SearchKeywordsQuery = ""
+    if(body.keyword)
+    {
+        SearchKeywordsQuery = "and (u.name like '%" + body.keyword + "%' or u.username like '%" + body.keyword + "%' or u.email like '%" + body.keyword + "%' or u.phone like '%" + body.keyword + "%')";
+    }
+    var SearchSql = "SELECT u.id,u.username,u.name, u.profileimage,( SELECT COUNT(*)" +
         "from friends f1 join " +
         "friends f2 " +
         "on f1.friend_two = f2.friend_two " +
         "WHERE f1.friend_one=" + userid + " AND f2.friend_one=u.id " +
-        "group by f1.friend_one, f2.friend_one ) AS mutualfriends FROM friends f inner join users u on f.friend_two=u.id WHERE f.friend_one=" + userid + " and f.status='3'";
+        "group by f1.friend_one, f2.friend_one ) AS mutualfriends FROM friends f inner join users u on f.friend_two=u.id WHERE f.friend_one=" + userid + " and f.status='3'"+SearchKeywordsQuery;
 
     let matchingProfiles = await CustomQueryModel.query(SearchSql, {
         type: SequelizeObj.QueryTypes.SELECT,
@@ -267,12 +277,35 @@ let unBlockFriend = async (userid, unblockid) => {
     }
     await UpdatesModel.create(updateData);
     return true;
-        
 }
+let allUserList = async (userid,body) => {    
+    let SearchKeywordsQuery = ""
+    if(body.keyword)
+    {
+        SearchKeywordsQuery = " and (u.name like '%" + body.keyword + "%' or u.username like '%" + body.keyword + "%' or u.email like '%" + body.keyword + "%' or u.phone like '%" + body.keyword + "%')";
+    }
+    let SearchSql = "SELECT u.id,u.username,u.name,u.profileimage, ( SELECT COUNT(*)" +
+        "from friends f1 join " +
+        "friends f2 " +
+        "on f1.friend_two = f2.friend_two " +
+        "WHERE f1.friend_one=" + userid + " AND f2.friend_one=u.id " +
+        "group by f1.friend_one, f2.friend_one ) AS mutualfriends FROM users u WHERE u.id!=" + userid + SearchKeywordsQuery ;        
+    let matchingProfiles = await CustomQueryModel.query(SearchSql, {
+        type: SequelizeObj.QueryTypes.SELECT,
+        raw: true
+    });
+    matchingProfiles = matchingProfiles.map(function (item) {
+        item.mutualfriends = item.mutualfriends ? item.mutualfriends : 0;
+        return item;
+    });
+    return matchingProfiles;
+}
+
 module.exports = {
     addFriend: addFriend,
     ChangeFriendRequestStatus: ChangeFriendRequestStatus,
     myFriendListWithMutualCount: myFriendListWithMutualCount,
     myBlockedFriendListWithMutualCount: myBlockedFriendListWithMutualCount,
-    unBlockFriend: unBlockFriend
+    unBlockFriend: unBlockFriend,
+    allUserList:allUserList
 };
