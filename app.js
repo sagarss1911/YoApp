@@ -20,12 +20,7 @@ console.log('Initializing Server.',new Date().toString() );
 console.log("Environment: " +process.env.NODE_ENV);
 console.log("Loading Environment Constant: " +constant);
 
-i18next.use(i18nFsBackend).use(i18nMiddleware.LanguageDetector).init({
-  fallbackLng: 'en',
-  backend: {
-    loadPath: 'locales/{{lng}}/translation.json'
-  }
-});
+
 
 app.use(cors());
 app.use(i18nMiddleware.handle(i18next));
