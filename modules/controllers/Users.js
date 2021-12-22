@@ -50,7 +50,7 @@ let usersManager = require('../manager/Users');
 let countryList = (req, res, next) => {
 
     return usersManager
-        .countryList(req)
+        .countryList()
         .then(data => {
             let result = {
                 status: 200,
@@ -151,7 +151,7 @@ let countryList = (req, res, next) => {
 */
 let sendOtpForRegistration = (req, res, next) => {
     return usersManager
-        .sendOtpForRegistration(req.body)
+        .sendOtpForRegistration(req)
         .then(data => {
             let result = {
                 status: 200,

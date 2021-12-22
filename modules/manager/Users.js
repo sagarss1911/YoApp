@@ -16,14 +16,14 @@ let helper = require("../helpers/helpers"),
     unlinkFile = util.promisify(fs.unlink),
     BadRequestError = require('../errors/badRequestError');
 
-let sendOtpForRegistration = async (body) => {
-
+let sendOtpForRegistration = async (req) => {
+    let body = req.body
     if (helper.undefinedOrNull(body)) {
-        throw new BadRequestError('Request body comes empty');
+        throw new BadRequestError(req.t("body_empty"));
     }
     ['name', 'email', 'username', 'phone', 'region', 'password', 'gender'].forEach(x => {
         if (!body[x]) {
-            throw new BadRequestError(x + " is required");
+            throw new BadRequestError(req.t(x) + req.t("is_required"));
         }
     });
     let user = await UserModel
@@ -316,7 +316,7 @@ let signout = async (userid) => {
 
 
 
-let countryList = async (req) => {
+let countryList = async () => {
     let Country = await CountryModel.findAll({ order: [['name', 'ASC']], raw: true })
     Country = Country.map((country) => { country.flag = process.env.BASE_URL + process.env.FLAG_PATH + country.iso_code_2.toLowerCase() + ".png"; return country })
     return Country;
