@@ -12,6 +12,7 @@ router.post("/my_friend_list_with_mutual_count", validateAccess.isValidUser, con
 router.post("/my_blocked_friend_list_with_mutual_count", validateAccess.isValidUser, controller.myBlockedFriendListWithMutualCount);
 router.post("/unblock_friend", validateAccess.isValidUser, controller.unBlockFriend);
 router.post("/all_user_list", validateAccess.isValidUser, controller.allUserList);
+router.post("/my_incoming_friend_requests", validateAccess.isValidUser, controller.myIncomingFriendRequest);
 
 
 

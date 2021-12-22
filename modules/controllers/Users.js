@@ -50,7 +50,7 @@ let usersManager = require('../manager/Users');
 let countryList = (req, res, next) => {
 
     return usersManager
-        .countryList(req)
+        .countryList()
         .then(data => {
             let result = {
                 status: 200,
@@ -73,6 +73,11 @@ let countryList = (req, res, next) => {
  *       in: header   
  *       description: an authorization header
  *       required: true
+ *       type: string 
+ *     - name: Accept-Language
+ *       in: header   
+ *       description: Language
+ *       required: false
  *       type: string 
  *     requestBody:
  *       required: true
@@ -151,7 +156,7 @@ let countryList = (req, res, next) => {
 */
 let sendOtpForRegistration = (req, res, next) => {
     return usersManager
-        .sendOtpForRegistration(req.body)
+        .sendOtpForRegistration(req)
         .then(data => {
             let result = {
                 status: 200,
@@ -174,6 +179,11 @@ let sendOtpForRegistration = (req, res, next) => {
  *       in: header   
  *       description: an authorization header
  *       required: true
+ *       type: string 
+ *     - name: Accept-Language
+ *       in: header   
+ *       description: Language
+ *       required: false
  *       type: string 
  *     requestBody:
  *       required: true
@@ -281,6 +291,11 @@ let signup = (req, res, next) => {
  *       description: an authorization header
  *       required: true
  *       type: string 
+ *     - name: Accept-Language
+ *       in: header   
+ *       description: Language
+ *       required: false
+ *       type: string 
  *     responses:
  *       200:
  *         description: user object
@@ -337,6 +352,11 @@ let resendOTP = (req, res, next) => {
  *       description: an authorization header
  *       required: true
  *       type: string
+ *     - name: Accept-Language
+ *       in: header   
+ *       description: Language
+ *       required: false
+ *       type: string 
  *     requestBody:
  *       required: true
  *       content:
@@ -398,6 +418,11 @@ let verifyOTP = (req, res, next) => {
  *       in: header   
  *       description: an authorization header
  *       required: true
+ *       type: string 
+ *     - name: Accept-Language
+ *       in: header   
+ *       description: Language
+ *       required: false
  *       type: string 
  *     requestBody:
  *       required: true
@@ -462,7 +487,12 @@ let phoneSignIn = (req, res, next) => {
  *       in: header   
  *       description: an authorization header
  *       required: true
- *       type: string 
+ *       type: string
+ *     - name: Accept-Language
+ *       in: header   
+ *       description: Language
+ *       required: false
+ *       type: string  
  *     requestBody:
  *       required: true
  *       content:
@@ -526,6 +556,11 @@ let phoneSignInWithOTP = (req, res, next) => {
  *       in: header   
  *       description: an authorization header
  *       required: true
+ *       type: string 
+ *     - name: Accept-Language
+ *       in: header   
+ *       description: Language
+ *       required: false
  *       type: string 
  *     requestBody:
  *       required: true
@@ -592,6 +627,11 @@ let forgotPassword = (req, res, next) => {
  *       description: an authorization header
  *       required: true
  *       type: string 
+ *     - name: Accept-Language
+ *       in: header   
+ *       description: Language
+ *       required: false
+ *       type: string 
  *     requestBody:
  *       required: true
  *       content:
@@ -656,7 +696,12 @@ let changePassword = (req, res, next) => {
  *       in: header   
  *       description: an authorization header
  *       required: true
- *       type: string 
+ *       type: string
+ *     - name: Accept-Language
+ *       in: header   
+ *       description: Language
+ *       required: false
+ *       type: string  
  *     requestBody:
  *       required: true
  *       content:
@@ -728,6 +773,11 @@ let loginWithSocial = (req, res, next) => {
  *       description: an authorization header
  *       required: true
  *       type: string 
+ *     - name: Accept-Language
+ *       in: header   
+ *       description: Language
+ *       required: false
+ *       type: string 
  *     responses:
  *       200:
  *         description: user object
@@ -782,6 +832,11 @@ let getProfile = (req, res, next) => {
  *       in: header   
  *       description: an authorization header
  *       required: true
+ *       type: string 
+ *     - name: Accept-Language
+ *       in: header   
+ *       description: Language
+ *       required: false
  *       type: string 
  *     requestBody:
  *       required: true
@@ -889,6 +944,11 @@ let updateProfile = (req, res, next) => {
  *       in: header   
  *       description: an authorization header
  *       required: true
+ *       type: string
+ *     - name: Accept-Language
+ *       in: header   
+ *       description: Language
+ *       required: false
  *       type: string 
  *     requestBody:
  *       required: true
@@ -955,6 +1015,11 @@ let updateUsername = (req, res, next) => {
  *       in: header   
  *       description: an authorization header
  *       required: true
+ *       type: string 
+ *     - name: Accept-Language
+ *       in: header   
+ *       description: Language
+ *       required: false
  *       type: string 
  *     requestBody:
  *       required: true
@@ -1025,6 +1090,11 @@ let updateEmail = (req, res, next) => {
  *       in: header   
  *       description: an authorization header
  *       required: true
+ *       type: string 
+ *     - name: Accept-Language
+ *       in: header   
+ *       description: Language
+ *       required: false
  *       type: string 
  *     requestBody:
  *       required: true
@@ -1099,6 +1169,11 @@ let updatePhone = (req, res, next) => {
  *       in: header   
  *       description: an authorization header
  *       required: true
+ *       type: string
+ *     - name: Accept-Language
+ *       in: header   
+ *       description: Language
+ *       required: false
  *       type: string 
  *     requestBody:
  *       required: true
@@ -1174,6 +1249,11 @@ let updatePassword = (req, res, next) => {
  *       description: an authorization header
  *       required: true
  *       type: string 
+ *     - name: Accept-Language
+ *       in: header   
+ *       description: Language
+ *       required: false
+ *       type: string 
  *     responses:
  *       200:
  *         description: user object
@@ -1223,6 +1303,11 @@ let signout = (req, res, next) => {
  *       in: header   
  *       description: an authorization header
  *       required: true
+ *       type: string 
+ *     - name: Accept-Language
+ *       in: header   
+ *       description: Language
+ *       required: false
  *       type: string 
  *     responses:
  *       200:
