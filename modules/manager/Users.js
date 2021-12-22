@@ -381,10 +381,7 @@ let getTermsCondition = async (body) => {
 let getProfile = async (userid) => {
 
     let user = await UserModel
-        .findOne({ where: { id: userid }, attributes: ['user_unique_id', 'name', 'profileimage', 'username', 'email', 'phone', 'region', 'dob', 'latitude', 'longitude', 'gender', 'isactive', 'notification_token', 'isSound', 'isVibration', 'isNotification', 'isTermsConditionAccepted'] });
-    if (user.profileimage) {
-        user.profileimage = process.env.IMG_BASEPATH + config.upload_folder + config.upload_entities.user_images + user.profileimage
-    }
+        .findOne({ where: { id: userid }, attributes: ['user_unique_id', 'name', 'profileimage', 'username', 'email', 'phone', 'region', 'dob', 'latitude', 'longitude', 'gender', 'isactive', 'notification_token', 'isSound', 'isVibration', 'isNotification', 'isTermsConditionAccepted'] });   
 
     return user;
 }
