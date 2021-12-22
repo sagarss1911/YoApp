@@ -25,6 +25,11 @@
   *       description: an authorization header
   *       required: true
   *       type: string 
+  *     - name: Accept-Language
+  *       in: header   
+  *       description: Language
+  *       required: false
+  *       type: string 
   *     requestBody:
   *       required: true
   *       content:
@@ -92,6 +97,11 @@
   *       description: an authorization header
   *       required: true
   *       type: string 
+  *     - name: Accept-Language
+  *       in: header   
+  *       description: Language
+  *       required: false
+  *       type: string
   *     requestBody:
   *       required: true
   *       content:
@@ -162,6 +172,11 @@
   *       description: an authorization header
   *       required: true
   *       type: string
+  *     - name: Accept-Language
+  *       in: header   
+  *       description: Language
+  *       required: false
+  *       type: string
   *     requestBody:
   *       required: true
   *       content:
@@ -227,6 +242,11 @@
   *       description: an authorization header
   *       required: true
   *       type: string
+  *     - name: Accept-Language
+  *       in: header   
+  *       description: Language
+  *       required: false
+  *       type: string
   *     requestBody:
   *       required: true
   *       content:
@@ -291,6 +311,11 @@
   *       in: header   
   *       description: an authorization header
   *       required: true
+  *       type: string
+  *     - name: Accept-Language
+  *       in: header   
+  *       description: Language
+  *       required: false
   *       type: string 
   *     requestBody:
   *       required: true
@@ -356,6 +381,11 @@
   *       in: header   
   *       description: an authorization header
   *       required: true
+  *       type: string
+  *     - name: Accept-Language
+  *       in: header   
+  *       description: Language
+  *       required: false
   *       type: string
   *     requestBody:
   *       required: true
