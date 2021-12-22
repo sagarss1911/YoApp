@@ -300,12 +300,35 @@ let allUserList = async (userid,body) => {
     });
     return matchingProfiles;
 }
-
+let myIncomingFriendRequest = async (userid,body) => {
+    let SearchKeywordsQuery = ""
+    if(body.keyword)
+    {
+        SearchKeywordsQuery = "and (u.name like '%" + body.keyword + "%' or u.username like '%" + body.keyword + "%' or u.email like '%" + body.keyword + "%' or u.phone like '%" + body.keyword + "%')";
+    }
+    var SearchSql = "SELECT u.id,u.username,u.name, u.profileimage,( SELECT COUNT(*)" +
+        "from friends f1 join " +
+        "friends f2 " +
+        "on f1.friend_two = f2.friend_two " +
+        "WHERE f1.friend_one=" + userid + " AND f2.friend_one=u.id " +
+        "group by f1.friend_one, f2.friend_one ) AS mutualfriends FROM friends f inner join users u on f.friend_two=u.id WHERE f.friend_one=" + userid + " and f.status='0'"+SearchKeywordsQuery;
+    console.log(SearchSql);
+    let matchingProfiles = await CustomQueryModel.query(SearchSql, {
+        type: SequelizeObj.QueryTypes.SELECT,
+        raw: true
+    });
+    matchingProfiles = matchingProfiles.map(function (item) {
+        item.mutualfriends = item.mutualfriends ? item.mutualfriends : 0;
+        return item;
+    });
+    return matchingProfiles;
+}
 module.exports = {
     addFriend: addFriend,
     ChangeFriendRequestStatus: ChangeFriendRequestStatus,
     myFriendListWithMutualCount: myFriendListWithMutualCount,
     myBlockedFriendListWithMutualCount: myBlockedFriendListWithMutualCount,
     unBlockFriend: unBlockFriend,
-    allUserList:allUserList
+    allUserList:allUserList,
+    myIncomingFriendRequest:myIncomingFriendRequest
 };

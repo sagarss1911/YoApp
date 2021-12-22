@@ -20,8 +20,8 @@ let uploadUserProfileImage = multer({
 		destination: function (req, file, callback) {			
 			callback(null, config.upload_folder + config.upload_entities.user_images);
 		},
-		filename: function (req, file, callback) {
-			let fileName = Date.now() + Math.round(Math.random() * 10000) + '.' + mime_type[file.mimetype]
+		filename: function (req, file, callback) {			
+			let fileName = Date.now() + Math.round(Math.random() * 10000) + '.' + file.originalname.split(".")[file.originalname.split(".").length - 1]
 			callback(null, fileName);
 		}
 	})
