@@ -204,7 +204,7 @@ let myFriendListWithMutualCount = async (userid,body) => {
     {
         SearchKeywordsQuery = "and (u.name like '%" + body.keyword + "%' or u.username like '%" + body.keyword + "%' or u.email like '%" + body.keyword + "%' or u.phone like '%" + body.keyword + "%')";
     }
-    var SearchSql = "SELECT u.id,u.username,u.name,u.profileimage, ( SELECT COUNT(*)" +
+    var SearchSql = "SELECT u.id,f.friends_id,u.username,u.name,u.profileimage, ( SELECT COUNT(*)" +
         "from friends f1 join " +
         "friends f2 " +
         "on f1.friend_two = f2.friend_two " +
@@ -227,7 +227,7 @@ let myBlockedFriendListWithMutualCount = async (userid,body) => {
     {
         SearchKeywordsQuery = "and (u.name like '%" + body.keyword + "%' or u.username like '%" + body.keyword + "%' or u.email like '%" + body.keyword + "%' or u.phone like '%" + body.keyword + "%')";
     }
-    var SearchSql = "SELECT u.id,u.username,u.name, u.profileimage,( SELECT COUNT(*)" +
+    var SearchSql = "SELECT u.id,f.friends_id,u.username,u.name, u.profileimage,( SELECT COUNT(*)" +
         "from friends f1 join " +
         "friends f2 " +
         "on f1.friend_two = f2.friend_two " +
@@ -306,13 +306,13 @@ let myIncomingFriendRequest = async (userid,body) => {
     {
         SearchKeywordsQuery = "and (u.name like '%" + body.keyword + "%' or u.username like '%" + body.keyword + "%' or u.email like '%" + body.keyword + "%' or u.phone like '%" + body.keyword + "%')";
     }
-    var SearchSql = "SELECT u.id,u.username,u.name, u.profileimage,( SELECT COUNT(*)" +
+    var SearchSql = "SELECT u.id,f.friends_id,u.username,u.name, u.profileimage,( SELECT COUNT(*)" +
         "from friends f1 join " +
         "friends f2 " +
         "on f1.friend_two = f2.friend_two " +
         "WHERE f1.friend_one=" + userid + " AND f2.friend_one=u.id " +
         "group by f1.friend_one, f2.friend_one ) AS mutualfriends FROM friends f inner join users u on f.friend_two=u.id WHERE f.friend_one=" + userid + " and f.status='0'"+SearchKeywordsQuery;
-    console.log(SearchSql);
+   
     let matchingProfiles = await CustomQueryModel.query(SearchSql, {
         type: SequelizeObj.QueryTypes.SELECT,
         raw: true
