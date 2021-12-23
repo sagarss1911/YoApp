@@ -39,7 +39,7 @@
   *             properties:
   *               toId:
   *                 type: integer
-  *                 example: 1
+  *                 example: 1640110920033
   *                 paramType: body  
   *     responses:
   *       200:
@@ -116,7 +116,7 @@
   *               status:
   *                 type: integer
   *                 example: 1
-  *                 description: (0- request sent, 1 =accepted, 2=declined, 3=blocked, 4= deleted)
+  *                 description: (0- request sent, 1 =accepted, 2=declined, 3=blocked, 4= deleted,5=unblocked)
   *                 paramType: body  
   *     responses:
   *       200:

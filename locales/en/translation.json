@@ -45,7 +45,7 @@
     "rejected_friend_req":"have Rejected your Friend Request",
     "rejected_friend_req_of":"You have Rejected Friend Request of ",
     "friend_blocked_friend_req":"have Blocked your Friend Request",
-    "blocked_friend_req_of":"You have Blocked Friend Blocked of",
+    "blocked_friend_req_of":"You have Blocked Friend Request of",
     "blocked_friend_req":"Friend Request Blocked",
     "friend_deleted_friend_req" : "have Deleted your Friend Request",
     "deleted_friend_req_of": "You have Deleted Friend Request of",
@@ -53,5 +53,7 @@
     "not_blocked_user" : "You have not blocked this user",
     "friend_unblocked_friend_req":"have UnBlocked your Friend Request",
     "unblocked_friend_req_of":"You have UnBlocked Friend Request of",
-    "unblocked_friend_req":"Friend Request UnBlocked"
+    "unblocked_friend_req":"Friend Request UnBlocked",
+    "comechat_user_create_error":"ComeChat User Create Error",
+    "comechat_user_update_image_error":"ComeChat User Profile Image Update Error"
 }
