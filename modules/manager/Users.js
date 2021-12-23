@@ -64,8 +64,8 @@ let sendOtpForRegistration = async (req) => {
     }
 
 }
-let signup = async (body) => {
-
+let signup = async (req) => {
+    let body = req.body
     if (helper.undefinedOrNull(body)) {
         throw new BadRequestError(req.t("body_empty"));
     }
@@ -136,7 +136,7 @@ let signup = async (body) => {
 }
 
 
-let resendOTP = async (userid) => {
+let resendOTP = async (userid,req) => {
     if (helper.undefinedOrNull(userid)) {
         throw new BadRequestError(req.t("user_token_404"));
     }
@@ -155,7 +155,7 @@ let resendOTP = async (userid) => {
     return { token: authToken }
 }
 
-let verifyOTP = async (userid, otp) => {
+let verifyOTP = async (userid, otp,req) => {
 
 
     let userAuth = await UserAuthModel.findOne({ where: { userid: userid, otp: otp }, raw: true, attributes: ['userid', 'token'] });
@@ -170,7 +170,7 @@ let verifyOTP = async (userid, otp) => {
 
 
 
-let phoneSignIn = async (body) => {
+let phoneSignIn = async (body,req) => {
     if (helper.undefinedOrNull(body)) {
         throw new BadRequestError(req.t("body_empty"));
     }
@@ -209,7 +209,7 @@ let phoneSignIn = async (body) => {
 
 }
 
-let phoneSignInWithOTP = async (body) => {
+let phoneSignInWithOTP = async (body,req) => {
     if (helper.undefinedOrNull(body)) {
         throw new BadRequestError(req.t("body_empty"));
     }
@@ -243,7 +243,7 @@ let phoneSignInWithOTP = async (body) => {
     await SEND_SMS.sms(otp, "+" + country.isd_code + user.phone);
     return { token: authToken }
 }
-let forgotPassword = async (body) => {
+let forgotPassword = async (body,req) => {
     if (helper.undefinedOrNull(body)) {
         throw new BadRequestError(req.t("body_empty"));
     }
@@ -284,7 +284,7 @@ let forgotPassword = async (body) => {
     }
     return { token: authToken }
 }
-let changePassword = async (userid, body) => {
+let changePassword = async (userid, body,req) => {
     if (helper.undefinedOrNull(body)) {
         throw new BadRequestError(req.t("body_empty"));
     }
@@ -304,7 +304,7 @@ let changePassword = async (userid, body) => {
     return { message: req.t("password")+' '+req.t("changed_success") }
 }
 
-let signout = async (userid) => {
+let signout = async (userid,req) => {
     if (!userid) {
         throw new BadRequestError(req.t("id")+' '+req.t("is_required"));
     }
@@ -329,7 +329,7 @@ let generateOTP = async () => {
     return Date.now().toString().slice(process.env.OTP_LENGTH);
 }
 
-let loginWithSocial = async (body) => {
+let loginWithSocial = async (body,req) => {
     if (helper.undefinedOrNull(body)) {
         throw new BadRequestError(req.t("body_empty"));
     }
@@ -378,7 +378,7 @@ let loginWithSocial = async (body) => {
 let getTermsCondition = async (body) => {
     return await TermsConditionModel.findAll({ order: [['displayorder', 'ASC']], raw: true })
 }
-let getProfile = async (userid) => {
+let getProfile = async (userid,req) => {
 
     let user = await UserModel
         .findOne({ where: { id: userid }, attributes: ['user_unique_id', 'name', 'profileimage', 'username', 'email', 'phone', 'region', 'dob', 'latitude', 'longitude', 'gender', 'isactive', 'notification_token', 'isSound', 'isVibration', 'isNotification', 'isTermsConditionAccepted'] });   
@@ -415,7 +415,7 @@ let updateProfile = async (userid, req) => {
     await UserModel.update(updatedData, { where: { id: userid }, raw: true });
     return { message: req.t("profile")+' '+req.t("update_success") };
 }
-let updateUsername = async (userid, body) => {
+let updateUsername = async (userid, body,req) => {
     if (helper.undefinedOrNull(body)) {
         throw new BadRequestError(req.t("body_empty"));
     }
@@ -432,7 +432,7 @@ let updateUsername = async (userid, body) => {
     return { message: req.t("username")+' '+req.t("update_success") };
 
 }
-let updateEmail = async (userid, body) => {
+let updateEmail = async (userid, body,req) => {
 
     if (helper.undefinedOrNull(body)) {
         throw new BadRequestError(req.t("body_empty"));
@@ -454,7 +454,7 @@ let updateEmail = async (userid, body) => {
     await UserModel.update({ email: body.email.trim() }, { where: { id: userid }, raw: true });
     return { message: req.t("email")+' '+req.t("update_success") };
 }
-let updatePassword = async (userid, body) => {
+let updatePassword = async (userid, body,req) => {
 
 
     if (helper.undefinedOrNull(body)) {
@@ -473,7 +473,7 @@ let updatePassword = async (userid, body) => {
     await UserModel.update({ password: md5(body.newpassword) }, { where: { id: userid }, raw: true });
     return { message: req.t("password")+' '+req.t("update_success")};
 }
-let updatePhone = async (userid, body) => {
+let updatePhone = async (userid, body,req) => {
 
 
     if (helper.undefinedOrNull(body)) {

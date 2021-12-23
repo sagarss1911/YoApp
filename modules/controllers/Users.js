@@ -263,7 +263,7 @@ let sendOtpForRegistration = (req, res, next) => {
 */
 let signup = (req, res, next) => {
     return usersManager
-        .signup(req.body)
+        .signup(req)
         .then(data => {
             let result = {
                 status: 200,
@@ -323,7 +323,7 @@ let resendOTP = (req, res, next) => {
     let userid = req.user ? req.user.userId : null;
 
     return usersManager
-        .resendOTP(userid)
+        .resendOTP(userid,req)
         .then(data => {
             let result = {
                 status: 200,
@@ -394,7 +394,7 @@ let resendOTP = (req, res, next) => {
 let verifyOTP = (req, res, next) => {
     let userid = req.user ? req.user.userId : null;
     return usersManager
-        .verifyOTP(userid, req.body.otp)
+        .verifyOTP(userid, req.body.otp,req)
         .then(data => {
             let result = {
                 status: 200,
@@ -464,7 +464,7 @@ let verifyOTP = (req, res, next) => {
 */
 let phoneSignIn = (req, res, next) => {
     return usersManager
-        .phoneSignIn(req.body)
+        .phoneSignIn(req.body,req)
         .then(data => {
             let result = {
                 status: 200,
@@ -533,7 +533,7 @@ let phoneSignIn = (req, res, next) => {
 */
 let phoneSignInWithOTP = (req, res, next) => {
     return usersManager
-        .phoneSignInWithOTP(req.body)
+        .phoneSignInWithOTP(req.body,req)
         .then(data => {
             let result = {
                 status: 200,
@@ -598,7 +598,7 @@ let phoneSignInWithOTP = (req, res, next) => {
 */
 let forgotPassword = (req, res, next) => {
     return usersManager
-        .forgotPassword(req.body)
+        .forgotPassword(req.body,req)
         .then(data => {
             let result = {
                 status: 200,
@@ -673,7 +673,7 @@ let forgotPassword = (req, res, next) => {
 let changePassword = (req, res, next) => {
     let userid = req.user ? req.user.userId : null;
     return usersManager
-        .changePassword(userid, req.body)
+        .changePassword(userid, req.body,req)
         .then(data => {
             let result = {
                 status: 200,
@@ -743,7 +743,7 @@ let changePassword = (req, res, next) => {
 */
 let loginWithSocial = (req, res, next) => {
     return usersManager
-        .loginWithSocial(req.body)
+        .loginWithSocial(req.body,req)
         .then(data => {
             let result = {
                 status: 200,
@@ -805,7 +805,7 @@ let getProfile = (req, res, next) => {
     let userid = req.user ? req.user.userId : null;
 
     return usersManager
-        .getProfile(userid)
+        .getProfile(userid,req)
         .then(data => {
             let result = {
                 status: 200,
@@ -988,7 +988,7 @@ let updateUsername = (req, res, next) => {
     let userid = req.user ? req.user.userId : null;
 
     return usersManager
-        .updateUsername(userid, req.body)
+        .updateUsername(userid, req.body,req)
         .then(data => {
             let result = {
                 status: 200,
@@ -1063,7 +1063,7 @@ let updateEmail = (req, res, next) => {
     let userid = req.user ? req.user.userId : null;
 
     return usersManager
-        .updateEmail(userid, req.body)
+        .updateEmail(userid, req.body,req)
         .then(data => {
             let result = {
                 status: 200,
@@ -1142,7 +1142,7 @@ let updatePhone = (req, res, next) => {
     let userid = req.user ? req.user.userId : null;
 
     return usersManager
-        .updatePhone(userid, req.body)
+        .updatePhone(userid, req.body,req)
         .then(data => {
             let result = {
                 status: 200,
@@ -1221,7 +1221,7 @@ let updatePassword = (req, res, next) => {
     let userid = req.user ? req.user.userId : null;
 
     return usersManager
-        .updatePassword(userid, req.body)
+        .updatePassword(userid, req.body,req)
         .then(data => {
             let result = {
                 status: 200,
@@ -1281,7 +1281,7 @@ let signout = (req, res, next) => {
     let userid = req.user ? req.user.userId : null;
 
     return usersManager
-        .signout(userid)
+        .signout(userid,req)
         .then(data => {
             let result = {
                 status: 200

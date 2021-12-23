@@ -68,7 +68,7 @@
     let userid = req.user ? req.user.userId : null;
     let userName = req.user ? req.user.userName : null;
      return friendsManager
-         .addFriend(userid,userName,req.body)
+         .addFriend(userid,userName,req)
          .then(data => {
              let result = {
                  status: 200,
@@ -144,7 +144,7 @@
   let ChangeFriendRequestStatus = (req, res, next) => {
     let userid = req.user ? req.user.userId : null;
      return friendsManager
-         .ChangeFriendRequestStatus(userid,req.body)
+         .ChangeFriendRequestStatus(userid,req)
          .then(data => {
              let result = {
                  status: 200,
@@ -215,7 +215,7 @@
   let myFriendListWithMutualCount = (req, res, next) => {
     let userid = req.user ? req.user.userId : null;
      return friendsManager
-         .myFriendListWithMutualCount(userid,req.body)
+         .myFriendListWithMutualCount(userid,req)
          .then(data => {
              let result = {
                  status: 200,
@@ -285,7 +285,7 @@
   let myBlockedFriendListWithMutualCount = (req, res, next) => {
     let userid = req.user ? req.user.userId : null;    
      return friendsManager
-         .myBlockedFriendListWithMutualCount(userid,req.body)
+         .myBlockedFriendListWithMutualCount(userid,req)
          .then(data => {
              let result = {
                  status: 200,
@@ -355,7 +355,7 @@
   let unBlockFriend = (req, res, next) => {
     let userid = req.user ? req.user.userId : null;
      return friendsManager
-         .unBlockFriend(userid,req.body.user_id)
+         .unBlockFriend(userid,req.body.user_id,req)
          .then(data => {
              let result = {
                  status: 200,
@@ -425,7 +425,7 @@
    let allUserList = (req, res, next) => {
     let userid = req.user ? req.user.userId : null;
      return friendsManager
-         .allUserList(userid,req.body)
+         .allUserList(userid,req)
          .then(data => {
              let result = {
                  status: 200,
@@ -495,7 +495,7 @@
    let myIncomingFriendRequest = (req, res, next) => {
     let userid = req.user ? req.user.userId : null;    
      return friendsManager
-         .myIncomingFriendRequest(userid,req.body)
+         .myIncomingFriendRequest(userid,req)
          .then(data => {
              let result = {
                  status: 200,
