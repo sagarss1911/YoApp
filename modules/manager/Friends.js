@@ -10,7 +10,8 @@ let helper = require("../helpers/helpers"),
     UpdatesModel = require("../models/Updates"),
     BadRequestError = require('../errors/badRequestError');
 
-let addFriend = async (userid, userName, body) => {
+let addFriend = async (userid, userName, req) => {
+    let body  = req.body
     if (helper.undefinedOrNull(body)) {
         throw new BadRequestError(req.t("body_empty"));
     }
@@ -64,7 +65,8 @@ let addFriend = async (userid, userName, body) => {
     return true;
 }
 
-let ChangeFriendRequestStatus = async (userid,  body) => {
+let ChangeFriendRequestStatus = async (userid,  req) => {
+    let body  = req.body
     if (helper.undefinedOrNull(body)) {
         throw new BadRequestError(req.t("body_empty"));
     }
@@ -198,7 +200,8 @@ let ChangeFriendRequestStatus = async (userid,  body) => {
     }
     return true
 }
-let myFriendListWithMutualCount = async (userid,body) => {
+let myFriendListWithMutualCount = async (userid,req) => {
+    let body = req.body
     let SearchKeywordsQuery = "";
     if(body.keyword)
     {
@@ -221,7 +224,8 @@ let myFriendListWithMutualCount = async (userid,body) => {
 
     return matchingProfiles;
 }
-let myBlockedFriendListWithMutualCount = async (userid,body) => {
+let myBlockedFriendListWithMutualCount = async (userid,req) => {
+    let body = req.body
     let SearchKeywordsQuery = ""
     if(body.keyword)
     {
@@ -244,7 +248,8 @@ let myBlockedFriendListWithMutualCount = async (userid,body) => {
     });
     return matchingProfiles;
 }
-let unBlockFriend = async (userid, unblockid) => {    
+let unBlockFriend = async (userid, unblockid,req) => {    
+    let body = req.body
     let blockedFriends = await FriendsModel.findOne({ where: { friend_one: unblockid,friend_two:userid,status:'3' }, raw: true });
     if(!blockedFriends)
     {
@@ -278,7 +283,8 @@ let unBlockFriend = async (userid, unblockid) => {
     await UpdatesModel.create(updateData);
     return true;
 }
-let allUserList = async (userid,body) => {    
+let allUserList = async (userid,req) => {    
+    let body = req.body
     let SearchKeywordsQuery = ""
     if(body.keyword)
     {
@@ -300,7 +306,8 @@ let allUserList = async (userid,body) => {
     });
     return matchingProfiles;
 }
-let myIncomingFriendRequest = async (userid,body) => {
+let myIncomingFriendRequest = async (userid,req) => {
+    let body = req.body
     let SearchKeywordsQuery = ""
     if(body.keyword)
     {
