@@ -8,16 +8,17 @@ let helper = require("../helpers/helpers"),
     SequelizeObj = require("sequelize"),
     FriendsModel = require("../models/Friends"),
     UpdatesModel = require("../models/Updates"),
+    axios = require("axios"),
     BadRequestError = require('../errors/badRequestError');
 
 let addFriend = async (userid, userName, req) => {
-    let body  = req.body
+    let body = req.body
     if (helper.undefinedOrNull(body)) {
         throw new BadRequestError(req.t("body_empty"));
     }
     ['toId'].forEach(x => {
         if (!body[x]) {
-            throw new BadRequestError(req.t(x)+' '+req.t("is_required"));
+            throw new BadRequestError(req.t(x) + ' ' + req.t("is_required"));
         }
     });
 
@@ -43,7 +44,7 @@ let addFriend = async (userid, userName, req) => {
     //send notificaiton to both user
     let notificationDataForSender = {
         title: req.t("req_sent_success"),
-        subtitle: req.t("req_sent_success")+' '+req.t("to")+' '+user.username,
+        subtitle: req.t("req_sent_success") + ' ' + req.t("to") + ' ' + user.username,
         redirectscreen: "friend_request",
         friends_id: friendsCreate.friends_id
     }
@@ -65,14 +66,14 @@ let addFriend = async (userid, userName, req) => {
     return true;
 }
 
-let ChangeFriendRequestStatus = async (userid,  req) => {
-    let body  = req.body
+let ChangeFriendRequestStatus = async (userid, req) => {
+    let body = req.body
     if (helper.undefinedOrNull(body)) {
         throw new BadRequestError(req.t("body_empty"));
     }
     ['friends_id', 'status'].forEach(x => {
         if (!body[x]) {
-            throw new BadRequestError(req.t(x)+' '+req.t("is_required"));
+            throw new BadRequestError(req.t(x) + ' ' + req.t("is_required"));
         }
     });
 
@@ -98,14 +99,14 @@ let ChangeFriendRequestStatus = async (userid,  req) => {
         }
         let friendsCreate = await FriendsModel.create(data);
         let notificationDataForSender = {
-            title: receiver.username +' '+req.t("accepted_friend_req"),
-            subtitle: receiver.username +' '+req.t("accepted_friend_req"),
+            title: receiver.username + ' ' + req.t("accepted_friend_req"),
+            subtitle: receiver.username + ' ' + req.t("accepted_friend_req"),
             redirectscreen: "friend_request",
             friends_id: body.friends_id
         }
         let notificationDataForReceiver = {
-            title: req.t("req_accepted_of")+' '+sender.username,
-            subtitle: req.t("req_accepted_of")+' '+sender.username,
+            title: req.t("req_accepted_of") + ' ' + sender.username,
+            subtitle: req.t("req_accepted_of") + ' ' + sender.username,
             redirectscreen: "friend_request",
             friends_id: body.friends_id
         }
@@ -118,6 +119,23 @@ let ChangeFriendRequestStatus = async (userid,  req) => {
             friend_one: receiver.id,
             friend_two: sender.id,
         }
+        //add friend in comechat panel start
+        const acceptedData = {
+            accepted: [
+                sender.user_unique_id.toString()
+            ]
+        };
+        const headers = {
+            'apiKey': process.env.COMECHAT_API_KEY,
+            'Content-Type': 'application/json',
+        };
+        let url = "https://" + process.env.COMECHAT_APP_ID + ".api-" + process.env.COMECHAT_REGION + ".cometchat.io/v3/users/" + receiver.user_unique_id + "/friends";
+        let resp = await axios.post(url, acceptedData, { headers: headers })
+        if (resp.status != 200) {
+            await FriendsModel.update({ status: '0' }, { where: { friends_id: body.friends_id }, raw: true });
+            await FriendsModel.destroy({ where: { friends_id: friendsCreate.friends_id }, raw: true });
+        }
+        //add friend in comechat panel ends
         await UpdatesModel.create(updateData);
     }
     if (body.status == 2) {
@@ -130,8 +148,8 @@ let ChangeFriendRequestStatus = async (userid,  req) => {
             friends_id: body.friends_id
         }
         let notificationDataForReceiver = {
-            title: req.t("rejected_friend_req_of")+' '+sender.username,
-            subtitle: req.t("rejected_friend_req_of")+' '+sender.username,
+            title: req.t("rejected_friend_req_of") + ' ' + sender.username,
+            subtitle: req.t("rejected_friend_req_of") + ' ' + sender.username,
             redirectscreen: "friend_request",
             friends_id: body.friends_id
         }
@@ -147,20 +165,22 @@ let ChangeFriendRequestStatus = async (userid,  req) => {
         await UpdatesModel.create(updateData);
     }
     if (body.status == 3) {
-
-        await FriendsModel.update({ status: '3' }, { where: { friends_id: body.friends_id }, raw: true });
+        let blockedFriends = await FriendsModel.findOne({ where: { friends_id: body.friends_id }, raw: true });
+        let actualBlocking = await FriendsModel.findOne({ where: { friend_one: blockedFriends.friend_two, friend_two: blockedFriends.friend_one }, raw: true });
+        await FriendsModel.update({ status: '3' }, { where: { friends_id: actualBlocking.friends_id }, raw: true });
         let notificationDataForSender = {
-            title: receiver.username +' '+ req.t("friend_blocked_friend_req"),
-            subtitle: receiver.username +' '+ req.t("friend_blocked_friend_req"),
+            title: receiver.username + ' ' + req.t("friend_blocked_friend_req"),
+            subtitle: receiver.username + ' ' + req.t("friend_blocked_friend_req"),
             redirectscreen: "friend_request",
             friends_id: body.friends_id
         }
         let notificationDataForReceiver = {
-            title: req.t("blocked_friend_req_of")+' '+sender.username,
-            subtitle: req.t("blocked_friend_req_of")+' '+sender.username,
+            title: req.t("blocked_friend_req_of") + ' ' + sender.username,
+            subtitle: req.t("blocked_friend_req_of") + ' ' + sender.username,
             redirectscreen: "friend_request",
             friends_id: body.friends_id
         }
+      
 
         await NotificationHelper.sendFriendRequestNotificationToUser(sender.id, notificationDataForSender);
         await NotificationHelper.sendFriendRequestNotificationToUser(receiver.id, notificationDataForReceiver);
@@ -170,20 +190,37 @@ let ChangeFriendRequestStatus = async (userid,  req) => {
             friend_one: receiver.id,
             friend_two: sender.id,
         }
+        //block friend in comechat panel start
+        const acceptedData = {
+            blockedUids: [
+                sender.user_unique_id.toString()
+            ]
+        };
+        const headers = {
+            'apiKey': process.env.COMECHAT_API_KEY,
+            'Content-Type': 'application/json',
+        };
+        let url = "https://" + process.env.COMECHAT_APP_ID + ".api-" + process.env.COMECHAT_REGION + ".cometchat.io/v3/users/" + receiver.user_unique_id + "/blockedusers";
+        let resp = await axios.post(url, acceptedData, { headers: headers })
+        if (resp.status != 200) {
+            await FriendsModel.update({ status: '1' }, { where: { friends_id: actualBlocking.friends_id }, raw: true });
+        }
+        //block friend in comechat panel ends
+
         await UpdatesModel.create(updateData);
     }
     if (body.status == 4) {
 
         await FriendsModel.update({ status: '4' }, { where: { friends_id: body.friends_id }, raw: true });
         let notificationDataForSender = {
-            title: receiver.username +' '+req.t("friend_deleted_friend_req"),
-            subtitle: receiver.username +' '+req.t("friend_deleted_friend_req"),
+            title: receiver.username + ' ' + req.t("friend_deleted_friend_req"),
+            subtitle: receiver.username + ' ' + req.t("friend_deleted_friend_req"),
             redirectscreen: "friend_request",
             friends_id: body.friends_id
         }
         let notificationDataForReceiver = {
-            title: req.t("deleted_friend_req_of")+' '+sender.username,
-            subtitle: req.t("deleted_friend_req_of")+' '+sender.username,
+            title: req.t("deleted_friend_req_of") + ' ' + sender.username,
+            subtitle: req.t("deleted_friend_req_of") + ' ' + sender.username,
             redirectscreen: "friend_request",
             friends_id: body.friends_id
         }
@@ -198,13 +235,13 @@ let ChangeFriendRequestStatus = async (userid,  req) => {
         }
         await UpdatesModel.create(updateData);
     }
+
     return true
 }
-let myFriendListWithMutualCount = async (userid,req) => {
+let myFriendListWithMutualCount = async (userid, req) => {
     let body = req.body
     let SearchKeywordsQuery = "";
-    if(body.keyword)
-    {
+    if (body.keyword) {
         SearchKeywordsQuery = "and (u.name like '%" + body.keyword + "%' or u.username like '%" + body.keyword + "%' or u.email like '%" + body.keyword + "%' or u.phone like '%" + body.keyword + "%')";
     }
     var SearchSql = "SELECT u.id,f.friends_id,u.username,u.name,u.profileimage, ( SELECT COUNT(*)" +
@@ -212,7 +249,7 @@ let myFriendListWithMutualCount = async (userid,req) => {
         "friends f2 " +
         "on f1.friend_two = f2.friend_two " +
         "WHERE f1.friend_one=" + userid + " AND f2.friend_one=u.id " +
-        "group by f1.friend_one, f2.friend_one ) AS mutualfriends FROM friends f inner join users u on f.friend_two=u.id WHERE f.friend_one=" + userid + " and f.status='1'" + SearchKeywordsQuery;    
+        "group by f1.friend_one, f2.friend_one ) AS mutualfriends FROM friends f inner join users u on f.friend_two=u.id WHERE f.friend_one=" + userid + " and f.status='1'" + SearchKeywordsQuery;
     let matchingProfiles = await CustomQueryModel.query(SearchSql, {
         type: SequelizeObj.QueryTypes.SELECT,
         raw: true
@@ -224,11 +261,10 @@ let myFriendListWithMutualCount = async (userid,req) => {
 
     return matchingProfiles;
 }
-let myBlockedFriendListWithMutualCount = async (userid,req) => {
+let myBlockedFriendListWithMutualCount = async (userid, req) => {
     let body = req.body
     let SearchKeywordsQuery = ""
-    if(body.keyword)
-    {
+    if (body.keyword) {
         SearchKeywordsQuery = "and (u.name like '%" + body.keyword + "%' or u.username like '%" + body.keyword + "%' or u.email like '%" + body.keyword + "%' or u.phone like '%" + body.keyword + "%')";
     }
     var SearchSql = "SELECT u.id,f.friends_id,u.username,u.name, u.profileimage,( SELECT COUNT(*)" +
@@ -236,7 +272,7 @@ let myBlockedFriendListWithMutualCount = async (userid,req) => {
         "friends f2 " +
         "on f1.friend_two = f2.friend_two " +
         "WHERE f1.friend_one=" + userid + " AND f2.friend_one=u.id " +
-        "group by f1.friend_one, f2.friend_one ) AS mutualfriends FROM friends f inner join users u on f.friend_two=u.id WHERE f.friend_one=" + userid + " and f.status='3'"+SearchKeywordsQuery;
+        "group by f1.friend_one, f2.friend_one ) AS mutualfriends FROM friends f inner join users u on f.friend_two=u.id WHERE f.friend_one=" + userid + " and f.status='3'" + SearchKeywordsQuery;
 
     let matchingProfiles = await CustomQueryModel.query(SearchSql, {
         type: SequelizeObj.QueryTypes.SELECT,
@@ -248,26 +284,29 @@ let myBlockedFriendListWithMutualCount = async (userid,req) => {
     });
     return matchingProfiles;
 }
-let unBlockFriend = async (userid, unblockid,req) => {    
+let unBlockFriend = async (userid, unblockid, req) => {
+    //userid: 62
+    //unblockid 61
     let body = req.body
-    let blockedFriends = await FriendsModel.findOne({ where: { friend_one: unblockid,friend_two:userid,status:'3' }, raw: true });
-    if(!blockedFriends)
-    {
+    let blockedFriends = await FriendsModel.findOne({ where: { friend_one: userid, friend_two: unblockid, status: '3' }, raw: true });
+    if (!blockedFriends) {
         throw new Error(req.t("not_blocked_user"));
     }
     await FriendsModel.update({ status: '1' }, { where: { friends_id: blockedFriends.friends_id }, raw: true });
     let receiver = await UserModel.findOne({ where: { id: blockedFriends.friend_one }, raw: true });
     let sender = await UserModel.findOne({ where: { id: blockedFriends.friend_two }, raw: true });
-  
+    //receiver milan
+
+    //sender sagar
     let notificationDataForSender = {
-        title: receiver.username +' '+req.t("friend_unblocked_friend_req"),
-        subtitle: receiver.username +' '+req.t("friend_unblocked_friend_req"),
+        title: receiver.username + ' ' + req.t("friend_unblocked_friend_req"),
+        subtitle: receiver.username + ' ' + req.t("friend_unblocked_friend_req"),
         redirectscreen: "friend_request",
         friends_id: blockedFriends.friends_id
     }
     let notificationDataForReceiver = {
-        title: req.t("unblocked_friend_req_of")+' '+sender.username,
-        subtitle: req.t("unblocked_friend_req_of")+' '+sender.username,
+        title: req.t("unblocked_friend_req_of") + ' ' + sender.username,
+        subtitle: req.t("unblocked_friend_req_of") + ' ' + sender.username,
         redirectscreen: "friend_request",
         friends_id: blockedFriends.friends_id
     }
@@ -280,14 +319,36 @@ let unBlockFriend = async (userid, unblockid,req) => {
         friend_one: receiver.id,
         friend_two: sender.id,
     }
+    //block friend in comechat panel start
+    var data = JSON.stringify({
+        "blockedUids": [
+            sender.user_unique_id.toString()
+        ]
+    });
+    let url = "https://" + process.env.COMECHAT_APP_ID + ".api-" + process.env.COMECHAT_REGION + ".cometchat.io/v3/users/" + receiver.user_unique_id + "/blockedusers";
+    var config = {
+        method: 'delete',
+        url: url,
+        headers: {
+            'apiKey': process.env.COMECHAT_API_KEY,
+            'Content-Type': 'application/json'
+        },
+        data: data
+    };
+
+    let resp = await axios(config);
+    if (resp.status != 200) {
+        await FriendsModel.update({ status: '1' }, { where: { friends_id: actualBlocking.friends_id }, raw: true });
+        throw new Error(req.t("unblock_friend_error"));
+    }
+    //block friend in comechat panel ends              
     await UpdatesModel.create(updateData);
     return true;
 }
-let allUserList = async (userid,req) => {    
+let allUserList = async (userid, req) => {
     let body = req.body
     let SearchKeywordsQuery = ""
-    if(body.keyword)
-    {
+    if (body.keyword) {
         SearchKeywordsQuery = " and (u.name like '%" + body.keyword + "%' or u.username like '%" + body.keyword + "%' or u.email like '%" + body.keyword + "%' or u.phone like '%" + body.keyword + "%')";
     }
     let SearchSql = "SELECT u.id,u.username,u.name,u.profileimage, ( SELECT COUNT(*)" +
@@ -295,7 +356,7 @@ let allUserList = async (userid,req) => {
         "friends f2 " +
         "on f1.friend_two = f2.friend_two " +
         "WHERE f1.friend_one=" + userid + " AND f2.friend_one=u.id " +
-        "group by f1.friend_one, f2.friend_one ) AS mutualfriends FROM users u WHERE u.id!=" + userid + SearchKeywordsQuery ;        
+        "group by f1.friend_one, f2.friend_one ) AS mutualfriends FROM users u WHERE u.id!=" + userid + SearchKeywordsQuery;
     let matchingProfiles = await CustomQueryModel.query(SearchSql, {
         type: SequelizeObj.QueryTypes.SELECT,
         raw: true
@@ -306,11 +367,10 @@ let allUserList = async (userid,req) => {
     });
     return matchingProfiles;
 }
-let myIncomingFriendRequest = async (userid,req) => {
+let myIncomingFriendRequest = async (userid, req) => {
     let body = req.body
     let SearchKeywordsQuery = ""
-    if(body.keyword)
-    {
+    if (body.keyword) {
         SearchKeywordsQuery = "and (u.name like '%" + body.keyword + "%' or u.username like '%" + body.keyword + "%' or u.email like '%" + body.keyword + "%' or u.phone like '%" + body.keyword + "%')";
     }
     var SearchSql = "SELECT u.id,f.friends_id,u.username,u.name, u.profileimage,( SELECT COUNT(*)" +
@@ -318,8 +378,8 @@ let myIncomingFriendRequest = async (userid,req) => {
         "friends f2 " +
         "on f1.friend_two = f2.friend_two " +
         "WHERE f1.friend_one=" + userid + " AND f2.friend_one=u.id " +
-        "group by f1.friend_one, f2.friend_one ) AS mutualfriends FROM friends f inner join users u on f.friend_two=u.id WHERE f.friend_one=" + userid + " and f.status='0'"+SearchKeywordsQuery;
-   
+        "group by f1.friend_one, f2.friend_one ) AS mutualfriends FROM friends f inner join users u on f.friend_two=u.id WHERE f.friend_one=" + userid + " and f.status='0'" + SearchKeywordsQuery;
+
     let matchingProfiles = await CustomQueryModel.query(SearchSql, {
         type: SequelizeObj.QueryTypes.SELECT,
         raw: true
@@ -336,6 +396,6 @@ module.exports = {
     myFriendListWithMutualCount: myFriendListWithMutualCount,
     myBlockedFriendListWithMutualCount: myBlockedFriendListWithMutualCount,
     unBlockFriend: unBlockFriend,
-    allUserList:allUserList,
-    myIncomingFriendRequest:myIncomingFriendRequest
+    allUserList: allUserList,
+    myIncomingFriendRequest: myIncomingFriendRequest
 };
