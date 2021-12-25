@@ -379,7 +379,7 @@ let myIncomingFriendRequest = async (userid, req) => {
         "on f1.friend_two = f2.friend_two " +
         "WHERE f1.friend_one=" + userid + " AND f2.friend_one=u.id " +
         "group by f1.friend_one, f2.friend_one ) AS mutualfriends FROM friends f inner join users u on f.friend_one=u.id WHERE f.friend_two=" + userid + " and f.status='0'" + SearchKeywordsQuery;
-    console.log(SearchSql);
+   
     let matchingProfiles = await CustomQueryModel.query(SearchSql, {
         type: SequelizeObj.QueryTypes.SELECT,
         raw: true
