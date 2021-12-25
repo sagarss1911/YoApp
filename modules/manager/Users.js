@@ -448,8 +448,8 @@ let updateProfile = async (userid, req) => {
             delete updatedData[key];
         }
     });
-    
-    console.log(updatedData)
+
+   
     await UserModel.update(updatedData, { where: { id: userid }, raw: true });
     return { message: req.t("profile") + ' ' + req.t("update_success") };
 }
