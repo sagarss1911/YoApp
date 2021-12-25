@@ -442,6 +442,14 @@ let updateProfile = async (userid, req) => {
         }
         //update profile image ends in comechat
     }
+    //remove undefined values from json
+    Object.keys(updatedData).forEach(function (key) {
+        if (updatedData[key] === undefined) {
+            delete updatedData[key];
+        }
+    });
+    
+    console.log(updatedData)
     await UserModel.update(updatedData, { where: { id: userid }, raw: true });
     return { message: req.t("profile") + ' ' + req.t("update_success") };
 }
