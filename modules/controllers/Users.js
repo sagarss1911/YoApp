@@ -888,7 +888,12 @@ let getProfile = (req, res, next) => {
  *                 type: integer
  *                 example: 1
  *                 description: 1=on,0=off
- *                 paramType: body 
+ *                 paramType: body
+ *               language:
+ *                 type: integer
+ *                 example: 1
+ *                 description: (1=ENG, 2=ES, 3=FR, 4= PORTG)
+ *                 paramType: body  
  *     responses:
  *       200:
  *         description: user object
