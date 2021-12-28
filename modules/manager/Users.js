@@ -400,7 +400,7 @@ let getTermsCondition = async (body) => {
 let getProfile = async (userid, req) => {
 
     let user = await UserModel
-        .findOne({ where: { id: userid }, attributes: ['user_unique_id', 'name', 'profileimage', 'username', 'email', 'phone', 'region', 'dob', 'latitude', 'longitude', 'gender', 'isactive', 'notification_token', 'isSound', 'isVibration', 'isNotification', 'isTermsConditionAccepted'] });
+        .findOne({ where: { id: userid }, attributes: ['user_unique_id', 'name', 'profileimage', 'username', 'email', 'phone', 'region', 'dob', 'latitude', 'longitude', 'gender', 'isactive', 'notification_token', 'isSound', 'isVibration', 'isNotification', 'isTermsConditionAccepted','language'] });
 
     return user;
 }
@@ -411,7 +411,7 @@ let updateProfile = async (userid, req) => {
         throw new BadRequestError(req.t("body_empty"));
     }
     let updatedData = {}
-    let optionalFiled = ['name', 'latitude', 'longitude', 'gender', 'notification_token', 'isSound', 'isVibration', 'isNotification', 'isTermsConditionAccepted'];
+    let optionalFiled = ['name', 'latitude', 'longitude', 'gender', 'notification_token', 'isSound', 'isVibration', 'isNotification', 'isTermsConditionAccepted','language'];
     optionalFiled.forEach(x => {
         updatedData[x] = body[x]
     });
