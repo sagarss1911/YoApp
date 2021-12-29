@@ -116,7 +116,7 @@
   *               status:
   *                 type: integer
   *                 example: 1
-  *                 description: (0- request sent, 1 =accepted, 2=declined, 3=blocked, 4= deleted,5=unblocked)
+  *                 description: (0- request sent, 1 =accepted, 2=declined, 3=blocked, 4= deleted)
   *                 paramType: body  
   *     responses:
   *       200:
@@ -325,7 +325,7 @@
   *           schema:
   *             type: object
   *             properties:
-  *               user_id:
+  *               friends_id:
   *                 type: integer
   *                 example: 1
   *                 paramType: body  
@@ -355,7 +355,7 @@
   let unBlockFriend = (req, res, next) => {
     let userid = req.user ? req.user.userId : null;
      return friendsManager
-         .unBlockFriend(userid,req.body.user_id,req)
+         .unBlockFriend(userid,req.body.friends_id,req)
          .then(data => {
              let result = {
                  status: 200,
