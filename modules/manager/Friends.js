@@ -35,51 +35,39 @@ let addFriend = async (userid, userName, req) => {
     //again add we find isAlreadysent  = true  and status 4 
     // find existing and update status to 1
     //if is exist not then normal flow
-    if (isAlreadySent && isAlreadySent.status != '4') {
+    if (isAlreadySent) {
         throw new BadRequestError(req.t("req_already_send"));
-    } else {
-        if (isAlreadySent && isAlreadySent.status == '4') {
-            await FriendsModel.update({ status: '1' }, { where: { friends_id: isAlreadySent.friends_id } });
-            let updateData = {
-                text: req.t("friend_req_sent"),
-                friend_one: userid,
-                friend_two: user.id,
-            }
-            await UpdatesModel.create(updateData);
-            return true;
-        } else {
-            //create friend
-            let data = {
-                friend_one: userid,
-                friend_two: user.id,
-                status: '0'
-            }
-            let friendsCreate = await FriendsModel.create(data);
-            //send notificaiton to both user
-            let notificationDataForSender = {
-                title: req.t("req_sent_success"),
-                subtitle: req.t("req_sent_success") + ' ' + req.t("to") + ' ' + user.username,
-                redirectscreen: "friend_request",
-                friends_id: friendsCreate.friends_id
-            }
-            let notificationDataForReceiver = {
-                title: "You have Received Friend Request",
-                subtitle: "You have Received Friend Request From " + userName,
-                redirectscreen: "friend_request",
-                friends_id: friendsCreate.friends_id
-            }
-            await NotificationHelper.sendFriendRequestNotificationToUser(userid, notificationDataForSender);
-            await NotificationHelper.sendFriendRequestNotificationToUser(user.id, notificationDataForReceiver);
-            //send update to both user
-            let updateData = {
-                text: req.t("friend_req_sent"),
-                friend_one: userid,
-                friend_two: user.id,
-            }
-            await UpdatesModel.create(updateData);
-            return true;
-        }
+    } 
+     //create friend
+     let data = {
+        friend_one: userid,
+        friend_two: user.id,
+        status: '0'
     }
+    let friendsCreate = await FriendsModel.create(data);
+    //send notificaiton to both user
+    let notificationDataForSender = {
+        title: req.t("req_sent_success"),
+        subtitle: req.t("req_sent_success") + ' ' + req.t("to") + ' ' + user.username,
+        redirectscreen: "friend_request",
+        friends_id: friendsCreate.friends_id
+    }
+    let notificationDataForReceiver = {
+        title: "You have Received Friend Request",
+        subtitle: "You have Received Friend Request From " + userName,
+        redirectscreen: "friend_request",
+        friends_id: friendsCreate.friends_id
+    }
+    await NotificationHelper.sendFriendRequestNotificationToUser(userid, notificationDataForSender);
+    await NotificationHelper.sendFriendRequestNotificationToUser(user.id, notificationDataForReceiver);
+    //send update to both user
+    let updateData = {
+        text: req.t("friend_req_sent"),
+        friend_one: userid,
+        friend_two: user.id,
+    }
+    await UpdatesModel.create(updateData);
+    return true;
 
 }
 
@@ -226,8 +214,6 @@ let ChangeFriendRequestStatus = async (userid, req) => {
         await UpdatesModel.create(updateData);
     }
     if (body.status == 4) {
-
-        await FriendsModel.update({ status: '4' }, { where: { friends_id: body.friends_id }, raw: true });
         let notificationDataForSender = {
             title: receiver.username + ' ' + req.t("friend_deleted_friend_req"),
             subtitle: receiver.username + ' ' + req.t("friend_deleted_friend_req"),
@@ -249,6 +235,31 @@ let ChangeFriendRequestStatus = async (userid, req) => {
             friend_one: sender.id,
             friend_two: receiver.id
         }
+         //delete friend in comechat panel start
+            var data = JSON.stringify({
+                "friends": [
+                    sender.user_unique_id.toString()
+                ]
+            });
+            let url = "https://" + process.env.COMECHAT_APP_ID + ".api-" + process.env.COMECHAT_REGION + ".cometchat.io/v3/users/" + receiver.user_unique_id + "/friends";
+            var config = {
+                method: 'delete',
+                url: url,
+                headers: {
+                    'apiKey': process.env.COMECHAT_API_KEY,
+                    'Content-Type': 'application/json'
+                },
+                data: data
+            };
+
+            let resp = await axios(config);
+            if (resp.status != 200) {
+        
+                throw new Error(req.t("unblock_friend_error"));
+            }
+            //delete friend in comechat panel ends 
+            await FriendsModel.destroy({ where: { friends_id: body.friends_id }, raw: true });
+            await FriendsModel.destroy({ where: { friend_one: receiver.id,friend_two:sender.id }, raw: true });
         await UpdatesModel.create(updateData);
     }
 
