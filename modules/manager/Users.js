@@ -381,6 +381,22 @@ let loginWithSocial = async (body, req) => {
         }
         await UserAuthModel.destroy({ where: { userid: user.id } });
         await UserAuthModel.create(authRecord);
+        const data = {
+            uid: user.user_unique_id,
+            name: user.user_unique_id
+        };        
+        const headers = {
+            'apiKey': process.env.COMECHAT_API_KEY,
+            'Content-Type': 'application/json',
+        };        
+        let url = "https://"+process.env.COMECHAT_APP_ID+".api-"+process.env.COMECHAT_REGION+".cometchat.io/v3/users";        
+        let resp = await axios.post(url, data, { headers:headers })      
+        
+        if(resp.status != 200){
+            await UserModel.destroy({ where: { id: user.id } });
+            throw new BadRequestError(req.t("comechat_user_create_error"));
+        }
+
         return { token: authToken }
     } else {
         let authToken = await generateAuthToken(user.phone);
