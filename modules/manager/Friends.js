@@ -191,20 +191,20 @@ let ChangeFriendRequestStatus = async (userid, req) => {
         //send update to both user
         let updateData = {
             text: req.t("blocked_friend_req"),
-            friend_one: receiver.id,
-            friend_two: sender.id,
+            friend_one: sender.id,
+            friend_two: receiver.id,
         }
         //block friend in comechat panel start
         const acceptedData = {
             blockedUids: [
-                sender.user_unique_id.toString()
+                receiver.user_unique_id.toString()
             ]
         };
         const headers = {
             'apiKey': process.env.COMECHAT_API_KEY,
             'Content-Type': 'application/json',
         };
-        let url = "https://" + process.env.COMECHAT_APP_ID + ".api-" + process.env.COMECHAT_REGION + ".cometchat.io/v3/users/" + receiver.user_unique_id + "/blockedusers";
+        let url = "https://" + process.env.COMECHAT_APP_ID + ".api-" + process.env.COMECHAT_REGION + ".cometchat.io/v3/users/" + sender.user_unique_id + "/blockedusers";
         let resp = await axios.post(url, acceptedData, { headers: headers })
         if (resp.status != 200) {
             await FriendsModel.update({ status: '1' }, { where: { friends_id: body.friends_id }, raw: true });
@@ -260,7 +260,7 @@ let ChangeFriendRequestStatus = async (userid, req) => {
             //delete friend in comechat panel ends 
             await FriendsModel.destroy({ where: { friends_id: body.friends_id }, raw: true });
             await FriendsModel.destroy({ where: { friend_one: receiver.id,friend_two:sender.id }, raw: true });
-        await UpdatesModel.create(updateData);
+            await UpdatesModel.create(updateData);
     }
 
     return true
@@ -311,20 +311,25 @@ let myBlockedFriendListWithMutualCount = async (userid, req) => {
     });
     return matchingProfiles;
 }
-let unBlockFriend = async (userid, friends_id, req) => {
-    //userid: 62
-    //unblockid 61
-    let body = req.body
-    let blockedFriends = await FriendsModel.findOne({ where: { friend_one: userid, friends_id: friends_id, status: '3' }, raw: true });
+let unBlockFriend = async (userid, friends_id,uuid=0, req) => {    
+    let userObj;
+    let body = req.body;
+    let blockedFriends;
+    if(!uuid){
+        blockedFriends = await FriendsModel.findOne({ where: { friend_one: userid, friends_id: friends_id, status: '3' }, raw: true });
+        
+    }
+    else{
+        userObj= await UserModel.findOne({ where: { user_unique_id: uuid }, attributes: ['id'],raw: true });
+        blockedFriends = await FriendsModel.findOne({ where: { friend_one: userid, friend_two: userObj.id, status: '3' }, raw: true });
+    }
     if (!blockedFriends) {
         throw new Error(req.t("not_blocked_user"));
     }
     await FriendsModel.update({ status: '1' }, { where: { friends_id: blockedFriends.friends_id }, raw: true });
     let receiver = await UserModel.findOne({ where: { id: blockedFriends.friend_one }, raw: true });
     let sender = await UserModel.findOne({ where: { id: blockedFriends.friend_two }, raw: true });
-    //receiver milan
-
-    //sender sagar
+    
     let notificationDataForSender = {
         title: receiver.username + ' ' + req.t("friend_unblocked_friend_req"),
         subtitle: receiver.username + ' ' + req.t("friend_unblocked_friend_req"),
@@ -352,6 +357,7 @@ let unBlockFriend = async (userid, friends_id, req) => {
             sender.user_unique_id.toString()
         ]
     });
+    
     let url = "https://" + process.env.COMECHAT_APP_ID + ".api-" + process.env.COMECHAT_REGION + ".cometchat.io/v3/users/" + receiver.user_unique_id + "/blockedusers";
     var config = {
         method: 'delete',
@@ -362,7 +368,7 @@ let unBlockFriend = async (userid, friends_id, req) => {
         },
         data: data
     };
-
+    //console.log(config)
     let resp = await axios(config);
     if (resp.status != 200) {
         await FriendsModel.update({ status: '1' }, { where: { friends_id: friends_id }, raw: true });
