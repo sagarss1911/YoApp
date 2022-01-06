@@ -129,15 +129,15 @@ let signup = async (req) => {
         const data = {
             uid: _customer.user_unique_id,
             name: _customer.name,
-        };        
+        };
         const headers = {
             'apiKey': process.env.COMECHAT_API_KEY,
             'Content-Type': 'application/json',
-        };        
-        let url = "https://"+process.env.COMECHAT_APP_ID+".api-"+process.env.COMECHAT_REGION+".cometchat.io/v3/users";        
-        let resp = await axios.post(url, data, { headers:headers })      
-        
-        if(resp.status != 200){
+        };
+        let url = "https://" + process.env.COMECHAT_APP_ID + ".api-" + process.env.COMECHAT_REGION + ".cometchat.io/v3/users";
+        let resp = await axios.post(url, data, { headers: headers })
+
+        if (resp.status != 200) {
             await UserModel.destroy({ where: { id: _customer.id } });
             throw new BadRequestError(req.t("comechat_user_create_error"));
         }
@@ -270,10 +270,6 @@ let forgotPassword = async (body, req) => {
     if (helper.undefinedOrNull(body.phone)) {
         throw new BadRequestError(req.t("phone") + '/' + req.t("email") + ' ' + req.t("is_required"));
     }
-    // if (helper.undefinedOrNull(body.region)) {
-    //     throw new BadRequestError("Region is required");
-    // }
-
     let findData = {}
     findData["$or"] = [
         { phone: { $eq: body.phone } },
@@ -369,9 +365,9 @@ let loginWithSocial = async (body, req) => {
         findData = { linkedin_id: body.social_id };
     }
 
-    let user = await UserModel
+    let user1 = await UserModel
         .findOne({ where: findData, attributes: ['id', 'phone', 'email', 'region'], raw: true });
-    if (!user) {
+    if (!user1) {
         findData["user_unique_id"] = Date.now().toString()
         let user = await UserModel.create(findData);
         let authToken = await generateAuthToken(user.phone);
@@ -384,41 +380,39 @@ let loginWithSocial = async (body, req) => {
         const data = {
             uid: user.user_unique_id,
             name: user.user_unique_id
-        };        
+        };
         const headers = {
             'apiKey': process.env.COMECHAT_API_KEY,
             'Content-Type': 'application/json',
-        };        
-        let url = "https://"+process.env.COMECHAT_APP_ID+".api-"+process.env.COMECHAT_REGION+".cometchat.io/v3/users";        
-        let resp = await axios.post(url, data, { headers:headers })      
-        
-        if(resp.status != 200){
+        };
+        let url = "https://" + process.env.COMECHAT_APP_ID + ".api-" + process.env.COMECHAT_REGION + ".cometchat.io/v3/users";
+        let resp = await axios.post(url, data, { headers: headers })
+
+        if (resp.status != 200) {
             await UserModel.destroy({ where: { id: user.id } });
             throw new BadRequestError(req.t("comechat_user_create_error"));
         }
 
         return { token: authToken }
     } else {
-        let authToken = await generateAuthToken(user.phone);
+        let authToken = await generateAuthToken(user1.phone);
         let authRecord = {
-            userid: user.id,
+            userid: user1.id,
             token: authToken
         }
-        await UserAuthModel.destroy({ where: { userid: user.id } });
+        await UserAuthModel.destroy({ where: { userid: user1.id } });
         await UserAuthModel.create(authRecord);
         return { token: authToken }
     }
 
 }
 let getTermsCondition = async (body) => {
-    return await TermsConditionModel.findAll({ order: [['displayorder', 'ASC']], raw: true })
+    return TermsConditionModel.findAll({ order: [['displayorder', 'ASC']], raw: true })
 }
 let getProfile = async (userid, req) => {
 
-    let user = await UserModel
-        .findOne({ where: { id: userid }, attributes: ['user_unique_id', 'name', 'profileimage', 'username', 'email', 'phone', 'region', 'dob', 'latitude', 'longitude', 'gender', 'isactive', 'notification_token', 'isSound', 'isVibration', 'isNotification', 'isTermsConditionAccepted','language'] });
-
-    return user;
+    return UserModel
+        .findOne({ where: { id: userid }, attributes: ['user_unique_id', 'name', 'profileimage', 'username', 'email', 'phone', 'region', 'dob', 'latitude', 'longitude', 'gender', 'isactive', 'notification_token', 'isSound', 'isVibration', 'isNotification', 'isTermsConditionAccepted', 'language'],raw:true });
 }
 let updateProfile = async (userid, req) => {
 
@@ -427,12 +421,12 @@ let updateProfile = async (userid, req) => {
         throw new BadRequestError(req.t("body_empty"));
     }
     let updatedData = {}
-    let optionalFiled = ['name', 'latitude', 'longitude', 'gender', 'notification_token', 'isSound', 'isVibration', 'isNotification', 'isTermsConditionAccepted','language'];
+    let optionalFiled = ['name', 'latitude', 'longitude', 'gender', 'notification_token', 'isSound', 'isVibration', 'isNotification', 'isTermsConditionAccepted', 'language'];
     optionalFiled.forEach(x => {
         updatedData[x] = body[x]
     });
     let user = await UserModel
-        .findOne({ where: { id: userid }, attributes: ['id', 'bucketKey','user_unique_id'], raw: true });
+        .findOne({ where: { id: userid }, attributes: ['id', 'bucketKey', 'user_unique_id'], raw: true });
 
 
     if (req.files.profileimage && req.files.profileimage.length > 0) {
@@ -443,29 +437,43 @@ let updateProfile = async (userid, req) => {
         }
         updatedData.profileimage = result.Location
         updatedData.bucketKey = result.Key
-          //update profile image start in comechat
-          const data = {
+        //update profile image start in comechat
+        const data = {
             avatar: result.Location
-        };        
+        };
         const headers = {
             'apiKey': process.env.COMECHAT_API_KEY,
             'Content-Type': 'application/json',
-        };        
-        let url = "https://"+process.env.COMECHAT_APP_ID+".api-"+process.env.COMECHAT_REGION+".cometchat.io/v3/users/"+user.user_unique_id;        
-        let resp = await axios.put(url, data, { headers:headers })      
-        if(resp.status != 200){   
+        };
+        let url = "https://" + process.env.COMECHAT_APP_ID + ".api-" + process.env.COMECHAT_REGION + ".cometchat.io/v3/users/" + user.user_unique_id;
+        let resp = await axios.put(url, data, { headers: headers })
+        if (resp.status != 200) {
             throw new BadRequestError(req.t("comechat_user_update_image_error"));
         }
         //update profile image ends in comechat
     }
-    //remove undefined values from json
-    Object.keys(updatedData).forEach(function (key) {
-        if (updatedData[key] === undefined) {
-            delete updatedData[key];
+    if (body.name) {
+        const data = {
+            name: body.name
+        };
+        const headers = {
+            'apiKey': process.env.COMECHAT_API_KEY,
+            'Content-Type': 'application/json',
+        };
+        let url = "https://" + process.env.COMECHAT_APP_ID + ".api-" + process.env.COMECHAT_REGION + ".cometchat.io/v3/users/" + user.user_unique_id;
+        let resp = await axios.put(url, data, { headers: headers })
+        if (resp.status != 200) {
+            throw new BadRequestError(req.t("comechat_user_update_image_error"));
         }
-    });
 
-   
+        //remove undefined values from json
+        Object.keys(updatedData).forEach(function (key) {
+            if (updatedData[key] === undefined) {
+                delete updatedData[key];
+            }
+        });
+    }
+
     await UserModel.update(updatedData, { where: { id: userid }, raw: true });
     return { message: req.t("profile") + ' ' + req.t("update_success") };
 }
