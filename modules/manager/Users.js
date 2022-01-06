@@ -517,8 +517,6 @@ let updateEmail = async (userid, body, req) => {
     return { message: req.t("email") + ' ' + req.t("update_success") };
 }
 let updatePassword = async (userid, body, req) => {
-
-
     if (helper.undefinedOrNull(body)) {
         throw new BadRequestError(req.t("body_empty"));
     }
@@ -536,7 +534,6 @@ let updatePassword = async (userid, body, req) => {
     return { message: req.t("password") + ' ' + req.t("update_success") };
 }
 let updatePhone = async (userid, body, req) => {
-
 
     if (helper.undefinedOrNull(body)) {
         throw new BadRequestError(req.t("body_empty"));
@@ -564,7 +561,26 @@ let updatePhone = async (userid, body, req) => {
     return { message: req.t("phone") + +req.t("update_success") };
 }
 
-
+let deleteUser = async (uuid) => {
+    let user = await  UserModel.findOne({ where: { user_unique_id: uuid }, raw:true });
+    await UserAuthModel.destroy({ where: { userid: user.id } });
+    await UserModel.destroy({ where: { id: user.id } });    
+    let url = "https://" + process.env.COMECHAT_APP_ID + ".api-" + process.env.COMECHAT_REGION + ".cometchat.io/v3/users/" + uuid;    
+    var options = {
+        method: 'delete',
+        url: url,
+        headers: {
+            'apiKey': process.env.COMECHAT_API_KEY,
+            'Content-Type': 'application/json'
+        },
+        "body": {
+         "permanent": true
+        },
+        "json": true
+       };
+    let resp = await axios(options);
+    console.log(resp.data);
+}
 module.exports = {
     countryList: countryList,
     signup: signup,
@@ -585,5 +601,6 @@ module.exports = {
     updateEmail: updateEmail,
     updatePassword: updatePassword,
     updatePhone: updatePhone,
-    getTermsCondition: getTermsCondition
+    getTermsCondition: getTermsCondition,
+    deleteUser:deleteUser
 };
