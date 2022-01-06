@@ -359,7 +359,7 @@
   let unBlockFriend = (req, res, next) => {
     let userid = req.user ? req.user.userId : null;
      return friendsManager
-         .unBlockFriend(userid,req.body.friends_id,req.body.uuid,req)
+         .unBlockFriend(userid,req.body.friends_id,req,req.body.uuid)
          .then(data => {
              let result = {
                  status: 200,

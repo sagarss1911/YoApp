@@ -311,9 +311,8 @@ let myBlockedFriendListWithMutualCount = async (userid, req) => {
     });
     return matchingProfiles;
 }
-let unBlockFriend = async (userid, friends_id,uuid=0, req) => {    
-    let userObj;
-    let body = req.body;
+let unBlockFriend = async (userid, friends_id, req,uuid=0) => {    
+    let userObj;    
     let blockedFriends;
     if(!uuid){
         blockedFriends = await FriendsModel.findOne({ where: { friend_one: userid, friends_id: friends_id, status: '3' }, raw: true });
