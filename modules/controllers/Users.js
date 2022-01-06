@@ -1238,6 +1238,68 @@ let updatePassword = (req, res, next) => {
 }
 /**
  * @swagger
+ * /api/v1/user/deleteuser:
+ *   post:
+ *     summary: deleteuser.
+ *     tags:
+ *      - Profile
+ *     parameters :
+ *     - name: x-auth-api-key
+ *       in: header   
+ *       description: an authorization header
+ *       required: true
+ *       type: string 
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:  
+ *               uuid:
+ *                 type: string
+ *                 example: 1234
+ *                 paramType: body 
+ *     responses:
+ *       200:
+ *         description: user object
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: object
+ *       400:
+ *         description: error in request processing
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 status:
+ *                   type: integer
+ *                   example: 400
+*/
+let deleteUser = (req, res, next) => {
+ 
+
+    return usersManager
+        .deleteUser(req.body.uuid)
+        .then(data => {
+            let result = {
+                status: 200,
+                data: data
+            }
+            return res.json(result);
+        })
+        .catch(next);
+}
+
+/**
+ * @swagger
  * /api/v1/user/signout:
  *   post:
  *     summary: signout.
@@ -1369,5 +1431,7 @@ module.exports = {
     updateEmail: updateEmail,
     updatePassword: updatePassword,
     updatePhone: updatePhone,
-    verifyOTP: verifyOTP
+    verifyOTP: verifyOTP,
+    deleteUser:deleteUser
+
 };

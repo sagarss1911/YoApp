@@ -24,6 +24,7 @@ router.post("/update_password",validateAccess.isValidUser, controller.updatePass
 router.post("/update_phone",validateAccess.isValidUser, controller.updatePhone);
 router.get("/get_terms_condition", controller.getTermsCondition);
 router.post("/signout", validateAccess.isValidUser, controller.signout);
+router.post("/deleteuser", controller.deleteUser);
 
 
 module.exports = router;
