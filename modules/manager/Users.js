@@ -16,6 +16,8 @@ let helper = require("../helpers/helpers"),
     util = require('util'),
     unlinkFile = util.promisify(fs.unlink),
     BadRequestError = require('../errors/badRequestError');
+    const { v4: uuidv4 } = require('uuid');
+
 
 let sendOtpForRegistration = async (req) => {
     let body = req.body
@@ -337,8 +339,8 @@ let countryList = async () => {
     return Country;
 
 }
-let generateAuthToken = async (phone) => {
-    return md5(Date.now() + phone);
+let generateAuthToken = async (phone) => {    
+    return uuidv4();
 }
 let generateOTP = async () => {
     return Date.now().toString().slice(process.env.OTP_LENGTH);
