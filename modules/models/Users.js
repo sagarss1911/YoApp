@@ -24,6 +24,9 @@ const UsersModal = sequelize_mysql.define("users",
         phone: {
             type: Sequelize.STRING,            
         },       
+        customer_id: {
+            type: Sequelize.STRING,            
+        },   
         facebook_id: {
             type: Sequelize.STRING,            
         },       
