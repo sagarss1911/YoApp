@@ -11,6 +11,7 @@ let helper = require("../helpers/helpers"),
     UserAuthModel = require("../models/Users_auth"),
     config = process.config.global_config,
     s3Helper = require('../helpers/awsS3Helper'),
+    StripeFunc = require("../manager/Stripe"),
     fs = require('fs'),
     axios = require('axios'),
     util = require('util'),
@@ -116,7 +117,10 @@ let signup = async (req) => {
 
     try {
         let _customer;
+        let custId = await StripeFunc.createCustomer({ phone: body.phone.trim(), name: body.name.trim(), email: body.email.trim() });
+        createData["customer_id"] = custId;
         let customer = await UserModel.create(createData);
+        
         _customer = customer.toJSON();
         let authToken = await generateAuthToken(_customer.phone);
         let authRecord = {
@@ -155,8 +159,71 @@ let signup = async (req) => {
     }
 
 }
+let loginWithSocial = async (body, req) => {
+    if (helper.undefinedOrNull(body)) {
+        throw new BadRequestError(req.t("body_empty"));
+    }
+    if (helper.undefinedOrNull(body.social_id)) {
+        throw new BadRequestError(req.t("social_id") + ' ' + req.t("comes_empty"));
+    }
+    if (helper.undefinedOrNull(body.type)) {
+        throw new BadRequestError(req.t("type") + ' ' + req.t("comes_empty"));
+    }
+    let findData = {}
+    if (body.type == 1) {
+        findData = { gmail_id: body.social_id };
+    } else if (body.type == 2) {
+        findData = { twitter_id: body.social_id };
+    } else if (body.type == 3) {
+        findData = { facebook_id: body.social_id };
+    } else if (body.type == 4) {
+        findData = { linkedin_id: body.social_id };
+    }
 
+    let user1 = await UserModel
+        .findOne({ where: findData, attributes: ['id', 'phone', 'email', 'region'], raw: true });
+    if (!user1) {
+        findData["user_unique_id"] = Date.now().toString()
+        let custId = await StripeFunc.createCustomer({ description:findData["user_unique_id"]});
+        findData["customer_id"] = custId;
 
+        let user = await UserModel.create(findData);
+        let authToken = await generateAuthToken(user.phone);
+        let authRecord = {
+            userid: user.id,
+            token: authToken
+        }
+        await UserAuthModel.destroy({ where: { userid: user.id } });
+        await UserAuthModel.create(authRecord);
+        const data = {
+            uid: user.user_unique_id,
+            name: user.user_unique_id
+        };
+        const headers = {
+            'apiKey': process.env.COMECHAT_API_KEY,
+            'Content-Type': 'application/json',
+        };
+        let url = "https://" + process.env.COMECHAT_APP_ID + ".api-" + process.env.COMECHAT_REGION + ".cometchat.io/v3/users";
+        let resp = await axios.post(url, data, { headers: headers })
+
+        if (resp.status != 200) {
+            await UserModel.destroy({ where: { id: user.id } });
+            throw new BadRequestError(req.t("comechat_user_create_error"));
+        }
+
+        return { token: authToken }
+    } else {
+        let authToken = await generateAuthToken(user1.phone);
+        let authRecord = {
+            userid: user1.id,
+            token: authToken
+        }
+        await UserAuthModel.destroy({ where: { userid: user1.id } });
+        await UserAuthModel.create(authRecord);
+        return { token: authToken }
+    }
+
+}
 let resendOTP = async (userid, req) => {
     if (helper.undefinedOrNull(userid)) {
         throw new BadRequestError(req.t("user_token_404"));
@@ -175,7 +242,6 @@ let resendOTP = async (userid, req) => {
     await SEND_SMS.sms(otp, "+" + country.isd_code + user.phone);
     return { token: authToken }
 }
-
 let verifyOTP = async (userid, otp, req) => {
 
 
@@ -188,9 +254,6 @@ let verifyOTP = async (userid, otp, req) => {
     return { token: userAuth.token };
 
 }
-
-
-
 let phoneSignIn = async (body, req) => {
     if (helper.undefinedOrNull(body)) {
         throw new BadRequestError(req.t("body_empty"));
@@ -229,7 +292,6 @@ let phoneSignIn = async (body, req) => {
 
 
 }
-
 let phoneSignInWithOTP = async (body, req) => {
     if (helper.undefinedOrNull(body)) {
         throw new BadRequestError(req.t("body_empty"));
@@ -320,7 +382,6 @@ let changePassword = async (userid, body, req) => {
     await UserModel.update({ password: md5(body.password) }, { where: { id: userid }, raw: true });
     return { message: req.t("password") + ' ' + req.t("changed_success") }
 }
-
 let signout = async (userid, req) => {
     if (!userid) {
         throw new BadRequestError(req.t("id") + ' ' + req.t("is_required"));
@@ -329,10 +390,6 @@ let signout = async (userid, req) => {
         .destroy({ where: { userid: userid } });
     return true;
 }
-
-
-
-
 let countryList = async () => {
     let Country = await CountryModel.findAll({ order: [['name', 'ASC']], raw: true })
     Country = Country.map((country) => { country.flag = process.env.BASE_URL + process.env.FLAG_PATH + country.iso_code_2.toLowerCase() + ".png"; return country })
@@ -346,68 +403,7 @@ let generateOTP = async () => {
     return Date.now().toString().slice(process.env.OTP_LENGTH);
 }
 
-let loginWithSocial = async (body, req) => {
-    if (helper.undefinedOrNull(body)) {
-        throw new BadRequestError(req.t("body_empty"));
-    }
-    if (helper.undefinedOrNull(body.social_id)) {
-        throw new BadRequestError(req.t("social_id") + ' ' + req.t("comes_empty"));
-    }
-    if (helper.undefinedOrNull(body.type)) {
-        throw new BadRequestError(req.t("type") + ' ' + req.t("comes_empty"));
-    }
-    let findData = {}
-    if (body.type == 1) {
-        findData = { gmail_id: body.social_id };
-    } else if (body.type == 2) {
-        findData = { twitter_id: body.social_id };
-    } else if (body.type == 3) {
-        findData = { facebook_id: body.social_id };
-    } else if (body.type == 4) {
-        findData = { linkedin_id: body.social_id };
-    }
 
-    let user1 = await UserModel
-        .findOne({ where: findData, attributes: ['id', 'phone', 'email', 'region'], raw: true });
-    if (!user1) {
-        findData["user_unique_id"] = Date.now().toString()
-        let user = await UserModel.create(findData);
-        let authToken = await generateAuthToken(user.phone);
-        let authRecord = {
-            userid: user.id,
-            token: authToken
-        }
-        await UserAuthModel.destroy({ where: { userid: user.id } });
-        await UserAuthModel.create(authRecord);
-        const data = {
-            uid: user.user_unique_id,
-            name: user.user_unique_id
-        };
-        const headers = {
-            'apiKey': process.env.COMECHAT_API_KEY,
-            'Content-Type': 'application/json',
-        };
-        let url = "https://" + process.env.COMECHAT_APP_ID + ".api-" + process.env.COMECHAT_REGION + ".cometchat.io/v3/users";
-        let resp = await axios.post(url, data, { headers: headers })
-
-        if (resp.status != 200) {
-            await UserModel.destroy({ where: { id: user.id } });
-            throw new BadRequestError(req.t("comechat_user_create_error"));
-        }
-
-        return { token: authToken }
-    } else {
-        let authToken = await generateAuthToken(user1.phone);
-        let authRecord = {
-            userid: user1.id,
-            token: authToken
-        }
-        await UserAuthModel.destroy({ where: { userid: user1.id } });
-        await UserAuthModel.create(authRecord);
-        return { token: authToken }
-    }
-
-}
 let getTermsCondition = async (body) => {
     return TermsConditionModel.findAll({ order: [['displayorder', 'ASC']], raw: true })
 }
@@ -416,6 +412,12 @@ let getProfile = async (userid, req) => {
     return UserModel
         .findOne({ where: { id: userid }, attributes: ['user_unique_id', 'name', 'profileimage', 'username', 'email', 'phone', 'region', 'dob', 'latitude', 'longitude', 'gender', 'isactive', 'notification_token', 'isSound', 'isVibration', 'isNotification', 'isTermsConditionAccepted', 'language'],raw:true });
 }
+let getProfileById = async ( uuid) => {
+
+    return UserModel
+        .findOne({ where: { user_unique_id: uuid }, attributes: ['user_unique_id', 'name', 'profileimage', 'username', 'email', 'phone', 'region', 'dob', 'latitude', 'longitude', 'gender', 'isactive', 'notification_token', 'isSound', 'isVibration', 'isNotification', 'isTermsConditionAccepted', 'language'],raw:true });
+}
+
 let updateProfile = async (userid, req) => {
 
     let body = req.body;
@@ -598,6 +600,7 @@ module.exports = {
     generateOTP: generateOTP,
     loginWithSocial: loginWithSocial,
     getProfile: getProfile,
+    getProfileById:getProfileById,
     updateProfile: updateProfile,
     updateUsername: updateUsername,
     updateEmail: updateEmail,

@@ -817,6 +817,70 @@ let getProfile = (req, res, next) => {
 }
 /**
  * @swagger
+ * /api/v1/user/get_profile_by_id/{uuid}:
+ *   get:
+ *     summary: get_profile_by_id.
+ *     tags:
+ *      - Profile
+ *     parameters :
+ *     - name: x-auth-api-key
+ *       in: header   
+ *       description: an authorization header
+ *       required: true
+ *       type: string 
+ *     - name: x-auth-token
+ *       in: header   
+ *       description: an authorization header
+ *       required: true
+ *       type: string 
+ *     - name: Accept-Language
+ *       in: header   
+ *       description: Language
+ *       required: false
+ *       type: string
+ *     - name: uuid
+ *       in: path   
+ *       description: uuid of user
+ *       required: true
+ *       type: string   
+ *     responses:
+ *       200:
+ *         description: user object
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: object
+ *       400:
+ *         description: error in request processing
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 status:
+ *                   type: integer
+ *                   example: 400
+*/
+let getProfileById = (req, res, next) => {
+    return usersManager
+        .getProfileById(req.params.uuid)
+        .then(data => {
+            let result = {
+                status: 200,
+                data: data
+            }
+            return res.json(result);
+        })
+        .catch(next);
+}
+
+/**
+ * @swagger
  * /api/v1/user/update_profile:
  *   post:
  *     summary: update_profile.
@@ -1424,8 +1488,9 @@ module.exports = {
     phoneSignInWithOTP: phoneSignInWithOTP,
     loginWithSocial: loginWithSocial,
     forgotPassword: forgotPassword,
-    getTermsCondition, getTermsCondition,
+    getTermsCondition: getTermsCondition,
     getProfile: getProfile,
+    getProfileById:getProfileById,
     updateProfile: updateProfile,
     updateUsername: updateUsername,
     updateEmail: updateEmail,
