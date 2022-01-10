@@ -66,7 +66,7 @@
          })
          .catch(next);
  }
- 
+   
  /**
   * @swagger
   * /api/v1/stripe/paymentintentcreate/{amount}:
