@@ -105,6 +105,10 @@ const UsersModal = sequelize_mysql.define("users",
             type: Sequelize.ENUM,
             values: ['1', '2','3','4'],            
         }, 
+        balance: {
+            type: Sequelize.NUMBER,
+            defaultValue: 0            
+        }, 
     },
     {
         freezeTableName: true,

@@ -18,10 +18,12 @@ module.exports = app => {
         }
     });
 
+    app.use('/api/v1/webhook', require('./modules/routes/Webhook'));
     app.use(auth.validateApiKey);
     app.use('/api/v1/user', require('./modules/routes/Users'));
     app.use('/api/v1/friends', require('./modules/routes/Friends'));
     app.use('/api/v1/stripe', require('./modules/routes/Stripe'));
+    app.use('/api/v1/wallet', require('./modules/routes/Wallet'));
     /**
      * Throw 404 for all other routes.
      */
