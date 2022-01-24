@@ -238,6 +238,10 @@ let sendOtpForRegistration = (req, res, next) => {
  *                 type: string
  *                 example: asdghfasdftASawaew2652ASads
  *                 paramType: body 
+ *               reference_code:
+ *                 type: string
+ *                 example: 123456780
+ *                 paramType: body 
  *     responses:
  *       200:
  *         description: user object

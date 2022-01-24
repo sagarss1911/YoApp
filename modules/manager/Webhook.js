@@ -7,7 +7,9 @@ let helper = require("../helpers/helpers"),
     SEND_EMAIL = require("../helpers/send_email"),
     UserModel = require("../models/Users"),
     WalletModel = require("../models/Wallet"),
+    CountryModel = require("../models/Country"),
     BalanceLogModel = require("../models/Balance_log"),
+    NotificationHelper = require("../helpers/notifications"),
     config = process.config.global_config,
     StripeFunc = require("../manager/Stripe"),
     axios = require('axios'),
@@ -61,21 +63,20 @@ let paymentSuccess = async (body) => {
                 transaction_type: '1'              
             };
             await BalanceLogModel.create(balancelogData);
+            let country = await CountryModel.findOne({ where: { iso_code_2: userData.region }, raw: true })
+            let notificationData = {
+                title: "Congrats! Money added to your wallet",
+                subtitle: "Amount: " + amount / 100 + " Added To Your Wallet",
+                redirectscreen: "payment_success",                
+            }
+            
+            await NotificationHelper.sendFriendRequestNotificationToUser(userData.id, notificationData);
+            SEND_SMS.paymentSuccessSMS(parseFloat(amount/100), "+" + country.isd_code + userData.phone);      
         }
 
-        // // send sms
-        // let smsData = {
-        //     phone: userData.phone,
-        //     message: req.t("payment_success_sms", { amount: amount/100 })
-        // };
-        // SEND_SMS.sendSMS(smsData);
-        // // send email
-        // let emailData = {
-        //     email: userData.email,
-        //     subject: req.t("payment_success_email_subject"),
-        //     message: req.t("payment_success_email", { amount: amount/100 })
-        // };
-        // SEND_EMAIL.sendEmail(emailData);
+        
+       
+       
     }
     else if (transaction_type == "payment_intent.payment_failed") {
         let updateData = {
@@ -86,20 +87,19 @@ let paymentSuccess = async (body) => {
             updateData,
             { where: { client_secret: clientsecret }, raw: true }
         );
-        // send sms
-
-        // let smsData = {
-        //     phone: userData.phone,
-        //     message: req.t("payment_failed_sms", { amount: amount/100 })
-        // };
-        // SEND_SMS.sendSMS(smsData);
-        // // send email
-        // let emailData = {
-        //     email: userData.email,
-        //     subject: req.t("payment_failed_email_subject"),
-        //     message: req.t("payment_failed_email", { amount: amount/100 })
-        // };
-        // SEND_EMAIL.sendEmail(emailData);
+        let walletData = await WalletModel.findOne({ where: { client_secret: clientsecret }, raw: true });
+        let userData = await UserModel.findOne({ where: { id: walletData.user_id }, raw: true });
+        let country = await CountryModel.findOne({ where: { iso_code_2: body.region }, raw: true })
+        let notificationData = {
+            title: "Add Money To wallet Request Failed",
+            subtitle: "Amount: " + walletData.amount + " Failed To Add To Your Wallet",
+            redirectscreen: "payment_failed"                
+        }
+        
+        await NotificationHelper.sendFriendRequestNotificationToUser(userData.id, notificationData);
+      
+        SEND_SMS.paymentFailedSMS(parseFloat(amount/100), "+" + country.isd_code + userData.phone);      
+        
     }
     else if (transaction_type == "payment_intent.canceled") {
         let updateData = {
@@ -111,20 +111,17 @@ let paymentSuccess = async (body) => {
             updateData,
             { where: { client_secret: clientsecret }, raw: true }
         );
-        // send sms
-
-        // let smsData = {
-        //     phone: userData.phone,
-        //     message: req.t("payment_failed_sms", { amount: amount/100 })
-        // };
-        // SEND_SMS.sendSMS(smsData);
-        // // send email
-        // let emailData = {
-        //     email: userData.email,
-        //     subject: req.t("payment_failed_email_subject"),
-        //     message: req.t("payment_failed_email", { amount: amount/100 })
-        // };
-        // SEND_EMAIL.sendEmail(emailData);
+        let walletData = await WalletModel.findOne({ where: { client_secret: clientsecret }, raw: true });
+        let userData = await UserModel.findOne({ where: { id: walletData.user_id }, raw: true });
+        let country = await CountryModel.findOne({ where: { iso_code_2: userData.region }, raw: true })
+        let notificationData = {
+            title: "Add Money To wallet Request cancelled",
+            subtitle: "Amount: " + walletData.amount + " Cancelled To Add To Your Wallet",
+            redirectscreen: "payment_cancelled"                
+        }
+        
+        await NotificationHelper.sendFriendRequestNotificationToUser(userData.id, notificationData);
+        SEND_SMS.paymentCancelledSMS(parseFloat(amount/100), "+" + country.isd_code + userData.phone);      
     }
 
     return true;

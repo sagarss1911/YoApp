@@ -1,10 +1,10 @@
 let FCM = require('fcm-node');
 
-let notifyAndroidOrIOS = (device, message, info_data) => {
+let notifyAndroidOrIOS =  async (device, sentmessage, info_data) => {
 	var serverKey = process.env.FIREBASE_SERVER_KEY;
     var fcm = new FCM(serverKey);
-    info_data.body = message;
-    info_data.title = (info_data && info_data.title) ? info_data.title :"YoApp";
+    info_data.body = sentmessage;
+    info_data.title = (info_data && info_data.title) ? info_data.title :"Alcophony";
     info_data['content-available'] = 1;
     info_data['sound'] = 'default';
 
@@ -21,8 +21,8 @@ let notifyAndroidOrIOS = (device, message, info_data) => {
     };
     
     fcm.send(message, function(err, response){
-        if (err) {
-            console.log(err)
+        if (err) {            
+            console.log("Notification Error:",err)
             
         } else {
             console.log("Successfully sent with response: ", response);

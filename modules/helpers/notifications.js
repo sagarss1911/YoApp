@@ -4,11 +4,12 @@ let UserModel = require("../models/Users"),
 
 let sendFriendRequestNotificationToUser = async (userid, notificationData) => {
     
-     let customerSetting = await UserModel.findOne({where:{id: userid},raw:true,attributes: ['device_id','isNotification']});
-     let message =  notificationData.subtitle;    
-
+     let customerSetting = await UserModel.findOne({where:{id: userid},raw:true,attributes: ['notification_token','isNotification']});
+     let message =  notificationData.subtitle;   
+    
     if(customerSetting && customerSetting.isNotification) {        
-        let nr = await SEND_PUSH.notifyAndroidOrIOS(customerSetting.device_id, message, notificationData);
+        let nr = await SEND_PUSH.notifyAndroidOrIOS(customerSetting.notification_token, message, notificationData);
+       
     }
     return true;
 }
