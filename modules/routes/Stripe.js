@@ -7,6 +7,6 @@ let express = require("express"),
 
 
 router.get("/ephemeralkeycreate", validateAccess.isValidUser, controller.ephemeralKeyCreate);
-router.get("/paymentintentcreate/:amount", validateAccess.isValidUser, controller.paymentIntentCreate);
+//router.get("/paymentintentcreate/:amount", validateAccess.isValidUser, controller.paymentIntentCreate);
 
 module.exports = router;

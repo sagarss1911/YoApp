@@ -17,7 +17,7 @@ let helper = require("../helpers/helpers"),
     util = require('util'),
     unlinkFile = util.promisify(fs.unlink),
     BadRequestError = require('../errors/badRequestError');
-    const { v4: uuidv4 } = require('uuid');
+const { v4: uuidv4 } = require('uuid');
 
 
 let sendOtpForRegistration = async (req) => {
@@ -78,7 +78,6 @@ let signup = async (req) => {
             throw new BadRequestError(req.t(x) + " is required");
         }
     });
-
     let user = await UserModel
         .findOne({ where: { username: body.username.trim() }, attributes: ['id', 'phone'] });
 
@@ -86,42 +85,106 @@ let signup = async (req) => {
         throw new BadRequestError(req.t("user_exist"));
     }
     user = await UserModel
-        .findOne({ where: { phone: body.phone.trim() }, attributes: ['id', 'phone'] });
-
-    if (user) {
-        throw new BadRequestError(req.t("phone_exist"));
-    }
-    user = await UserModel
         .findOne({ where: { email: body.email.trim() }, attributes: ['id', 'phone'] });
 
     if (user) {
         throw new BadRequestError(req.t("email_exist"));
     }
+    if (!body.reference_code) {
 
-    let createData = {
-        name: body.name.trim(),
-        email: body.email.trim(),
-        phone: body.phone.trim(),
-        region: body.region.trim(),
-        username: body.username.trim(),
-        password: md5(body.password.trim()),
-        gender: body.gender,
-        latitude: body.latitude,
-        longitude: body.longitude,
-        notification_token: body.notification_token,
-        isVerified: 1,
-        isTermsConditionAccepted: body.termscondition,
-        user_unique_id: Date.now().toString()
+        user = await UserModel
+            .findOne({ where: { phone: body.phone.trim() }, attributes: ['id', 'phone'] });
 
-    }
+        if (user) {
+            throw new BadRequestError(req.t("phone_exist"));
+        }
 
-    try {
-        let _customer;
+
+        let createData = {
+            name: body.name.trim(),
+            email: body.email.trim(),
+            phone: body.phone.trim(),
+            region: body.region.trim(),
+            username: body.username.trim(),
+            password: md5(body.password.trim()),
+            gender: body.gender,
+            latitude: body.latitude,
+            longitude: body.longitude,
+            notification_token: body.notification_token,
+            isVerified: 1,
+            isTermsConditionAccepted: body.termscondition,
+            user_unique_id: Date.now().toString()
+        }
+
+        try {
+            let _customer;
+            let custId = await StripeFunc.createCustomer({ phone: body.phone.trim(), name: body.name.trim(), email: body.email.trim() });
+            createData["customer_id"] = custId;
+            let customer = await UserModel.create(createData);
+
+            _customer = customer.toJSON();
+            let authToken = await generateAuthToken(_customer.phone);
+            let authRecord = {
+                userid: _customer.id,
+                token: authToken,
+            }
+            await UserAuthModel.destroy({ where: { userid: _customer.id } });
+            await UserAuthModel.create(authRecord);
+            delete authRecord.userid;
+
+            //create comechat user start
+            const data = {
+                uid: _customer.user_unique_id,
+                name: _customer.name,
+            };
+            const headers = {
+                'apiKey': process.env.COMECHAT_API_KEY,
+                'Content-Type': 'application/json',
+            };
+            let url = "https://" + process.env.COMECHAT_APP_ID + ".api-" + process.env.COMECHAT_REGION + ".cometchat.io/v3/users";
+            let resp = await axios.post(url, data, { headers: headers })
+
+            if (resp.status != 200) {
+                await UserModel.destroy({ where: { id: _customer.id } });
+                throw new BadRequestError(req.t("comechat_user_create_error"));
+            }
+            //create comechat user ends
+            return authRecord;
+        } catch (error) {
+            if (error && error.errors && error.errors[0] && error.errors[0].message && error.errors[0].message.indexOf("unique") != -1) {
+                let uniqueText = error.errors[0].path == "email" ? req.t("alternate_login_option_error_email") : req.t("alternate_login_error_option_mobile")
+                throw new BadRequestError(uniqueText);
+            } else {
+                throw new BadRequestError(error);
+            };
+        }
+    } else {
+        // check if referaal code exist or not
+        let refUser = await UserModel.findOne({ where: { reference_id: body.reference_code.trim() }, raw:true });
+        
+        if(!refUser){
+            throw new BadRequestError(req.t("reference_code_not_exist"));
+        }
+        let createData = {
+            name: body.name.trim(),
+            email: body.email.trim(),
+            phone: body.phone.trim(),
+            region: body.region.trim(),
+            username: body.username.trim(),
+            password: md5(body.password.trim()),
+            gender: body.gender,
+            latitude: body.latitude,
+            longitude: body.longitude,
+            notification_token: body.notification_token,
+            isVerified: 1,
+            isTermsConditionAccepted: body.termscondition            
+        }
+        
         let custId = await StripeFunc.createCustomer({ phone: body.phone.trim(), name: body.name.trim(), email: body.email.trim() });
         createData["customer_id"] = custId;
-        let customer = await UserModel.create(createData);
-        
-        _customer = customer.toJSON();
+         await UserModel.update(createData, { where: { id: refUser.id } });
+         let _customer = await UserModel.findOne({ where: { id: refUser.id }, raw: true });
+         
         let authToken = await generateAuthToken(_customer.phone);
         let authRecord = {
             userid: _customer.id,
@@ -142,20 +205,14 @@ let signup = async (req) => {
         };
         let url = "https://" + process.env.COMECHAT_APP_ID + ".api-" + process.env.COMECHAT_REGION + ".cometchat.io/v3/users";
         let resp = await axios.post(url, data, { headers: headers })
-
         if (resp.status != 200) {
-            await UserModel.destroy({ where: { id: _customer.id } });
             throw new BadRequestError(req.t("comechat_user_create_error"));
         }
         //create comechat user ends
+        await UserModel.update({reference_id:''}, { where: { id: refUser.id } });
         return authRecord;
-    } catch (error) {
-        if (error && error.errors && error.errors[0] && error.errors[0].message && error.errors[0].message.indexOf("unique") != -1) {
-            let uniqueText = error.errors[0].path == "email" ? req.t("alternate_login_option_error_email") : req.t("alternate_login_error_option_mobile")
-            throw new BadRequestError(uniqueText);
-        } else {
-            throw new BadRequestError(error);
-        };
+
+
     }
 
 }
@@ -184,7 +241,7 @@ let loginWithSocial = async (body, req) => {
         .findOne({ where: findData, attributes: ['id', 'phone', 'email', 'region'], raw: true });
     if (!user1) {
         findData["user_unique_id"] = Date.now().toString()
-        let custId = await StripeFunc.createCustomer({ description:findData["user_unique_id"]});
+        let custId = await StripeFunc.createCustomer({ description: findData["user_unique_id"] });
         findData["customer_id"] = custId;
 
         let user = await UserModel.create(findData);
@@ -396,7 +453,7 @@ let countryList = async () => {
     return Country;
 
 }
-let generateAuthToken = async (phone) => {    
+let generateAuthToken = async (phone) => {
     return uuidv4();
 }
 let generateOTP = async () => {
@@ -410,12 +467,12 @@ let getTermsCondition = async (body) => {
 let getProfile = async (userid, req) => {
 
     return UserModel
-        .findOne({ where: { id: userid }, attributes: ['user_unique_id', 'name', 'profileimage', 'username', 'email', 'phone', 'region', 'dob', 'latitude', 'longitude', 'gender', 'isactive', 'notification_token', 'isSound', 'isVibration', 'isNotification', 'isTermsConditionAccepted', 'language','customer_id','balance'],raw:true });
+        .findOne({ where: { id: userid }, attributes: ['user_unique_id', 'name', 'profileimage', 'username', 'email', 'phone', 'region', 'dob', 'latitude', 'longitude', 'gender', 'isactive', 'notification_token', 'isSound', 'isVibration', 'isNotification', 'isTermsConditionAccepted', 'language', 'customer_id', 'balance'], raw: true });
 }
-let getProfileById = async ( uuid) => {
+let getProfileById = async (uuid) => {
 
     return UserModel
-        .findOne({ where: { user_unique_id: uuid }, attributes: ['user_unique_id', 'name', 'profileimage', 'username', 'email', 'phone', 'region', 'dob', 'latitude', 'longitude', 'gender', 'isactive', 'notification_token', 'isSound', 'isVibration', 'isNotification', 'isTermsConditionAccepted', 'language','customer_id','balance'],raw:true });
+        .findOne({ where: { user_unique_id: uuid }, attributes: ['user_unique_id', 'name', 'profileimage', 'username', 'email', 'phone', 'region', 'dob', 'latitude', 'longitude', 'gender', 'isactive', 'notification_token', 'isSound', 'isVibration', 'isNotification', 'isTermsConditionAccepted', 'language', 'customer_id', 'balance'], raw: true });
 }
 
 let updateProfile = async (userid, req) => {
@@ -566,10 +623,10 @@ let updatePhone = async (userid, body, req) => {
 }
 
 let deleteUser = async (uuid) => {
-    let user = await  UserModel.findOne({ where: { user_unique_id: uuid }, raw:true });
+    let user = await UserModel.findOne({ where: { user_unique_id: uuid }, raw: true });
     await UserAuthModel.destroy({ where: { userid: user.id } });
-    await UserModel.destroy({ where: { id: user.id } });    
-    let url = "https://" + process.env.COMECHAT_APP_ID + ".api-" + process.env.COMECHAT_REGION + ".cometchat.io/v3/users/" + uuid;    
+    await UserModel.destroy({ where: { id: user.id } });
+    let url = "https://" + process.env.COMECHAT_APP_ID + ".api-" + process.env.COMECHAT_REGION + ".cometchat.io/v3/users/" + uuid;
     var options = {
         method: 'delete',
         url: url,
@@ -578,10 +635,10 @@ let deleteUser = async (uuid) => {
             'Content-Type': 'application/json'
         },
         "body": {
-         "permanent": true
+            "permanent": true
         },
         "json": true
-       };
+    };
     let resp = await axios(options);
     console.log(resp.data);
 }
@@ -600,12 +657,12 @@ module.exports = {
     generateOTP: generateOTP,
     loginWithSocial: loginWithSocial,
     getProfile: getProfile,
-    getProfileById:getProfileById,
+    getProfileById: getProfileById,
     updateProfile: updateProfile,
     updateUsername: updateUsername,
     updateEmail: updateEmail,
     updatePassword: updatePassword,
     updatePhone: updatePhone,
     getTermsCondition: getTermsCondition,
-    deleteUser:deleteUser
+    deleteUser: deleteUser
 };

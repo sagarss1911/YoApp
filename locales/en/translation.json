@@ -55,5 +55,7 @@
     "unblocked_friend_req_of":"You have UnBlocked Friend Request of",
     "unblocked_friend_req":"Friend Request UnBlocked",
     "comechat_user_create_error":"ComeChat User Create Error",
-    "comechat_user_update_image_error":"ComeChat User Profile Image Update Error"
+    "comechat_user_update_image_error":"ComeChat User Profile Image Update Error",
+    "insufficient_balance":"Insufficient Balance",
+    "reference_code_not_exist":"Reference Code Not Exist"
 }

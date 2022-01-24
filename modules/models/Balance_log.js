@@ -26,7 +26,7 @@ module.exports = sequelize_mysql.define("balance_log",
             references: 'wallet',
             referencesKey: 'id'
         },
-        transacction_type: {
+        transaction_type: {
             type: Sequelize.ENUM,
             values: ['1', '2','3','4'],   //1 credit, 2=debit    
         },
