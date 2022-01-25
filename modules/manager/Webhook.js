@@ -25,8 +25,8 @@ let paymentSuccess = async (body) => {
     let status = body.data.object.status;
     let transaction_type = body.type;
     if (transaction_type == "payment_intent.succeeded" && status == "succeeded") {
-        let amount = body.data.object.amount_received;
         
+        let amount = body.data.object.amount_received;
         let payment_method = body.data.object.charges.data[0].payment_method;
         let trasaction_refundid = body.data.object.id;
         let updateData = {
@@ -36,14 +36,16 @@ let paymentSuccess = async (body) => {
             trasaction_refundid: trasaction_refundid,
             txn_completion_date: body.created,
         };
+        
         await WalletModel.update(
             updateData,
             { where: { client_secret: clientsecret, amount: amount }, raw: true }
         );
         // update user balance
+        
         let walletData = await WalletModel.findOne({ where: { client_secret: clientsecret }, raw: true });
         if (walletData.ordertype == 1) {
-            let userData = await UserModel.findOne({ where: { id: walletData.user_id }, raw: true });
+            let userData = await UserModel.findOne({ where: { id: walletData.userId }, raw: true });
             if (util.isNullOrUndefined(userData.balance)) {
                 userData.balance = 0;
             }
@@ -55,7 +57,7 @@ let paymentSuccess = async (body) => {
             );
             // update balancelog
             let balancelogData = {
-                user_id: userData.id,
+                userId: userData.id,
                 amount: parseFloat(amount / 100),
                 oldbalance: parseFloat(userData.balance),
                 newbalance: newBalance,
@@ -68,8 +70,7 @@ let paymentSuccess = async (body) => {
                 title: "Congrats! Money added to your wallet",
                 subtitle: "Amount: " + amount / 100 + " Added To Your Wallet",
                 redirectscreen: "payment_success",                
-            }
-            
+            }            
             await NotificationHelper.sendFriendRequestNotificationToUser(userData.id, notificationData);
             SEND_SMS.paymentSuccessSMS(parseFloat(amount/100), "+" + country.isd_code + userData.phone);      
         }
@@ -88,7 +89,7 @@ let paymentSuccess = async (body) => {
             { where: { client_secret: clientsecret }, raw: true }
         );
         let walletData = await WalletModel.findOne({ where: { client_secret: clientsecret }, raw: true });
-        let userData = await UserModel.findOne({ where: { id: walletData.user_id }, raw: true });
+        let userData = await UserModel.findOne({ where: { id: walletData.userId }, raw: true });
         let country = await CountryModel.findOne({ where: { iso_code_2: body.region }, raw: true })
         let notificationData = {
             title: "Add Money To wallet Request Failed",
@@ -112,7 +113,7 @@ let paymentSuccess = async (body) => {
             { where: { client_secret: clientsecret }, raw: true }
         );
         let walletData = await WalletModel.findOne({ where: { client_secret: clientsecret }, raw: true });
-        let userData = await UserModel.findOne({ where: { id: walletData.user_id }, raw: true });
+        let userData = await UserModel.findOne({ where: { id: walletData.userId }, raw: true });
         let country = await CountryModel.findOne({ where: { iso_code_2: userData.region }, raw: true })
         let notificationData = {
             title: "Add Money To wallet Request cancelled",
