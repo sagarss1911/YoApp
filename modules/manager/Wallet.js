@@ -13,6 +13,7 @@ let helper = require("../helpers/helpers"),
     StripeManager = require("../manager/Stripe"),
     config = process.config.global_config,
     StripeFunc = require("../manager/Stripe"),
+    SEND_PUSH = require('../helpers/send_push'),
     axios = require('axios'),
     util = require('util'),
     BadRequestError = require('../errors/badRequestError');
@@ -135,8 +136,8 @@ let sendMoneyToWallet = async (userid, body, req) => {
         let notificationDataSender = {
             title: "Congrats! Money Successfully Sent to " + receiverInfo.phone,
             subtitle: "Amount: " + body.amount + " Successfully Transfered to " + receiverInfo.phone,
-            redirectscreen: "payment_success_wallet",                
-        }        
+            redirectscreen: "payment_success_wallet",
+        }
         await NotificationHelper.sendFriendRequestNotificationToUser(senderInfo.id, notificationDataSender);
 
         SEND_SMS.paymentSentSMS(parseFloat(body.amount), "+" + country.isd_code + senderInfo.phone, receiverInfo.phone);
@@ -164,19 +165,19 @@ let sendMoneyToWallet = async (userid, body, req) => {
         await BalanceLogModel.create(receiverBalanceLogData);
         await UserModel.update({ balance: receiverInfo.balance + body.amount }, { where: { id: receiverInfo.id } });
         let receiverCountry;
-            receiverInfo.region = receiverInfo.region ? receiverInfo.region : process.env.DEFAULT_REGION;
-             receiverCountry = await CountryModel.findOne({ where: { iso_code_2: receiverInfo.region }, raw: true })
-            if (!receiverCountry) {
-                receiverCountry = {}
-                receiverCountry.isd_code = "91";
-            }
+        receiverInfo.region = receiverInfo.region ? receiverInfo.region : process.env.DEFAULT_REGION;
+        receiverCountry = await CountryModel.findOne({ where: { iso_code_2: receiverInfo.region }, raw: true })
+        if (!receiverCountry) {
+            receiverCountry = {}
+            receiverCountry.isd_code = "91";
+        }
         let notificationDataReceiver = {
             title: "Congrats! You have received money from " + senderInfo.phone,
             subtitle: body.amount + " Successfully Transfered from " + senderInfo.phone + " to Your Wallet",
-            redirectscreen: "payment_success_wallet",                
-        }        
+            redirectscreen: "payment_success_wallet",
+        }
         await NotificationHelper.sendFriendRequestNotificationToUser(receiverInfo.id, notificationDataReceiver);
-        
+
         SEND_SMS.paymentReceivedSMS(parseFloat(body.amount), "+" + country.isd_code + senderInfo.phone, "+" + (receiverCountry.isd_code ? receiverCountry.isd_code : '') + receiverInfo.phone);
 
 
@@ -189,9 +190,45 @@ let sendMoneyToWallet = async (userid, body, req) => {
     }
 
 }
+
+let recentWalletToWallet = async (userid, req) => {
+    try {
+        let recentWallet = await WalletModel.findAll({ where: { user_id: userid, ordertype: '2', order_status: 'success' },include: {
+            model: UserModel, as: 'user_data', attributes: ['user_unique_id','name'],
+        }, order: [['order_date', 'DESC']], limit: 5,  attributes: [ 'amount', 'order_date'] });
+        if (recentWallet.length > 0) {
+            for (let i = 0; i < recentWallet.length; i++) {
+                recentWallet[i].amount = parseFloat(Number(recentWallet[i].amount) / 100);
+            }
+        }
+        return recentWallet;
+    }
+    catch (err) {
+        console.log(err);
+        throw new BadRequestError(err);
+    }
+}
+let sendDummyNotification = async (userid, body,req) => {
+    try {
+      
+        let notificationData = {
+            title: "notification title",
+            subtitle: "notification subtitle",
+            redirectscreen: "payment_success_wallet",
+        }
+        let nr =  await SEND_PUSH.notifyAndroidOrIOS(body.token, "Dummy Notification", notificationData);       
+    }
+    catch (err) {
+        console.log(err);
+        throw new BadRequestError(err);
+    }
+    
+}
 module.exports = {
     addMoneyToWallet: addMoneyToWallet,
     transactionStatus: transactionStatus,
-    sendMoneyToWallet: sendMoneyToWallet
+    sendMoneyToWallet: sendMoneyToWallet,
+    recentWalletToWallet: recentWalletToWallet,
+    sendDummyNotification:sendDummyNotification
 
 };

@@ -1,7 +1,7 @@
 'use strict';
 let sequelize_mysql = require("../helpers/sequelize-mysql");
 let Sequelize = require("sequelize");
-
+let UsersModel = require('../models/Users');
 const WalletModal = sequelize_mysql.define("walletModal",
     {
         id:{
@@ -10,7 +10,9 @@ const WalletModal = sequelize_mysql.define("walletModal",
             primaryKey: true
         },
         user_id: {
-            type: Sequelize.INTEGER
+            type: Sequelize.INTEGER,
+            references: 'users',
+            referencesKey: 'id'
         },
         order_date: {
             type: Sequelize.DATE
@@ -82,6 +84,7 @@ const WalletModal = sequelize_mysql.define("walletModal",
         tableName: 'wallet'
     }
 );
-
+//UsersModel.hasMany(WalletModal);
+//WalletModal.belongsTo(UsersModel,{foreignKey: 'user_id', as: 'user_data'});
 module.exports = WalletModal;
 
