@@ -9,7 +9,7 @@ module.exports = sequelize_mysql.define("balance_log",
             autoIncrement: true,
             primaryKey: true
         },        
-        user_id: {
+        userId: {
             type: Sequelize.STRING
         },
         amount: {

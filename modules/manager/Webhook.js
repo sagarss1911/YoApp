@@ -45,7 +45,7 @@ let paymentSuccess = async (body) => {
         
         let walletData = await WalletModel.findOne({ where: { client_secret: clientsecret }, raw: true });
         if (walletData.ordertype == 1) {
-            let userData = await UserModel.findOne({ where: { id: walletData.user_id }, raw: true });
+            let userData = await UserModel.findOne({ where: { id: walletData.userId }, raw: true });
             if (util.isNullOrUndefined(userData.balance)) {
                 userData.balance = 0;
             }
@@ -57,7 +57,7 @@ let paymentSuccess = async (body) => {
             );
             // update balancelog
             let balancelogData = {
-                user_id: userData.id,
+                userId: userData.id,
                 amount: parseFloat(amount / 100),
                 oldbalance: parseFloat(userData.balance),
                 newbalance: newBalance,
@@ -89,7 +89,7 @@ let paymentSuccess = async (body) => {
             { where: { client_secret: clientsecret }, raw: true }
         );
         let walletData = await WalletModel.findOne({ where: { client_secret: clientsecret }, raw: true });
-        let userData = await UserModel.findOne({ where: { id: walletData.user_id }, raw: true });
+        let userData = await UserModel.findOne({ where: { id: walletData.userId }, raw: true });
         let country = await CountryModel.findOne({ where: { iso_code_2: body.region }, raw: true })
         let notificationData = {
             title: "Add Money To wallet Request Failed",
@@ -113,7 +113,7 @@ let paymentSuccess = async (body) => {
             { where: { client_secret: clientsecret }, raw: true }
         );
         let walletData = await WalletModel.findOne({ where: { client_secret: clientsecret }, raw: true });
-        let userData = await UserModel.findOne({ where: { id: walletData.user_id }, raw: true });
+        let userData = await UserModel.findOne({ where: { id: walletData.userId }, raw: true });
         let country = await CountryModel.findOne({ where: { iso_code_2: userData.region }, raw: true })
         let notificationData = {
             title: "Add Money To wallet Request cancelled",

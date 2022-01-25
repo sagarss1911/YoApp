@@ -30,7 +30,7 @@ let addMoneyToWallet = async (userid, body, req) => {
 
         const paymentIntent = await StripeManager.paymentIntent(userid, body.amount);
         let createData = {
-            user_id: userid,
+            userId: userid,
             order_date: new Date(),
             client_secret: paymentIntent.client_secret,
             currency: paymentIntent.currency,
@@ -58,7 +58,7 @@ let transactionStatus = async (userid, client_secret, req) => {
         if (helper.undefinedOrNull(WalletInfo)) {
             throw new BadRequestError("Invalid transaction");
         }
-        if (WalletInfo.user_id != userid) {
+        if (WalletInfo.userId != userid) {
             throw new BadRequestError("Invalid transaction");
         }
         WalletInfo.amount = parseFloat(WalletInfo.amount / 100);
@@ -111,19 +111,19 @@ let sendMoneyToWallet = async (userid, body, req) => {
 
         //add entry to sender
         let senderWalletData = {
-            user_id: senderInfo.id,
+            userId: senderInfo.id,
             order_date: new Date(),
             amount: body.amount * 100,
             order_status: 'success',
             ordertype: '2',
-            destination_user_id: receiverInfo.id,
+            destination_userId: receiverInfo.id,
         }
 
         let senderWalletInfo = await WalletModel.create(senderWalletData);
 
         //update balance log
         let senderBalanceLogData = {
-            user_id: senderInfo.id,
+            userId: senderInfo.id,
             amount: body.amount,
             oldbalance: senderInfo.balance,
             newbalance: senderInfo.balance - body.amount,
@@ -143,19 +143,19 @@ let sendMoneyToWallet = async (userid, body, req) => {
         SEND_SMS.paymentSentSMS(parseFloat(body.amount), "+" + country.isd_code + senderInfo.phone, receiverInfo.phone);
         //add entry to receiver
         let receiverWalletData = {
-            user_id: receiverInfo.id,
+            userId: receiverInfo.id,
             order_date: new Date(),
             amount: body.amount * 100,
             order_status: 'success',
             ordertype: '2',
-            source_user_id: senderInfo.id,
+            source_userId: senderInfo.id,
             source_wallet_id: senderWalletInfo.id
         }
         let receiverWalletInfo = await WalletModel.create(receiverWalletData);
 
         //update receiver wallet
         let receiverBalanceLogData = {
-            user_id: receiverInfo.id,
+            userId: receiverInfo.id,
             amount: body.amount,
             oldbalance: receiverInfo.balance,
             newbalance: receiverInfo.balance + body.amount,
@@ -193,7 +193,7 @@ let sendMoneyToWallet = async (userid, body, req) => {
 
 let recentWalletToWallet = async (userid, req) => {
     try {
-        let recentWallet = await WalletModel.findAll({ where: { user_id: userid, ordertype: '2', order_status: 'success' },include: {
+        let recentWallet = await WalletModel.findAll({ where: { userId: userid, ordertype: '2', order_status: 'success' },include: {
             model: UserModel, as: 'user_data', attributes: ['user_unique_id','name'],
         }, order: [['order_date', 'DESC']], limit: 5,  attributes: [ 'amount', 'order_date'] });
         if (recentWallet.length > 0) {

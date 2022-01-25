@@ -15,9 +15,9 @@ module.exports = function(serverSocket){
             removeUserFromSocket(socket);
         });
 
-        socket.on('user_id', function(data){                       
-            let user_id = data.user_id;
-            addUserToSocket(socket.id, user_id.toString(),socket);           
+        socket.on('userId', function(data){                       
+            let userId = data.userId;
+            addUserToSocket(socket.id, userId.toString(),socket);           
         });
 
         socket.on("error", function(data){
@@ -47,7 +47,7 @@ module.exports = function(serverSocket){
 
         var previous_socket_ids = [];
         _.remove(users, user => {
-            if (user.user_id == uid) {
+            if (user.userId == uid) {
                 previous_socket_ids.push(user.socket_id);
                 sent_data_for_pending = false;
                 return true;
@@ -58,13 +58,13 @@ module.exports = function(serverSocket){
 
         users.push({
             socket_id : sid,
-            user_id : uid
+            userId : uid
         });
 
         _.forEach(previous_socket_ids, socket_id => {
             users.push({
                 socket_id : socket_id,
-                user_id   : uid
+                userId   : uid
             });
         });
         
@@ -77,7 +77,7 @@ module.exports = function(serverSocket){
     function removeUserFromSocket(socket) {
         _.remove(users, user => {
             if (user.socket_id == socket.id) {
-                socket.leave(user.user_id);
+                socket.leave(user.userId);
 
                 console.log("UserRemoved", user);
                 return true;
