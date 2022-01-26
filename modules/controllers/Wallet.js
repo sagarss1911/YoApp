@@ -180,7 +180,7 @@ let transactionStatus = (req, res, next) => {
   *                 example: 50
   *                 paramType: body
   *               receiver_uuid:
-  *                 type: number
+  *                 type: string
   *                 example: 123456010
   *                 paramType: body 
   *     responses:
