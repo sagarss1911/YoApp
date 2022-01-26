@@ -93,7 +93,7 @@ let signup = async (req) => {
     if (!body.reference_code) {
 
         user = await UserModel
-            .findOne({ where: { phone: body.phone.trim() }, attributes: ['id', 'phone'] });
+            .findOne({ where: { phone: { $like: `%${body.phone.trim()}%` } }, attributes: ['id', 'phone'] });
 
         if (user) {
             throw new BadRequestError(req.t("phone_exist"));
@@ -160,8 +160,12 @@ let signup = async (req) => {
         }
     } else {
         // check if referaal code exist or not
-        let refUser = await UserModel.findOne({ where: { reference_id: body.reference_code.trim() }, raw:true });
-        
+        let findData = {};
+        findData["$or"] = [
+            { reference_id: { $eq:  body.reference_code.trim() } },
+            { phone: { $like: `%${body.phone.trim()}%` }} 
+        ]
+        let refUser = await UserModel.findOne({ where: findData, raw:true });
         if(!refUser){
             throw new BadRequestError(req.t("reference_code_not_exist"));
         }
@@ -182,9 +186,8 @@ let signup = async (req) => {
         
         let custId = await StripeFunc.createCustomer({ phone: body.phone.trim(), name: body.name.trim(), email: body.email.trim() });
         createData["customer_id"] = custId;
-         await UserModel.update(createData, { where: { id: refUser.id } });
-         let _customer = await UserModel.findOne({ where: { id: refUser.id }, raw: true });
-         
+        await UserModel.update(createData, { where: { id: refUser.id } });
+        let _customer = await UserModel.findOne({ where: { id: refUser.id }, raw: true });         
         let authToken = await generateAuthToken(_customer.phone);
         let authRecord = {
             userid: _customer.id,

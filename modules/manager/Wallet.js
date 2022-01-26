@@ -106,7 +106,7 @@ let sendMoneyToWallet = async (userid, body, req) => {
 
             }
             receiverInfo = await UserModel.create(createData);
-            SEND_SMS.paymentReceivedWithoutAccount(parseFloat(body.amount), "+" + process.env.DEFAULT_COUNTRY + receiverInfo.phone, receiverInfo.reference_id);
+            SEND_SMS.paymentReceivedWithoutAccount(parseFloat(body.amount), receiverInfo.phone, receiverInfo.reference_id);
         }
 
         //add entry to sender
@@ -165,12 +165,12 @@ let sendMoneyToWallet = async (userid, body, req) => {
         await BalanceLogModel.create(receiverBalanceLogData);
         await UserModel.update({ balance: receiverInfo.balance + body.amount }, { where: { id: receiverInfo.id } });
         let receiverCountry;
-        receiverInfo.region = receiverInfo.region ? receiverInfo.region : process.env.DEFAULT_REGION;
+        if (receiverInfo.region) {
         receiverCountry = await CountryModel.findOne({ where: { iso_code_2: receiverInfo.region }, raw: true })
-        if (!receiverCountry) {
-            receiverCountry = {}
-            receiverCountry.isd_code = "91";
+        if (receiverCountry) {
+            receiverInfo.phone = "+" + receiverCountry.isd_code + receiverInfo.phone;
         }
+    }
         let notificationDataReceiver = {
             title: "Congrats! You have received money from " + senderInfo.phone,
             subtitle: body.amount + " Successfully Transfered from " + senderInfo.phone + " to Your Wallet",
@@ -178,7 +178,7 @@ let sendMoneyToWallet = async (userid, body, req) => {
         }
         await NotificationHelper.sendFriendRequestNotificationToUser(receiverInfo.id, notificationDataReceiver);
 
-        SEND_SMS.paymentReceivedSMS(parseFloat(body.amount), "+" + country.isd_code + senderInfo.phone, "+" + (receiverCountry.isd_code ? receiverCountry.isd_code : '') + receiverInfo.phone);
+        SEND_SMS.paymentReceivedSMS(parseFloat(body.amount), "+" + country.isd_code + senderInfo.phone,  receiverInfo.phone);
 
 
         return true;
