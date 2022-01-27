@@ -87,6 +87,9 @@ let sendMoneyToWallet = async (userid, body, req) => {
     if (!senderInfo.balance || senderInfo.balance <= 0) {
         throw new BadRequestError(req.t("insufficient_balance"));
     }
+    if(senderInfo.user_unique_id == body.receiver_uuid ){
+        throw new BadRequestError("Can not send money to yourself");
+    }
     try {
 
         let findData = {}
@@ -131,7 +134,7 @@ let sendMoneyToWallet = async (userid, body, req) => {
             wallet_id: senderWalletInfo.id
         }
         await BalanceLogModel.create(senderBalanceLogData);
-        await UserModel.update({ balance: senderInfo.balance - body.amount }, { where: { id: senderInfo.id } });
+        await UserModel.update({ balance: Number(senderInfo.balance) - Number(body.amount) }, { where: { id: senderInfo.id } });
         let country = await CountryModel.findOne({ where: { iso_code_2: senderInfo.region }, raw: true })
         let notificationDataSender = {
             title: "Congrats! Money Successfully Sent to " + receiverInfo.phone,
@@ -163,7 +166,7 @@ let sendMoneyToWallet = async (userid, body, req) => {
             wallet_id: receiverWalletInfo.id
         }
         await BalanceLogModel.create(receiverBalanceLogData);
-        await UserModel.update({ balance: receiverInfo.balance + body.amount }, { where: { id: receiverInfo.id } });
+        await UserModel.update({ balance: Number(receiverInfo.balance) + Number(body.amount) }, { where: { id: receiverInfo.id } });
         let receiverCountry;
         if (receiverInfo.region) {
         receiverCountry = await CountryModel.findOne({ where: { iso_code_2: receiverInfo.region }, raw: true })
