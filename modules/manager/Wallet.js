@@ -198,8 +198,16 @@ let sendMoneyToWallet = async (userid, body, req) => {
 
 let recentWalletToWallet = async (userid, req) => {
     try {
-        var SearchSql = "SELECT DISTINCT destination_userId,id,amount,order_date from wallet where userId = " + userid + " and ordertype = 2 and order_status='success' AND destination_userId IS NOT NULL order by id desc limit 5";        
-       
+        var SearchSql = "SELECT  id,destination_userId,amount,order_date ";
+        SearchSql += "FROM    wallet ";
+        SearchSql += "WHERE userId="+userid+"  and ordertype = 2 and order_status='success' AND destination_userId IS NOT NULL AND id NOT IN ( ";
+        SearchSql += "SELECT  d2.id ";
+        SearchSql += "FROM    wallet d1 ";
+        SearchSql += "INNER JOIN wallet d2 ON d2.destination_userId=d1.destination_userId ";
+        SearchSql += "WHERE d1.id > d2.id ";
+        SearchSql += ") ";
+        SearchSql += "ORDER BY id LIMIT 5 ";
+      
         let recentWalletToWalletTransaction = await CustomQueryModel.query(SearchSql, {
             type: SequelizeObj.QueryTypes.SELECT,
             raw: true
