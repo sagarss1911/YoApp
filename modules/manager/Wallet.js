@@ -9,7 +9,9 @@ let helper = require("../helpers/helpers"),
     WalletModel = require("../models/Wallet"),
     NotificationHelper = require("../helpers/notifications"),
     CountryModel = require("../models/Country"),
+    SequelizeObj = require("sequelize"),
     BalanceLogModel = require("../models/Balance_log"),
+    CustomQueryModel = require("../models/Custom_query"),
     StripeManager = require("../manager/Stripe"),
     config = process.config.global_config,
     StripeFunc = require("../manager/Stripe"),
@@ -87,7 +89,7 @@ let sendMoneyToWallet = async (userid, body, req) => {
     if (!senderInfo.balance || senderInfo.balance <= 0) {
         throw new BadRequestError(req.t("insufficient_balance"));
     }
-    if(senderInfo.user_unique_id == body.receiver_uuid ){
+    if (senderInfo.user_unique_id == body.receiver_uuid) {
         throw new BadRequestError("Can not send money to yourself");
     }
     try {
@@ -169,11 +171,11 @@ let sendMoneyToWallet = async (userid, body, req) => {
         await UserModel.update({ balance: Number(receiverInfo.balance) + Number(body.amount) }, { where: { id: receiverInfo.id } });
         let receiverCountry;
         if (receiverInfo.region) {
-        receiverCountry = await CountryModel.findOne({ where: { iso_code_2: receiverInfo.region }, raw: true })
-        if (receiverCountry) {
-            receiverInfo.phone = "+" + receiverCountry.isd_code + receiverInfo.phone;
+            receiverCountry = await CountryModel.findOne({ where: { iso_code_2: receiverInfo.region }, raw: true })
+            if (receiverCountry) {
+                receiverInfo.phone = "+" + receiverCountry.isd_code + receiverInfo.phone;
+            }
         }
-    }
         let notificationDataReceiver = {
             title: "Congrats! You have received money from " + senderInfo.phone,
             subtitle: body.amount + " Successfully Transfered from " + senderInfo.phone + " to Your Wallet",
@@ -181,7 +183,7 @@ let sendMoneyToWallet = async (userid, body, req) => {
         }
         await NotificationHelper.sendFriendRequestNotificationToUser(receiverInfo.id, notificationDataReceiver);
 
-        SEND_SMS.paymentReceivedSMS(parseFloat(body.amount), "+" + country.isd_code + senderInfo.phone,  receiverInfo.phone);
+        SEND_SMS.paymentReceivedSMS(parseFloat(body.amount), "+" + country.isd_code + senderInfo.phone, receiverInfo.phone);
 
 
         return true;
@@ -196,42 +198,47 @@ let sendMoneyToWallet = async (userid, body, req) => {
 
 let recentWalletToWallet = async (userid, req) => {
     try {
-        let recentWallet = await WalletModel.findAll({ where: { userId: userid, ordertype: '2', order_status: 'success' },include: {
-            model: UserModel, as: 'user_data', attributes: ['user_unique_id','name'],
-        }, order: [['order_date', 'DESC']], limit: 5,  attributes: [ 'amount', 'order_date'] });
-        if (recentWallet.length > 0) {
-            for (let i = 0; i < recentWallet.length; i++) {
-                recentWallet[i].amount = parseFloat(Number(recentWallet[i].amount) / 100);
-            }
+        var SearchSql = "SELECT DISTINCT destination_userId,id,amount,order_date from wallet where userId = " + userid + " and ordertype = 2 and order_status='success' order by id desc limit 5";        
+        let recentWalletToWalletTransaction = await CustomQueryModel.query(SearchSql, {
+            type: SequelizeObj.QueryTypes.SELECT,
+            raw: true
+        });
+        for (let i = 0; i < recentWalletToWalletTransaction.length; i++) {
+            recentWalletToWalletTransaction[i].amount = parseFloat(Number(recentWalletToWalletTransaction[i].amount) / 100);
+            let userInfo = await UserModel.findOne({ where: { id: recentWalletToWalletTransaction[i].destination_userId }, raw: true, attributes: ['user_unique_id', 'name'] });
+            recentWalletToWalletTransaction[i].user_data = userInfo;
+            delete recentWalletToWalletTransaction[i].destination_userId;
+            delete recentWalletToWalletTransaction[i].id;
         }
-        return recentWallet;
+
+        return recentWalletToWalletTransaction;
     }
     catch (err) {
         console.log(err);
         throw new BadRequestError(err);
     }
 }
-let sendDummyNotification = async (userid, body,req) => {
+let sendDummyNotification = async (userid, body, req) => {
     try {
-      
+
         let notificationData = {
             title: "notification title",
             subtitle: "notification subtitle",
             redirectscreen: "payment_success_wallet",
         }
-        let nr =  await SEND_PUSH.notifyAndroidOrIOS(body.token, "Dummy Notification", notificationData);       
+        let nr = await SEND_PUSH.notifyAndroidOrIOS(body.token, "Dummy Notification", notificationData);
     }
     catch (err) {
         console.log(err);
         throw new BadRequestError(err);
     }
-    
+
 }
 module.exports = {
     addMoneyToWallet: addMoneyToWallet,
     transactionStatus: transactionStatus,
     sendMoneyToWallet: sendMoneyToWallet,
     recentWalletToWallet: recentWalletToWallet,
-    sendDummyNotification:sendDummyNotification
+    sendDummyNotification: sendDummyNotification
 
 };
