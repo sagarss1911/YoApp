@@ -192,7 +192,7 @@ let sendMoneyToWallet = async (userid, body, req) => {
     catch (err) {
         console.log(err);
         throw new BadRequestError(err);
-    }  
+    }    
 
 }
 
