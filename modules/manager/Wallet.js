@@ -116,7 +116,7 @@ let sendMoneyToWallet = async (userid, body, req) => {
         let senderWalletData = {
             userId: senderInfo.id,
             order_date: new Date(),
-            amount: body.amount * 100,
+            amount: Number(body.amount) * 100,
             order_status: 'success',
             ordertype: '2',
             destination_userId: receiverInfo.id,
@@ -127,9 +127,9 @@ let sendMoneyToWallet = async (userid, body, req) => {
         //update balance log
         let senderBalanceLogData = {
             userId: senderInfo.id,
-            amount: body.amount,
-            oldbalance: senderInfo.balance,
-            newbalance: senderInfo.balance - body.amount,
+            amount: Number(body.amount),
+            oldbalance: Number(senderInfo.balance),
+            newbalance: Number(senderInfo.balance) - Number(body.amount),
             transaction_type: '2',
             wallet_id: senderWalletInfo.id
         }
@@ -148,7 +148,7 @@ let sendMoneyToWallet = async (userid, body, req) => {
         let receiverWalletData = {
             userId: receiverInfo.id,
             order_date: new Date(),
-            amount: body.amount * 100,
+            amount: Number(body.amount) * 100,
             order_status: 'success',
             ordertype: '2',
             source_userId: senderInfo.id,
@@ -159,9 +159,9 @@ let sendMoneyToWallet = async (userid, body, req) => {
         //update receiver wallet
         let receiverBalanceLogData = {
             userId: receiverInfo.id,
-            amount: body.amount,
-            oldbalance: receiverInfo.balance,
-            newbalance: receiverInfo.balance + body.amount,
+            amount: Number(body.amount),
+            oldbalance: Number(receiverInfo.balance),
+            newbalance: Number(receiverInfo.balance) + Number(body.amount),
             transaction_type: '1',
             wallet_id: receiverWalletInfo.id
         }
