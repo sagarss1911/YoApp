@@ -92,6 +92,9 @@ let sendMoneyToWallet = async (userid, body, req) => {
     if (senderInfo.user_unique_id == body.receiver_uuid) {
         throw new BadRequestError("Can not send money to yourself");
     }
+    if(body.receiver_uuid.toString().includes(senderInfo.phone)){
+        throw new BadRequestError("Can not send money to yourself");
+    }
     try {
 
         let findData = {}
