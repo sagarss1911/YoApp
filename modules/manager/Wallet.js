@@ -81,7 +81,7 @@ let sendMoneyToWallet = async (userid, body, req) => {
     if (helper.undefinedOrNull(body)) {
         throw new BadRequestError(req.t("body_empty"));
     }
-
+    body.receiver_uuid = body.receiver_uuid.toString().replace(/\s/g,'');   
     if (helper.undefinedOrNull(body.amount) || Number(body.amount) <= 0) {
         throw new BadRequestError("Please provide Amount");
     }
