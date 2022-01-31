@@ -462,6 +462,11 @@ let transactionStatus = (req, res, next) => {
   *       in: query   
   *       description: page
   *       required: false
+  *       type: number 
+  *     - name: limit1
+  *       in: query   
+  *       description: page
+  *       required: false
   *       type: number   
   *     responses:
   *       200:
