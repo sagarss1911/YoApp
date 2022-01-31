@@ -1,4 +1,5 @@
 #!/bin/bash
 #Stopping existing node servers
 echo "Stopping any existing node servers"
-pm2 stop app
+cd /home/ec2-user/YoApp
+pm2 stop app.js
