@@ -84,7 +84,11 @@ let getUniqueTimeStamp = (value, padding) => {
 
     return (idstr);
 }
-
+let getUniqueTransactionId = async () => {
+    return (new Date()).getTime().toString(36) + Math.random().toString(36).slice(2);
+    
+        
+}
 let capitalize = (value) => {
     if (!value) return null;
     return value.charAt(0).toUpperCase() + value.slice(1);
@@ -97,5 +101,6 @@ module.exports = {
     sanitizeJSON    : sanitizeJSON,
     sanitizeJSONAsString : sanitizeJSONAsString,
     getUniqueTimeStamp : getUniqueTimeStamp,
-    generateIdNew   : generateIdNew
+    generateIdNew   : generateIdNew,
+    getUniqueTransactionId:getUniqueTransactionId
 };
