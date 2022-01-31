@@ -340,11 +340,102 @@ let transactionStatus = (req, res, next) => {
         })
         .catch(next);
 }
+
+/**
+ * @swagger
+ * /api/v1/wallet/cash_pickup_request:
+ *   post:
+ *     summary: cash_pickup_request.
+ *     tags:
+ *      - Wallet
+ *     parameters :
+ *     - name: x-auth-api-key
+ *       in: header   
+ *       description: an authorization header
+ *       required: true
+ *       type: string 
+ *     - name: x-auth-token
+ *       in: header   
+ *       description: an authorization header
+ *       required: true
+ *       type: string 
+ *     - name: Accept-Language
+ *       in: header   
+ *       description: Language
+ *       required: false
+ *       type: string 
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties: 
+ *               receiver_id_document:
+ *                 type: file 
+ *                 paramType: body 
+ *               name:
+ *                 type: string
+ *                 example: johm Smith
+ *                 paramType: body
+ *               email:
+ *                 type: integer
+ *                 example: "abcd@gmail.com" 
+ *                 paramType: body
+ *               phone:
+ *                 type: string
+ *                 example: "+919377690348"
+ *                 paramType: body 
+ *               dob:
+ *                 type: string
+ *                 example: "12/05/2020"
+ *                 paramType: body
+ *               amount:
+ *                 type: integer
+ *                 example: 50
+ *                 paramType: body  
+ *     responses:
+ *       200:
+ *         description: user object
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: object
+ *       400:
+ *         description: error in request processing
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 status:
+ *                   type: integer
+ *                   example: 400
+*/
+ let cashPickupRequest = (req, res, next) => {
+    let userid = req.user ? req.user.userId : null;
+    return walletManager
+        .cashPickupRequest(userid, req)
+        .then(data => {
+            let result = {
+                status: 200,
+                data: data
+            }
+            return res.json(result);
+        })
+        .catch(next);
+}
 module.exports = {
     addMoneyToWallet: addMoneyToWallet,
     transactionStatus: transactionStatus,
     sendMoneyToWallet: sendMoneyToWallet,
     recentWalletToWallet:recentWalletToWallet,
-    sendDummyNotification:sendDummyNotification
+    sendDummyNotification:sendDummyNotification,
+    cashPickupRequest:cashPickupRequest
 
 };

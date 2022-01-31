@@ -71,6 +71,26 @@ let paymentReceivedSMS = async (amount, senderPhone,receiverPhone) => {
        });       
   return sentmessage.sid
 };
+let paymentCashPickUpSenderSMS = async (amount, senderPhone,receiverPhone,trans_id) => {   
+  let msgbody  ="Cash Pickup Request Received for " + receiverPhone + " with amount: "+amount + ". Use Transaction ID: "+ trans_id
+  let sentmessage = await client.messages 
+      .create({ 
+         body: msgbody,  
+         messagingServiceSid: process.env.MESSAGE_SERVICE_SID,      
+         to: senderPhone
+       });       
+  return sentmessage.sid
+};
+let paymentCashPickUpReceiverSMS = async (amount, senderPhone,receiverPhone,trans_id) => {   
+  let msgbody  ="You have received Cash Pickup Request from " + senderPhone + " with amount: "+amount + ". Use Transaction ID: "+ trans_id
+  let sentmessage = await client.messages 
+      .create({ 
+         body: msgbody,  
+         messagingServiceSid: process.env.MESSAGE_SERVICE_SID,      
+         to: receiverPhone
+       });       
+  return sentmessage.sid
+};
 
 module.exports = {
     sms: sms,
@@ -79,5 +99,8 @@ module.exports = {
     paymentCancelledSMS:paymentCancelledSMS,
     paymentReceivedWithoutAccount:paymentReceivedWithoutAccount,
     paymentSentSMS:paymentSentSMS,
-    paymentReceivedSMS:paymentReceivedSMS
+    paymentReceivedSMS:paymentReceivedSMS,
+    paymentCashPickUpSenderSMS:paymentCashPickUpSenderSMS,
+    paymentCashPickUpReceiverSMS:paymentCashPickUpReceiverSMS
+
 }
