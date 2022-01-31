@@ -14,6 +14,7 @@ let helper = require("../helpers/helpers"),
     StripeManager = require("../manager/Stripe"),
     fs = require('fs'),
     s3Helper = require('../helpers/awsS3Helper'),
+    CommonHelper = require('../helpers/helpers'),
     util = require('util'),
     unlinkFile = util.promisify(fs.unlink),
     SEND_PUSH = require('../helpers/send_push'),
@@ -123,6 +124,7 @@ let sendMoneyToWallet = async (userid, body, req) => {
             amount: Number(body.amount) * 100,
             order_status: 'success',
             ordertype: '2',
+            trans_id: await CommonHelper.getUniqueTransactionId(),
             destination_userId: receiverInfo.id,
         }
 
@@ -155,6 +157,7 @@ let sendMoneyToWallet = async (userid, body, req) => {
             amount: Number(body.amount) * 100,
             order_status: 'success',
             ordertype: '2',
+            trans_id: await CommonHelper.getUniqueTransactionId(),
             source_userId: senderInfo.id,
             source_wallet_id: senderWalletInfo.id
         }
@@ -298,7 +301,7 @@ let cashPickupRequest = async (userid, req) => {
     await UserModel.update({ balance: Number(senderInfo.balance) - Number(body.amount) }, { where: { id: senderInfo.id } });
     addedData["sender_userId"] = senderInfo.id;
     addedData["wallet_id"] = senderWalletInfo.id;
-    addedData["transaction_id"] = (new Date()).getTime().toString(36) + Math.random().toString(36).slice(2);
+    addedData["transaction_id"] = await CommonHelper.getUniqueTransactionId();
     let CashpickData = await CashPickupModel.create(addedData);
     let updateWalletData = {
         cashpickupId: CashpickData.id
@@ -315,12 +318,70 @@ let cashPickupRequest = async (userid, req) => {
     SEND_SMS.paymentCashPickUpReceiverSMS(parseFloat(body.amount), "+" + country.isd_code + senderInfo.phone, body.phone, CashpickData.transaction_id);
     return {transaction_id:CashpickData.transaction_id};
 }
+let transactionHistory = async (userid, req) => {
+    let limit = (req.query.limit) ? parseInt(req.query.limit) : 10;
+    let page = req.query.page || 1;
+    let offset = (page - 1) * limit;
+    
+    let findData  = {}
+    findData["$or"] = [{ "order_status": 'success' }, { "order_status": 'failed' }]
+    findData["$and"] = [{ "userId": userid }]
+    let allTransactions = await WalletModel.findAll({ where: findData, raw: true ,attributes: ['id', 'order_date', 'amount', 'order_status', 'ordertype','source_userId','destination_userId','source_wallet_id','currency','cashpickupId','trans_id'],limit, offset, order: [['id', 'DESC']] });
+    for (let i = 0; i < allTransactions.length; i++) {
+        allTransactions[i].amount = parseFloat(Number(allTransactions[i].amount) / 100);
+       // delete allTransactions[i].id;
+        if(allTransactions[i].ordertype == '4'){
+            allTransactions[i].type = 'Cash Pickup';
+            delete allTransactions[i].destination_userId;
+            delete allTransactions[i].trans_id;
+            delete allTransactions[i].source_userId;
+            delete allTransactions[i].source_wallet_id;
+            delete allTransactions[i].currency;
+            allTransactions[i].cash_pickup_details = await CashPickupModel.findOne({ where: { id: allTransactions[i].cashpickupId }, raw: true,attributes: ['name', 'email', 'phone', 'dob', 'amount', 'transaction_id'] });
+            allTransactions[i].trans_id = allTransactions[i].cash_pickup_details.transaction_id;
+
+        }else if(allTransactions[i].ordertype == '3'){
+            allTransactions[i].type = 'Bank Transfer';
+        }else if(allTransactions[i].ordertype == '2'){
+            allTransactions[i].type = 'Wallet to Wallet';
+            delete allTransactions[i].cashpickupId;
+            if(allTransactions[i].destination_userId){
+                // means i have sent money to someone
+                allTransactions[i].wallet_type = 'Debit';
+                allTransactions[i].sent_to = await UserModel.findOne({ where: { id: allTransactions[i].destination_userId }, raw: true,attributes: ['name', 'email', 'phone','user_unique_id'] });    
+                delete allTransactions[i].source_userId;
+                delete allTransactions[i].source_wallet_id;
+                
+            }else if(allTransactions[i].source_userId && allTransactions[i].source_wallet_id){
+                // means i have received money from someone
+                allTransactions[i].wallet_type = 'Credit';
+                allTransactions[i].received_from = await UserModel.findOne({ where: { id: allTransactions[i].source_userId }, raw: true,attributes: ['name', 'email', 'phone','user_unique_id'] });    
+                delete allTransactions[i].destination_userId;
+                
+ 
+            }
+
+        }else if(allTransactions[i].ordertype == '1'){
+            allTransactions[i].type = 'Credit';
+            delete allTransactions[i].cashpickupId;
+            delete allTransactions[i].source_userId
+            delete allTransactions[i].destination_userId
+            delete allTransactions[i].source_wallet_id
+        }
+    }
+
+
+
+    return allTransactions;
+    
+}
 module.exports = {
     addMoneyToWallet: addMoneyToWallet,
     transactionStatus: transactionStatus,
     sendMoneyToWallet: sendMoneyToWallet,
     recentWalletToWallet: recentWalletToWallet,
     sendDummyNotification: sendDummyNotification,
-    cashPickupRequest: cashPickupRequest
+    cashPickupRequest: cashPickupRequest,
+    transactionHistory:transactionHistory
 
 };

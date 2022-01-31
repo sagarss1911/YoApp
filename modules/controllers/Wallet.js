@@ -430,12 +430,82 @@ let transactionStatus = (req, res, next) => {
         })
         .catch(next);
 }
+/**
+  * @swagger
+  * /api/v1/wallet/transaction_history:
+  *   get:
+  *     summary: transaction_history.
+  *     tags:
+  *      - Wallet
+  *     parameters :
+  *     - name: x-auth-api-key
+  *       in: header   
+  *       description: an authorization header
+  *       required: true
+  *       type: string 
+  *     - name: x-auth-token
+  *       in: header   
+  *       description: an authorization header
+  *       required: true
+  *       type: string 
+  *     - name: Accept-Language
+  *       in: header   
+  *       description: Language
+  *       required: false
+  *       type: string
+  *     - name: page
+  *       in: query   
+  *       description: page
+  *       required: false
+  *       type: number
+  *     - name: limit
+  *       in: query   
+  *       description: page
+  *       required: false
+  *       type: number   
+  *     responses:
+  *       200:
+  *         description: user object
+  *         content:
+  *           application/json:
+  *             schema:
+  *               type: object
+  *               properties:
+  *                 data:
+  *                   type: object
+  *       400:
+  *         description: error in request processing
+  *         content:
+  *           application/json:
+  *             schema:
+  *               type: object
+  *               properties:
+  *                 message:
+  *                   type: string
+  *                 status:
+  *                   type: integer
+  *                   example: 400
+ */
+ let transactionHistory = (req, res, next) => {
+    let userid = req.user ? req.user.userId : null;
+    return walletManager
+        .transactionHistory(userid, req)
+        .then(data => {
+            let result = {
+                status: 200,
+                data: data
+            }
+            return res.json(result);
+        })
+        .catch(next);
+}
 module.exports = {
     addMoneyToWallet: addMoneyToWallet,
     transactionStatus: transactionStatus,
     sendMoneyToWallet: sendMoneyToWallet,
     recentWalletToWallet:recentWalletToWallet,
     sendDummyNotification:sendDummyNotification,
-    cashPickupRequest:cashPickupRequest
+    cashPickupRequest:cashPickupRequest,
+    transactionHistory:transactionHistory
 
 };
