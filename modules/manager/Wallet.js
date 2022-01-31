@@ -358,7 +358,7 @@ let transactionHistory = async (userid, req) => {
                 allTransactions[i].received_from = await UserModel.findOne({ where: { id: allTransactions[i].source_userId }, raw: true,attributes: ['name', 'email', 'phone','user_unique_id'] });    
                 delete allTransactions[i].destination_userId;
                 
- 
+   
             }
 
         }else if(allTransactions[i].ordertype == '1'){
