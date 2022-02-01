@@ -219,7 +219,7 @@ let recentWalletToWallet = async (userid, req) => {
         });
         for (let i = 0; i < recentWalletToWalletTransaction.length; i++) {
             recentWalletToWalletTransaction[i].amount = parseFloat(Number(recentWalletToWalletTransaction[i].amount) / 100);
-            let userInfo = await UserModel.findOne({ where: { id: recentWalletToWalletTransaction[i].destination_userId }, raw: true, attributes: ['user_unique_id', 'name'] });
+            let userInfo = await UserModel.findOne({ where: { id: recentWalletToWalletTransaction[i].destination_userId }, raw: true, attributes: ['user_unique_id', 'name','phone'] });
             recentWalletToWalletTransaction[i].user_data = userInfo;
             delete recentWalletToWalletTransaction[i].destination_userId;
             delete recentWalletToWalletTransaction[i].id;
