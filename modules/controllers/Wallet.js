@@ -379,7 +379,7 @@ let transactionStatus = (req, res, next) => {
  *                 example: johm Smith
  *                 paramType: body
  *               email:
- *                 type: integer
+ *                 type: string
  *                 example: "abcd@gmail.com" 
  *                 paramType: body
  *               phone:
@@ -499,6 +499,101 @@ let transactionStatus = (req, res, next) => {
         })
         .catch(next);
 }
+
+/**
+ * @swagger
+ * /api/v1/wallet/bank_transfer:
+ *   post:
+ *     summary: bank_transfer.
+ *     tags:
+ *      - Wallet
+ *     parameters :
+ *     - name: x-auth-api-key
+ *       in: header   
+ *       description: an authorization header
+ *       required: true
+ *       type: string 
+ *     - name: x-auth-token
+ *       in: header   
+ *       description: an authorization header
+ *       required: true
+ *       type: string 
+ *     - name: Accept-Language
+ *       in: header   
+ *       description: Language
+ *       required: false
+ *       type: string 
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties: 
+ *               name:
+ *                 type: string
+ *                 example: johm Smith
+ *                 paramType: body
+ *               address:
+ *                 type: string
+ *                 example: "A-18" 
+ *                 paramType: body
+ *               phone:
+ *                 type: string
+ *                 example: "+919377690348"
+ *                 paramType: body 
+ *               bank_name:
+ *                 type: string
+ *                 example: "ABC bank"
+ *                 paramType: body
+ *               bank_account:
+ *                 type: string
+ *                 example: "1234567890"
+ *                 paramType: body
+ *               country:
+ *                 type: string
+ *                 example: "india"
+ *                 paramType: body
+ *               amount:
+ *                 type: integer
+ *                 example: 50
+ *                 paramType: body  
+ *     responses:
+ *       200:
+ *         description: user object
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: object
+ *       400:
+ *         description: error in request processing
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 status:
+ *                   type: integer
+ *                   example: 400
+*/
+let bankTransfer = (req, res, next) => {
+    let userid = req.user ? req.user.userId : null;
+    return walletManager
+        .bankTransfer(userid, req)
+        .then(data => {
+            let result = {
+                status: 200,
+                data: data
+            }
+            return res.json(result);
+        })
+        .catch(next);
+}
 module.exports = {
     addMoneyToWallet: addMoneyToWallet,
     transactionStatus: transactionStatus,
@@ -506,6 +601,7 @@ module.exports = {
     recentWalletToWallet:recentWalletToWallet,
     sendDummyNotification:sendDummyNotification,
     cashPickupRequest:cashPickupRequest,
-    transactionHistory:transactionHistory
+    transactionHistory:transactionHistory,
+    bankTransfer:bankTransfer
 
 };

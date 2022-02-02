@@ -92,6 +92,27 @@ let paymentCashPickUpReceiverSMS = async (amount, senderPhone,receiverPhone,tran
   return sentmessage.sid
 };
 
+let paymentBankTransferSenderSMS = async (amount, senderPhone,receiverPhone,trans_id) => {   
+  let msgbody  ="Bank Transfer Request Generated for " + receiverPhone + " with amount: "+amount + ". Use Transaction ID: "+ trans_id + " Amount will be credited in 3-5 Working Days"
+  let sentmessage = await client.messages 
+      .create({ 
+         body: msgbody,  
+         messagingServiceSid: process.env.MESSAGE_SERVICE_SID,      
+         to: senderPhone
+       });       
+  return sentmessage.sid
+};
+let paymentBankTransferReceiverSMS = async (amount, senderPhone,receiverPhone,trans_id) => {   
+  let msgbody  ="You have received Bank Transfer Request from " + senderPhone + " with amount: "+amount + ". Use Transaction ID: "+ trans_id+" Amount will be credited in 3-5 Working Days"
+  let sentmessage = await client.messages 
+      .create({ 
+         body: msgbody,  
+         messagingServiceSid: process.env.MESSAGE_SERVICE_SID,      
+         to: receiverPhone
+       });       
+  return sentmessage.sid
+};
+
 module.exports = {
     sms: sms,
     paymentSuccessSMS:paymentSuccessSMS,
@@ -101,6 +122,8 @@ module.exports = {
     paymentSentSMS:paymentSentSMS,
     paymentReceivedSMS:paymentReceivedSMS,
     paymentCashPickUpSenderSMS:paymentCashPickUpSenderSMS,
-    paymentCashPickUpReceiverSMS:paymentCashPickUpReceiverSMS
+    paymentCashPickUpReceiverSMS:paymentCashPickUpReceiverSMS,
+    paymentBankTransferSenderSMS:paymentBankTransferSenderSMS,
+    paymentBankTransferReceiverSMS:paymentBankTransferReceiverSMS
 
 }
