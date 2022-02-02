@@ -11,7 +11,7 @@
   * @swagger
   * /api/v1/friends/add_friend:
   *   post:
-  *     summary: friends.
+  *     summary: Add Friends.
   *     tags:
   *      - Friends
   *     parameters :
