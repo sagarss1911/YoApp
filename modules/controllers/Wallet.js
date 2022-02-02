@@ -12,7 +12,7 @@ let walletManager = require('../manager/Wallet');
  * @swagger
  * /api/v1/wallet/add_money_to_wallet:
  *   post:
- *     summary: add_money_to_wallet.
+ *     summary: Add money using Stipe to user's wallet.
  *     tags:
  *      - Wallet
  *     parameters :
@@ -83,7 +83,7 @@ let addMoneyToWallet = (req, res, next) => {
 * @swagger
 * /api/v1/wallet/transaction_status/{client_secret}:
 *   get:
-*     summary: transaction_status.
+*     summary: Get Status of Transaction.
 *     tags:
 *      - Wallet
 *     parameters :
@@ -149,7 +149,7 @@ let transactionStatus = (req, res, next) => {
   * @swagger
   * /api/v1/wallet/wallet_to_wallet:
   *   post:
-  *     summary: wallet_to_wallet.
+  *     summary: Send Money To Other User's Wallet.
   *     tags:
   *      - Wallet
   *     parameters :
@@ -223,7 +223,7 @@ let transactionStatus = (req, res, next) => {
   * @swagger
   * /api/v1/wallet/recent_wallet_to_wallet:
   *   get:
-  *     summary: recent_wallet_to_wallet.
+  *     summary: Recent Wallet To Wallet Transaction List.
   *     tags:
   *      - Wallet
   *     parameters :
@@ -345,7 +345,7 @@ let transactionStatus = (req, res, next) => {
  * @swagger
  * /api/v1/wallet/cash_pickup_request:
  *   post:
- *     summary: cash_pickup_request.
+ *     summary: Submit Cash Pickup Request.
  *     tags:
  *      - Wallet
  *     parameters :
@@ -434,7 +434,7 @@ let transactionStatus = (req, res, next) => {
   * @swagger
   * /api/v1/wallet/transaction_history:
   *   get:
-  *     summary: transaction_history.
+  *     summary: Complete Transaction History(Topup Wallet, Wallet to wallet Transfer, Bank Transfer, Cash Pickup requests).
   *     tags:
   *      - Wallet
   *     parameters :
@@ -504,7 +504,7 @@ let transactionStatus = (req, res, next) => {
  * @swagger
  * /api/v1/wallet/bank_transfer:
  *   post:
- *     summary: bank_transfer.
+ *     summary: Submit Bank Transfer Request.
  *     tags:
  *      - Wallet
  *     parameters :
