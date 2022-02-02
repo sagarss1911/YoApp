@@ -75,6 +75,11 @@ const WalletModal = sequelize_mysql.define("walletModal",
             references: 'cash_pickup',
             referencesKey: 'id'
         },       
+        bank_transfer_id: {
+            type: Sequelize.INTEGER,              
+            references: 'bank_transfer',
+            referencesKey: 'id'
+        },
         createdAt: {
             type: Sequelize.DATE,
             defaultValue: ()=>new Date()
