@@ -1,6 +1,6 @@
 "use strict";
 let UserModel = require("../models/Users"),
-BadRequestError = require('../errors/badRequestError');
+	BadRequestError = require('../errors/badRequestError');
 
 
 let createCustomer = async (data) => {
@@ -11,42 +11,53 @@ let createCustomer = async (data) => {
 
 let ephemeralKeys = async (userid) => {
 	let user = await UserModel
-	.findOne({ where: { id: userid }, attributes: ['customer_id'] });
+		.findOne({ where: { id: userid }, attributes: ['customer_id'] });
 	const stripe = require("stripe")(process.env.STRIPE_KEY);
 	return stripe.ephemeralKeys.create(
 		{ customer: user.customer_id },
 		{ apiVersion: process.env.STRIPE_API_VERSION }
 	);
-	
+
 };
 
-let paymentIntent = async (userid,amount) => {
+let paymentIntent = async (userid, amount) => {
 	try {
-	let user = await UserModel
-	.findOne({ where: { id: userid }, attributes: ['customer_id'] });
-	const stripe = require("stripe")(process.env.STRIPE_KEY);
+		let user = await UserModel
+			.findOne({ where: { id: userid }, attributes: ['customer_id'] });
+		const stripe = require("stripe")(process.env.STRIPE_KEY);
 
-	return await stripe.paymentIntents.create({
-		amount: amount * 100,
-		currency: process.env.CURRENCY,
-		customer: user.customer_id
-	});
+		return await stripe.paymentIntents.create({
+			amount: amount * 100,
+			currency: process.env.CURRENCY,
+			customer: user.customer_id
+		});
 
-}
-catch (err) {
-	console.log(err.raw.code);
-	if(err.raw.code == 'err.raw.code'){
-		throw new BadRequestError(err.raw.message);
 	}
-	throw new BadRequestError(err);
-}
+	catch (err) {
+		console.log(err.raw.code);
+		if (err.raw.code == 'err.raw.code') {
+			throw new BadRequestError(err.raw.message);
+		}
+		throw new BadRequestError(err);
+	}
 };
 
 
+let setupIntent = async (userid) => {
+	let user = await UserModel
+		.findOne({ where: { id: userid }, attributes: ['customer_id'] });
+	const stripe = require("stripe")(process.env.STRIPE_KEY);
+	
+	return stripe.setupIntents.create({
+		customer: user.customer_id,
+		payment_method_types: ['card']
+	});
+};
 
 
 module.exports = {
 	createCustomer: createCustomer,
 	ephemeralKeys: ephemeralKeys,
-	paymentIntent: paymentIntent
+	paymentIntent: paymentIntent,
+	setupIntent:setupIntent
 };
