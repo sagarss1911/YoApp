@@ -19,7 +19,7 @@ let ephemeralKeys = async (userid) => {
 	);
 
 };
-
+  
 let paymentIntent = async (userid, amount) => {
 	try {
 		let user = await UserModel
