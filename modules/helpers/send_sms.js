@@ -42,7 +42,7 @@ let paymentCancelledSMS = async (amount, phone) => {
   return sentmessage.sid
 };
 let paymentReceivedWithoutAccount = async (amount, phone,reference_id) => {   
-  let msgbody  ="Someone Sent Money To Your Alcophony Account. Your Transaction with Amount "+amount+" is Successfully Done. Have a great day. Please use referenceid: "+reference_id+" While Creating Account." 
+  let msgbody = "Someone Sent Money To Your Alcophony Account. Your Transaction with Amount "+amount+" D is Successfully Done. Have a great day. Please use reference id: "+reference_id+" While Creating Account. Download the app from:"  
   let sentmessage = await client.messages 
       .create({ 
          body: msgbody,  
@@ -94,6 +94,7 @@ let paymentCashPickUpReceiverSMS = async (amount, senderPhone,receiverPhone,tran
 
 let paymentBankTransferSenderSMS = async (amount, senderPhone,receiverPhone,trans_id) => {   
   let msgbody  ="Bank Transfer Request Generated for " + receiverPhone + " with amount: "+amount + ". Use Transaction ID: "+ trans_id + " Amount will be credited in 3-5 Working Days"
+  
   let sentmessage = await client.messages 
       .create({ 
          body: msgbody,  
