@@ -2,6 +2,7 @@
   "name": "yo-app",
   "version": "0.0.1",
   "dependencies": {
+    "@dtone/dvs": "^1.1.0",
     "@sendgrid/mail": "^7.6.0",
     "aws-sdk": "^2.1046.0",
     "axios": "^0.24.0",
@@ -19,10 +20,10 @@
     "mysql2": "^2.3.3-rc.0",
     "request": "^2.88.2",
     "sequelize": "^6.9.0",
-    "socket.io": "^4.3.2",
+    "socket.io": "^4.4.1",
     "stripe": "^8.195.0",
     "swagger-jsdoc": "^6.1.0",
-    "swagger-ui-express": "^4.1.6",
+    "swagger-ui-express": "^4.3.0",
     "twilio": "^3.71.2",
     "uuid": "^8.3.2"
   }
