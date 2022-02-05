@@ -34,7 +34,7 @@ let addMoneyToWallet = async (userid, body, req) => {
     try {
 
         const paymentIntent = await StripeManager.paymentIntent(userid, body.amount);
-        console.log("paymentIntent",paymentIntent)
+        
         let createData = {
             userId: userid,
             order_date: new Date(),

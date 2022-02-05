@@ -24,11 +24,10 @@ let paymentIntent = async (userid, amount) => {
 	try {
 		let user = await UserModel
 			.findOne({ where: { id: userid }, attributes: ['customer_id'] });
-		const stripe = require("stripe")(process.env.STRIPE_KEY);
-		console.log("process.env.CURRENCY",process.env.CURRENCY)
+		const stripe = require("stripe")(process.env.STRIPE_KEY);		
 		return await stripe.paymentIntents.create({
 			amount: amount * 100,
-			currency: process.env.CURRENCY,
+			currency: 'gmd',
 			customer: user.customer_id
 		});
 
