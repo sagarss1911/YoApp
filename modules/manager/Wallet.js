@@ -17,9 +17,11 @@ let helper = require("../helpers/helpers"),
     s3Helper = require('../helpers/awsS3Helper'),
     CommonHelper = require('../helpers/helpers'),
     util = require('util'),
-    unlinkFile = util.promisify(fs.unlink),
+    unlinkFile = util.promisify(fs.unlink),    
     SEND_PUSH = require('../helpers/send_push'),
     BadRequestError = require('../errors/badRequestError');
+    const { DVS } = require('@dtone/dvs');
+const { default: axios } = require("axios");
 
 let addMoneyToWallet = async (userid, body, req) => {
     if (helper.undefinedOrNull(body)) {
@@ -233,22 +235,7 @@ let recentWalletToWallet = async (userid, req) => {
         throw new BadRequestError(err);
     }
 }
-let sendDummyNotification = async (userid, body, req) => {
-    try {
 
-        let notificationData = {
-            title: "notification title",
-            subtitle: "notification subtitle",
-            redirectscreen: "payment_success_wallet",
-        }
-        let nr = await SEND_PUSH.notifyAndroidOrIOS(body.token, "Dummy Notification", notificationData);
-    }
-    catch (err) {
-        console.log(err);
-        throw new BadRequestError(err);
-    }
-
-}
 
 let cashPickupRequest = async (userid, req) => {
     let body = req.body;
@@ -449,6 +436,47 @@ let bankTransfer = async (userid, req) => {
     return { transaction_id: BankTransferData.transaction_id };
 
 }
+let sendDummyNotification = async (userid, body, req) => {
+    try {
+        // let notificationData = {
+        //     title: "notification title",
+        //     subtitle: "notification subtitle",
+        //     redirectscreen: "payment_success_wallet",
+        // }
+        // let nr = await SEND_PUSH.notifyAndroidOrIOS(body.token, "Dummy Notification", notificationData);
+        let auth = {
+            username: 'aee1ca39-28b5-4e20-a746-4366aa4435c5',
+            password: '95af4a4e-6e02-40fe-b871-eeb2436ead3e'
+          }
+        //   let country = await axios.get('https://preprod-dvs-api.dtone.com/v1/countries',{
+        //       auth: auth
+        //   })
+        //   console.log(country.data );
+        //   let operator = await axios.get('https://preprod-dvs-api.dtone.com/v1/lookup/mobile-number/+919377690348',{
+        //         auth: auth
+        //     })
+        //     console.log(operator.data );
+        //     let data = {
+        //         mobile_number : "+919377690348",
+        //         page:1,
+        //         per_page:10
+        //     }
+        //     let operator1 = await axios.post('https://preprod-dvs-api.dtone.com/v1/lookup/mobile-number',data,{
+        //         auth: auth
+        //     })
+        //     console.log(operator1.data );
+        let operator = await axios.get('https://preprod-dvs-api.dtone.com/v1/products',{
+            auth: auth
+        })
+        console.log(operator.data);
+
+    }
+    catch (err) {
+        console.log(err);
+        throw new BadRequestError(err);
+    }
+
+}
 module.exports = {
     addMoneyToWallet: addMoneyToWallet,
     transactionStatus: transactionStatus,
@@ -458,5 +486,4 @@ module.exports = {
     cashPickupRequest: cashPickupRequest,
     transactionHistory: transactionHistory,
     bankTransfer: bankTransfer
-
 };
