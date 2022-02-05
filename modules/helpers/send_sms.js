@@ -12,7 +12,7 @@ let sms = async (message, phone) => {
   return sentmessage.sid
 };
 let paymentSuccessSMS = async (amount, phone) => {   
-  let msgbody  ="Thanks for using Alcophony, Your Transaction with Amount "+amount+" is Successfully Done. Have a great day."
+  let msgbody  ="Thanks for using Alcophony, Your Transaction with Amount "+amount+" D is Successfully Done. Have a great day."
   let sentmessage = await client.messages 
       .create({ 
          body: msgbody,  
@@ -22,7 +22,7 @@ let paymentSuccessSMS = async (amount, phone) => {
   return sentmessage.sid
 };
 let paymentFailedSMS = async (amount, phone) => {   
-  let msgbody  ="Thanks for using Alcophony, Your Transaction with Amount "+amount+" is Failed."
+  let msgbody  ="Thanks for using Alcophony, Your Transaction with Amount "+amount+" D is Failed."
   let sentmessage = await client.messages 
       .create({ 
          body: msgbody,  
@@ -32,7 +32,7 @@ let paymentFailedSMS = async (amount, phone) => {
   return sentmessage.sid
 };
 let paymentCancelledSMS = async (amount, phone) => {   
-  let msgbody  ="Thanks for using Alcophony, Your Transaction with Amount "+amount+" is Cancelled."
+  let msgbody  ="Thanks for using Alcophony, Your Transaction with Amount "+amount+" D is Cancelled."
   let sentmessage = await client.messages 
       .create({ 
          body: msgbody,  
@@ -52,7 +52,7 @@ let paymentReceivedWithoutAccount = async (amount, phone,reference_id) => {
   return sentmessage.sid
 };
 let paymentSentSMS = async (amount, senderPhone,reeceiverPhone) => {   
-  let msgbody  ="you have successfully sent money to "+reeceiverPhone+" with amount "+amount+"."
+  let msgbody  ="you have successfully sent money to "+reeceiverPhone+" with amount "+amount+" D."
   let sentmessage = await client.messages 
       .create({ 
          body: msgbody,  
@@ -62,7 +62,7 @@ let paymentSentSMS = async (amount, senderPhone,reeceiverPhone) => {
   return sentmessage.sid
 };
 let paymentReceivedSMS = async (amount, senderPhone,receiverPhone) => {   
-  let msgbody  ="you have received money to your Wallet  from "+senderPhone+" with amount "+amount+"."
+  let msgbody  ="you have received money to your Wallet  from "+senderPhone+" with amount "+amount+" D."
   let sentmessage = await client.messages 
       .create({ 
          body: msgbody,  
@@ -72,7 +72,7 @@ let paymentReceivedSMS = async (amount, senderPhone,receiverPhone) => {
   return sentmessage.sid
 };
 let paymentCashPickUpSenderSMS = async (amount, senderPhone,receiverPhone,trans_id) => {   
-  let msgbody  ="Cash Pickup Request Received for " + receiverPhone + " with amount: "+amount + ". Use Transaction ID: "+ trans_id
+  let msgbody  ="Cash Pickup Request Received for " + receiverPhone + " with amount: "+amount + " D. Use Transaction ID: "+ trans_id
   let sentmessage = await client.messages 
       .create({ 
          body: msgbody,  
@@ -82,7 +82,7 @@ let paymentCashPickUpSenderSMS = async (amount, senderPhone,receiverPhone,trans_
   return sentmessage.sid
 };
 let paymentCashPickUpReceiverSMS = async (amount, senderPhone,receiverPhone,trans_id) => {   
-  let msgbody  ="You have received Cash Pickup Request from " + senderPhone + " with amount: "+amount + ". Use Transaction ID: "+ trans_id
+  let msgbody  ="You have received Cash Pickup Request from " + senderPhone + " with amount: "+amount + " D. Use Transaction ID: "+ trans_id
   let sentmessage = await client.messages 
       .create({ 
          body: msgbody,  
@@ -93,7 +93,7 @@ let paymentCashPickUpReceiverSMS = async (amount, senderPhone,receiverPhone,tran
 };
 
 let paymentBankTransferSenderSMS = async (amount, senderPhone,receiverPhone,trans_id) => {   
-  let msgbody  ="Bank Transfer Request Generated for " + receiverPhone + " with amount: "+amount + ". Use Transaction ID: "+ trans_id + " Amount will be credited in 3-5 Working Days"
+  let msgbody  ="Bank Transfer Request Generated for " + receiverPhone + " with amount: "+amount + " D. Use Transaction ID: "+ trans_id + " Amount will be credited in 3-5 Working Days"
   
   let sentmessage = await client.messages 
       .create({ 
@@ -104,7 +104,7 @@ let paymentBankTransferSenderSMS = async (amount, senderPhone,receiverPhone,tran
   return sentmessage.sid
 };
 let paymentBankTransferReceiverSMS = async (amount, senderPhone,receiverPhone,trans_id) => {   
-  let msgbody  ="You have received Bank Transfer Request from " + senderPhone + " with amount: "+amount + ". Use Transaction ID: "+ trans_id+" Amount will be credited in 3-5 Working Days"
+  let msgbody  ="You have received Bank Transfer Request from " + senderPhone + " with amount: "+amount + " D. Use Transaction ID: "+ trans_id+" Amount will be credited in 3-5 Working Days"
   let sentmessage = await client.messages 
       .create({ 
          body: msgbody,  
