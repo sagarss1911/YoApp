@@ -575,7 +575,7 @@ let phoneSignInWithOTP = (req, res, next) => {
  *             properties:
  *               phone:
  *                 type: string 
- *                 example: test@gmail.com
+ *                 example: 9377690348
  *                 paramType: body 
  *     responses:
  *       200:
