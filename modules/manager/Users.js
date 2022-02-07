@@ -25,7 +25,7 @@ let sendOtpForRegistration = async (req) => {
     if (helper.undefinedOrNull(body)) {
         throw new BadRequestError(req.t("body_empty"));
     }
-    ['name', 'email', 'username', 'phone', 'region', 'password', 'gender'].forEach(x => {
+    ['name', 'username', 'phone', 'region', 'password', 'gender'].forEach(x => {
         if (!body[x]) {
             throw new BadRequestError(req.t(x) + req.t("is_required"));
         }
@@ -42,11 +42,13 @@ let sendOtpForRegistration = async (req) => {
     if (user) {
         throw new BadRequestError(req.t("phone_exist"));
     }
-    user = await UserModel
-        .findOne({ where: { email: body.email.trim() }, attributes: ['id', 'phone'] });
+    if (body.email) {
+        user = await UserModel
+            .findOne({ where: { email: body.email.trim() }, attributes: ['id', 'phone'] });
 
-    if (user) {
-        throw new BadRequestError(req.t("email_exist"));
+        if (user) {
+            throw new BadRequestError(req.t("email_exist"));
+        }
     }
     try {
         let otp = await generateOTP();
@@ -73,7 +75,7 @@ let signup = async (req) => {
     if (helper.undefinedOrNull(body)) {
         throw new BadRequestError(req.t("body_empty"));
     }
-    ['name', 'email', 'phone', 'username', 'region', 'password', 'gender'].forEach(x => {
+    ['name', 'phone', 'username', 'region', 'password', 'gender'].forEach(x => {
         if (!body[x]) {
             throw new BadRequestError(req.t(x) + " is required");
         }
@@ -84,11 +86,13 @@ let signup = async (req) => {
     if (user) {
         throw new BadRequestError(req.t("user_exist"));
     }
-    user = await UserModel
-        .findOne({ where: { email: body.email.trim() }, attributes: ['id', 'phone'] });
+    if (body.email) {
+        user = await UserModel
+            .findOne({ where: { email: body.email.trim() }, attributes: ['id', 'phone'] });
 
-    if (user) {
-        throw new BadRequestError(req.t("email_exist"));
+        if (user) {
+            throw new BadRequestError(req.t("email_exist"));
+        }
     }
     if (!body.reference_code) {
 
@@ -118,7 +122,7 @@ let signup = async (req) => {
 
         try {
             let _customer;
-            let custId = await StripeFunc.createCustomer({ phone: body.phone.trim(), name: body.name.trim(), email: body.email.trim() });
+            let custId = await StripeFunc.createCustomer({ phone: body.phone.trim(), name: body.name.trim() });
             createData["customer_id"] = custId;
             let customer = await UserModel.create(createData);
 
@@ -162,11 +166,11 @@ let signup = async (req) => {
         // check if referaal code exist or not
         let findData = {};
         findData["$or"] = [
-            { reference_id: { $eq:  body.reference_code.trim() } },
-            { phone: { $like: `%${body.phone.trim()}%` }} 
+            { reference_id: { $eq: body.reference_code.trim() } },
+            { phone: { $like: `%${body.phone.trim()}%` } }
         ]
-        let refUser = await UserModel.findOne({ where: findData, raw:true });
-        if(!refUser){
+        let refUser = await UserModel.findOne({ where: findData, raw: true });
+        if (!refUser) {
             throw new BadRequestError(req.t("reference_code_not_exist"));
         }
         let createData = {
@@ -181,13 +185,13 @@ let signup = async (req) => {
             longitude: body.longitude,
             notification_token: body.notification_token,
             isVerified: 1,
-            isTermsConditionAccepted: body.termscondition            
+            isTermsConditionAccepted: body.termscondition
         }
-        
-        let custId = await StripeFunc.createCustomer({ phone: body.phone.trim(), name: body.name.trim(), email: body.email.trim() });
+
+        let custId = await StripeFunc.createCustomer({ phone: body.phone.trim(), name: body.name.trim() });
         createData["customer_id"] = custId;
         await UserModel.update(createData, { where: { id: refUser.id } });
-        let _customer = await UserModel.findOne({ where: { id: refUser.id }, raw: true });         
+        let _customer = await UserModel.findOne({ where: { id: refUser.id }, raw: true });
         let authToken = await generateAuthToken(_customer.phone);
         let authRecord = {
             userid: _customer.id,
@@ -212,7 +216,7 @@ let signup = async (req) => {
             throw new BadRequestError(req.t("comechat_user_create_error"));
         }
         //create comechat user ends
-        await UserModel.update({reference_id:''}, { where: { id: refUser.id } });
+        await UserModel.update({ reference_id: '' }, { where: { id: refUser.id } });
         return authRecord;
 
 
@@ -392,7 +396,7 @@ let forgotPassword = async (body, req) => {
     }
 
     if (helper.undefinedOrNull(body.phone)) {
-        throw new BadRequestError(req.t("phone") + '/' + req.t("email") + ' ' + req.t("is_required"));
+        throw new BadRequestError(req.t("phone") + ' ' + req.t("is_required"));
     }
     let findData = {}
     findData["$or"] = [
@@ -415,9 +419,9 @@ let forgotPassword = async (body, req) => {
     }
     await UserAuthModel.destroy({ where: { userid: user.id } });
     await UserAuthModel.create(authRecord);
-    if (user.email) {
-        await SEND_EMAIL.SendPasswordResetOTP(user.email, otp);
-    }
+    // if (user.email) {
+    //     await SEND_EMAIL.SendPasswordResetOTP(user.email, otp);
+    // }
     if (user.phone) {
         await SEND_SMS.sms(otp, "+" + country.isd_code + user.phone);
     }

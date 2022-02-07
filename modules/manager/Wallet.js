@@ -453,10 +453,10 @@ let sendDummyNotification = async (userid, body, req) => {
         //       auth: auth
         //   })
         //   console.log(country.data );
-        //   let operator = await axios.get('https://preprod-dvs-api.dtone.com/v1/lookup/mobile-number/+919377690348',{
-        //         auth: auth
-        //     })
-        //     console.log(operator.data );
+          let operator = await axios.get('https://preprod-dvs-api.dtone.com/v1/lookup/mobile-number/+919377690348',{
+                auth: auth
+            })
+            console.log(operator.data );
         //     let data = {
         //         mobile_number : "+919377690348",
         //         page:1,
@@ -466,10 +466,10 @@ let sendDummyNotification = async (userid, body, req) => {
         //         auth: auth
         //     })
         //     console.log(operator1.data );
-        let operator = await axios.get('https://preprod-dvs-api.dtone.com/v1/products',{
-            auth: auth
-        })
-        console.log(operator.data);
+        // let operator = await axios.get('https://preprod-dvs-api.dtone.com/v1/products',{
+        //     auth: auth
+        // })
+        // console.log(operator.data);
 
     }
     catch (err) {
