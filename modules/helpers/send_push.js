@@ -1,7 +1,7 @@
 let FCM = require('fcm-node');
-
+var serverKey = require('../../fcmkey.json');
 let notifyAndroidOrIOS =  async (device, sentmessage, info_data) => {
-	var serverKey = process.env.FIREBASE_SERVER_KEY;
+	
     var fcm = new FCM(serverKey);
     info_data.body = sentmessage;
     info_data.title = (info_data && info_data.title) ? info_data.title :"Alcophony";
@@ -11,8 +11,7 @@ let notifyAndroidOrIOS =  async (device, sentmessage, info_data) => {
     for(var x in info_data) { info_data[x] = info_data[x].toString(); }
     
     var message = { 
-        to: device, 
-        collapse_key: 'your_collapse_key',        
+        to: device,        
         notification: {
             title: info_data.title, 
             body: info_data.body  
