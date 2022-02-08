@@ -3,8 +3,11 @@ let UserModel = require("../models/Users"),
   
 
 let sendFriendRequestNotificationToUser = async (userid, notificationData) => {
+    console.log(userid);
+    console.log(notificationData);
     
      let customerSetting = await UserModel.findOne({where:{id: userid},raw:true,attributes: ['notification_token','isNotification']});
+     console.log(customerSetting)
      let message =  notificationData.subtitle;   
     
     if(customerSetting && customerSetting.isNotification) {        
