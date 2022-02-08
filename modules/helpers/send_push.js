@@ -1,8 +1,6 @@
-let FCM = require('fcm-node');
-
-let notifyAndroidOrIOS =  async (device, sentmessage, info_data) => {
-	var serverKey = process.env.FIREBASE_SERVER_KEY;
-    var fcm = new FCM(serverKey);
+var fcm = require('fcm-notification');
+var FCM = new fcm('fcmkey.json');
+let notifyAndroidOrIOS =  async (device, sentmessage, info_data) => {	
     info_data.body = sentmessage;
     info_data.title = (info_data && info_data.title) ? info_data.title :"Alcophony";
     info_data['content-available'] = 1;
@@ -11,8 +9,7 @@ let notifyAndroidOrIOS =  async (device, sentmessage, info_data) => {
     for(var x in info_data) { info_data[x] = info_data[x].toString(); }
     
     var message = { 
-        to: device, 
-        collapse_key: 'your_collapse_key',        
+        token : device,        
         notification: {
             title: info_data.title, 
             body: info_data.body  
@@ -20,7 +17,7 @@ let notifyAndroidOrIOS =  async (device, sentmessage, info_data) => {
         data: info_data
     };
     
-    fcm.send(message, function(err, response){
+    FCM.send(message, function(err, response){
         if (err) {            
             console.log("Notification Error:",err)
             
