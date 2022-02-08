@@ -10,7 +10,6 @@
     "dotenv": "^10.0.0",
     "express": "4.17.1",
     "fcm-node": "^1.6.1",
-    "fcm-notification": "^2.0.0",
     "fs-promise": "^2.0.3",
     "i18next": "^21.6.3",
     "i18next-fs-backend": "^1.1.4",
