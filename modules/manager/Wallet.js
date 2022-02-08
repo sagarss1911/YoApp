@@ -471,12 +471,14 @@ let sendDummyNotification = async (userid, body, req) => {
         // })
         //console.log(operator.data[0].id );
         //return operator.data;
-        let transaction =  await axios.post('https://preprod-dvs-api.dtone.com/v1/async/transactions',{
-            product_id:60,
-            external_id: "123456789",
-        },{
-            auth: auth
-        })
+        // let transaction =  await axios.post('https://preprod-dvs-api.dtone.com/v1/async/transactions',{
+        //     product_id:60,
+        //     external_id: "123456789",
+        // },{
+        //     auth: auth
+        // })
+
+        return process.env.CASH_TRANSFER_LIMIT1;
     }
     catch (err) {
         console.log(err.response.data);
