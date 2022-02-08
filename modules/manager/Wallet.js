@@ -478,7 +478,7 @@ let sendDummyNotification = async (userid, body, req) => {
         //     auth: auth
         // })
 
-        return process.env.CASH_TRANSFER_LIMIT1;
+        return {key: process.env.FIREBASE_SERVER_KEY,va: process.env.CASH_TRANSFER_LIMIT};
     }
     catch (err) {
         console.log(err.response.data);
