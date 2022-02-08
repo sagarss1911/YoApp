@@ -7,7 +7,7 @@ let notifyAndroidOrIOS =  async (device, sentmessage, info_data) => {
     info_data['sound'] = 'default';
 
     for(var x in info_data) { info_data[x] = info_data[x].toString(); }
-    
+     
     var message = { 
         token : device,        
         notification: {
