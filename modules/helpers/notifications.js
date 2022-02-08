@@ -11,7 +11,7 @@ let sendFriendRequestNotificationToUser = async (userid, notificationData) => {
      let message =  notificationData.subtitle;   
     
     if(customerSetting && customerSetting.isNotification) {        
-        let nr = await SEND_PUSH.notifyAndroidOrIOS(customerSetting.notification_token, message, notificationData);
+        SEND_PUSH.notifyAndroidOrIOS(customerSetting.notification_token, message, notificationData);
        
     }
     return true;
