@@ -264,7 +264,7 @@ let cashPickupRequest = async (userid, req) => {
     if (req.files.receiver_id_document && req.files.receiver_id_document.length > 0) {
         const result = await s3Helper.uploadFile(req.files.receiver_id_document[0])
         await unlinkFile(req.files.receiver_id_document[0].path)
-        addedData.profileimage = result.Location
+        addedData.receiver_id_document = result.Location
     }
 
     let senderWalletData = {
