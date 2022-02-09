@@ -71,8 +71,9 @@ let paymentSuccess = async (body) => {
                 subtitle: "Amount: " + amount / 100 + " Added To Your Wallet",
                 redirectscreen: "payment_success",                
             }            
-            NotificationHelper.sendFriendRequestNotificationToUser(userData.id, notificationData);
-            SEND_SMS.paymentSuccessSMS(parseFloat(amount/100), "+" + country.isd_code + userData.phone);      
+            await NotificationHelper.sendFriendRequestNotificationToUser(userData.id, notificationData);
+            console.log("return")
+           //await  SEND_SMS.paymentSuccessSMS(parseFloat(amount/100), "+" + country.isd_code + userData.phone);      
         }
 
         
