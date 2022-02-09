@@ -72,8 +72,9 @@ let paymentSuccess = async (body) => {
                 redirectscreen: "payment_success",                
             }            
             await NotificationHelper.sendFriendRequestNotificationToUser(userData.id, notificationData);
+           
+           await  SEND_SMS.paymentSuccessSMS(parseFloat(amount/100), "+" + country.isd_code + userData.phone);      
             console.log("return")
-           //await  SEND_SMS.paymentSuccessSMS(parseFloat(amount/100), "+" + country.isd_code + userData.phone);      
         }
 
         
