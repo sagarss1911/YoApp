@@ -327,7 +327,7 @@ let transactionHistory = async (userid, req) => {
             delete allTransactions[i].source_userId;
             delete allTransactions[i].source_wallet_id;
             delete allTransactions[i].currency;
-            allTransactions[i].cash_pickup_details = await CashPickupModel.findOne({ where: { id: allTransactions[i].cashpickupId }, raw: true, attributes: ['name', 'email', 'phone', 'dob', 'amount', 'transaction_id'] });
+            allTransactions[i].cash_pickup_details = await CashPickupModel.findOne({ where: { id: allTransactions[i].cashpickupId }, raw: true, attributes: ['name', 'email', 'phone', 'dob', 'amount', 'transaction_id','receiver_id_document'] });
             allTransactions[i].trans_id = allTransactions[i].cash_pickup_details.transaction_id;
 
         } else if (allTransactions[i].ordertype == '3') {
