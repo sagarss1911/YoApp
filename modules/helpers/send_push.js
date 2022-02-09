@@ -2,10 +2,11 @@
 // var serverKey = require('../../fcmkey.json');
 const admin = require("firebase-admin");
 const serviceAccount = require("../../fcmkey.json");
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)    
+});
 let notifyAndroidOrIOS =  async (device, sentmessage, info_data) => {
-	  admin.initializeApp({
-          credential: admin.credential.cert(serviceAccount)    
-      });
+	 
     // var fcm = new FCM(serverKey);
     info_data.body = sentmessage;
     info_data.title = (info_data && info_data.title) ? info_data.title :"Alcophony";
