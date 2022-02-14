@@ -30,7 +30,7 @@ let friendRequestDetails = async (userid, friends_id, req) => {
         .findOne({ where: { friends_id: friends_id }, raw: true });
     if (!friendsData) {
         throw new BadRequestError("No friends found");
-    }
+    } 
     
     friendsData.sender = await UserModel.findOne({ where: { id: friendsData.friend_one }, raw: true, attributes: ['id', 'user_unique_id', 'name', 'phone', 'email','profileimage'] });
     friendsData.receiver = await UserModel.findOne({ where: { id: friendsData.friend_two }, raw: true, attributes: ['id', 'user_unique_id', 'name', 'phone', 'email','profileimage'] });
