@@ -17,6 +17,8 @@ let helper = require("../helpers/helpers"),
     BadRequestError = require('../errors/badRequestError');
 
 let paymentSuccess = async (body) => {
+  
+
     if (helper.undefinedOrNull(body)) {
         throw new BadRequestError(req.t("body_empty"));
     }
@@ -69,12 +71,14 @@ let paymentSuccess = async (body) => {
             let notificationData = {
                 title: "Congrats! Money added to your wallet",
                 subtitle: "Amount: " + amount / 100 + " Added To Your Wallet",
-                redirectscreen: "payment_success",                
+                redirectscreen: "add_money_payment_success",  
+                wallet_id: walletData.id,
+                transaction_id: walletData.trans_id              
             }            
             await NotificationHelper.sendFriendRequestNotificationToUser(userData.id, notificationData);
            
-           await  SEND_SMS.paymentSuccessSMS(parseFloat(amount/100), "+" + country.isd_code + userData.phone);      
-            console.log("return")
+             SEND_SMS.paymentSuccessSMS(parseFloat(amount/100), "+" + country.isd_code + userData.phone);      
+           
         }
 
         
@@ -96,7 +100,9 @@ let paymentSuccess = async (body) => {
         let notificationData = {
             title: "Add Money To wallet Request Failed",
             subtitle: "Amount: " + walletData.amount + " Failed To Add To Your Wallet",
-            redirectscreen: "payment_failed"                
+            redirectscreen: "add_money_payment_failed",  
+            wallet_id: walletData.id,
+            transaction_id: walletData.trans_id                       
         }
         
         await NotificationHelper.sendFriendRequestNotificationToUser(userData.id, notificationData);
@@ -120,7 +126,9 @@ let paymentSuccess = async (body) => {
         let notificationData = {
             title: "Add Money To wallet Request cancelled",
             subtitle: "Amount: " + walletData.amount + " Cancelled To Add To Your Wallet",
-            redirectscreen: "payment_cancelled"                
+            redirectscreen: "add_money_payment_cancelled",  
+            wallet_id: walletData.id,
+            transaction_id: walletData.trans_id                       
         }
         
         await NotificationHelper.sendFriendRequestNotificationToUser(userData.id, notificationData);

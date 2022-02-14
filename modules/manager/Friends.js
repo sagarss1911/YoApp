@@ -23,7 +23,7 @@ let addFriend = async (userid, userName, req) => {
     });
 
     let user = await UserModel
-        .findOne({ where: { user_unique_id: body.toId }, attributes: ['id', 'phone', 'username'], raw: true });
+        .findOne({ where: { user_unique_id: body.toId }, attributes: ['id', 'phone', 'username','profileimage','user_unique_id'], raw: true });
 
     if (!user) {
         throw new BadRequestError(req.t("invalid_user"));
@@ -46,19 +46,22 @@ let addFriend = async (userid, userName, req) => {
     }
     let friendsCreate = await FriendsModel.create(data);
     //send notificaiton to both user
-    let notificationDataForSender = {
-        title: req.t("req_sent_success"),
-        subtitle: req.t("req_sent_success") + ' ' + req.t("to") + ' ' + user.username,
-        redirectscreen: "friend_request",
-        friends_id: friendsCreate.friends_id
-    }
+    // let notificationDataForSender = {
+    //     title: req.t("req_sent_success"),
+    //     subtitle: req.t("req_sent_success") + ' ' + req.t("to") + ' ' + user.username,
+    //     redirectscreen: "friend_request",
+    //     friends_id: friendsCreate.friends_id
+    // }
     let notificationDataForReceiver = {
         title: "You have Received Friend Request",
         subtitle: "You have Received Friend Request From " + userName,
-        redirectscreen: "friend_request",
-        friends_id: friendsCreate.friends_id
+        redirectscreen: "receive_friend_request",
+        friends_id: friendsCreate.friends_id,
+        sender_id: userid,
+        profileimage: user.profileimage ? user.profileimage : '',
+        user_unique_id: user.user_unique_id,
     }
-    await NotificationHelper.sendFriendRequestNotificationToUser(userid, notificationDataForSender);
+    //await NotificationHelper.sendFriendRequestNotificationToUser(userid, notificationDataForSender);
     await NotificationHelper.sendFriendRequestNotificationToUser(user.id, notificationDataForReceiver);
     //send update to both user
     let updateData = {
@@ -106,18 +109,21 @@ let ChangeFriendRequestStatus = async (userid, req) => {
         let notificationDataForSender = {
             title: receiver.username + ' ' + req.t("accepted_friend_req"),
             subtitle: receiver.username + ' ' + req.t("accepted_friend_req"),
-            redirectscreen: "friend_request",
-            friends_id: body.friends_id
+            redirectscreen: "accepted_other_friend_req",
+            friends_id: body.friends_id,
+            receiver_id:receiver.id,
+            profileimage: receiver.profileimage ? receiver.profileimage : '',
+            user_unique_id: receiver.user_unique_id,
         }
-        let notificationDataForReceiver = {
-            title: req.t("req_accepted_of") + ' ' + sender.username,
-            subtitle: req.t("req_accepted_of") + ' ' + sender.username,
-            redirectscreen: "friend_request",
-            friends_id: body.friends_id
-        }
+        // let notificationDataForReceiver = {
+        //     title: req.t("req_accepted_of") + ' ' + sender.username,
+        //     subtitle: req.t("req_accepted_of") + ' ' + sender.username,
+        //     redirectscreen: "friend_request",
+        //     friends_id: body.friends_id
+        // }
 
         await NotificationHelper.sendFriendRequestNotificationToUser(sender.id, notificationDataForSender);
-        await NotificationHelper.sendFriendRequestNotificationToUser(receiver.id, notificationDataForReceiver);
+        //await NotificationHelper.sendFriendRequestNotificationToUser(receiver.id, notificationDataForReceiver);
         //send update to both user
         let updateData = {
             text: req.t("req_accepted"),
@@ -149,18 +155,21 @@ let ChangeFriendRequestStatus = async (userid, req) => {
         let notificationDataForSender = {
             title: receiver.username + req.t("rejected_friend_req"),
             subtitle: receiver.username + req.t("rejected_friend_req"),
-            redirectscreen: "friend_request",
-            friends_id: body.friends_id
+            redirectscreen: "rejected_other_friend_req",
+            friends_id: body.friends_id,
+            receiver_id:receiver.id,
+            profileimage: receiver.profileimage ? receiver.profileimage : '',
+            user_unique_id: receiver.user_unique_id
         }
-        let notificationDataForReceiver = {
-            title: req.t("rejected_friend_req_of") + ' ' + sender.username,
-            subtitle: req.t("rejected_friend_req_of") + ' ' + sender.username,
-            redirectscreen: "friend_request",
-            friends_id: body.friends_id
-        }
+        // let notificationDataForReceiver = {
+        //     title: req.t("rejected_friend_req_of") + ' ' + sender.username,
+        //     subtitle: req.t("rejected_friend_req_of") + ' ' + sender.username,
+        //     redirectscreen: "friend_request",
+        //     friends_id: body.friends_id
+        // }
 
         await NotificationHelper.sendFriendRequestNotificationToUser(sender.id, notificationDataForSender);
-        await NotificationHelper.sendFriendRequestNotificationToUser(receiver.id, notificationDataForReceiver);
+        //await NotificationHelper.sendFriendRequestNotificationToUser(receiver.id, notificationDataForReceiver);
         //send update to both user
         let updateData = {
             text: req.t("req_rejected"),
@@ -175,19 +184,22 @@ let ChangeFriendRequestStatus = async (userid, req) => {
         let notificationDataForSender = {
             title: receiver.username + ' ' + req.t("friend_blocked_friend_req"),
             subtitle: receiver.username + ' ' + req.t("friend_blocked_friend_req"),
-            redirectscreen: "friend_request",
-            friends_id: body.friends_id
+            redirectscreen: "blocked_other_friend_req",
+            friends_id: body.friends_id,
+            receiver_id:receiver.id,
+            profileimage: receiver.profileimage ? receiver.profileimage : '',
+            user_unique_id: receiver.user_unique_id,
         }
-        let notificationDataForReceiver = {
-            title: req.t("blocked_friend_req_of") + ' ' + sender.username,
-            subtitle: req.t("blocked_friend_req_of") + ' ' + sender.username,
-            redirectscreen: "friend_request",
-            friends_id: body.friends_id
-        }
+        // let notificationDataForReceiver = {
+        //     title: req.t("blocked_friend_req_of") + ' ' + sender.username,
+        //     subtitle: req.t("blocked_friend_req_of") + ' ' + sender.username,
+        //     redirectscreen: "friend_request",
+        //     friends_id: body.friends_id
+        // }
 
 
         await NotificationHelper.sendFriendRequestNotificationToUser(sender.id, notificationDataForSender);
-        await NotificationHelper.sendFriendRequestNotificationToUser(receiver.id, notificationDataForReceiver);
+        //await NotificationHelper.sendFriendRequestNotificationToUser(receiver.id, notificationDataForReceiver);
         //send update to both user
         let updateData = {
             text: req.t("blocked_friend_req"),
@@ -217,18 +229,21 @@ let ChangeFriendRequestStatus = async (userid, req) => {
         let notificationDataForSender = {
             title: receiver.username + ' ' + req.t("friend_deleted_friend_req"),
             subtitle: receiver.username + ' ' + req.t("friend_deleted_friend_req"),
-            redirectscreen: "friend_request",
-            friends_id: body.friends_id
+            redirectscreen: "deleted_other_friend_req",
+            friends_id: body.friends_id,
+            receiver_id:receiver.id,
+            profileimage: receiver.profileimage ? receiver.profileimage : '',
+            user_unique_id: receiver.user_unique_id,
         }
-        let notificationDataForReceiver = {
-            title: req.t("deleted_friend_req_of") + ' ' + sender.username,
-            subtitle: req.t("deleted_friend_req_of") + ' ' + sender.username,
-            redirectscreen: "friend_request",
-            friends_id: body.friends_id
-        }
+        // let notificationDataForReceiver = {
+        //     title: req.t("deleted_friend_req_of") + ' ' + sender.username,
+        //     subtitle: req.t("deleted_friend_req_of") + ' ' + sender.username,
+        //     redirectscreen: "friend_request",
+        //     friends_id: body.friends_id
+        // }
 
         await NotificationHelper.sendFriendRequestNotificationToUser(sender.id, notificationDataForSender);
-        await NotificationHelper.sendFriendRequestNotificationToUser(receiver.id, notificationDataForReceiver);
+        //await NotificationHelper.sendFriendRequestNotificationToUser(receiver.id, notificationDataForReceiver);
         //send update to both user
         let updateData = {
             text: req.t("deleted_friend_req"),
@@ -332,18 +347,21 @@ let unBlockFriend = async (userid, friends_id, req,uuid=0) => {
     let notificationDataForSender = {
         title: receiver.username + ' ' + req.t("friend_unblocked_friend_req"),
         subtitle: receiver.username + ' ' + req.t("friend_unblocked_friend_req"),
-        redirectscreen: "friend_request",
-        friends_id: blockedFriends.friends_id
+        redirectscreen: "unblock_other_friend_req",
+        friends_id: blockedFriends.friends_id,
+        receiver_id:receiver.id,
+        profileimage: receiver.profileimage ? receiver.profileimage : '',
+        user_unique_id: receiver.user_unique_id
     }
-    let notificationDataForReceiver = {
-        title: req.t("unblocked_friend_req_of") + ' ' + sender.username,
-        subtitle: req.t("unblocked_friend_req_of") + ' ' + sender.username,
-        redirectscreen: "friend_request",
-        friends_id: blockedFriends.friends_id
-    }
+    // let notificationDataForReceiver = {
+    //     title: req.t("unblocked_friend_req_of") + ' ' + sender.username,
+    //     subtitle: req.t("unblocked_friend_req_of") + ' ' + sender.username,
+    //     redirectscreen: "friend_request",
+    //     friends_id: blockedFriends.friends_id
+    // }
 
     await NotificationHelper.sendFriendRequestNotificationToUser(sender.id, notificationDataForSender);
-    await NotificationHelper.sendFriendRequestNotificationToUser(receiver.id, notificationDataForReceiver);
+    //await NotificationHelper.sendFriendRequestNotificationToUser(receiver.id, notificationDataForReceiver);
     //send update to both user
     let updateData = {
         text: req.t("unblocked_friend_req"),
