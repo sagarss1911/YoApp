@@ -24,6 +24,7 @@ module.exports = app => {
     app.use('/api/v1/friends', require('./modules/routes/Friends'));
     app.use('/api/v1/stripe', require('./modules/routes/Stripe'));
     app.use('/api/v1/wallet', require('./modules/routes/Wallet'));
+    app.use('/api/v1/notification_details', require('./modules/routes/Notification_details'));
     /**
      * Throw 404 for all other routes.
      */

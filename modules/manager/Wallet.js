@@ -17,10 +17,10 @@ let helper = require("../helpers/helpers"),
     s3Helper = require('../helpers/awsS3Helper'),
     CommonHelper = require('../helpers/helpers'),
     util = require('util'),
-    unlinkFile = util.promisify(fs.unlink),    
+    unlinkFile = util.promisify(fs.unlink),
     SEND_PUSH = require('../helpers/send_push'),
     BadRequestError = require('../errors/badRequestError');
-    const { DVS } = require('@dtone/dvs');
+const { DVS } = require('@dtone/dvs');
 const { default: axios } = require("axios");
 
 let addMoneyToWallet = async (userid, body, req) => {
@@ -34,7 +34,7 @@ let addMoneyToWallet = async (userid, body, req) => {
     try {
 
         const paymentIntent = await StripeManager.paymentIntent(userid, body.amount);
-        
+
         let createData = {
             userId: userid,
             order_date: new Date(),
@@ -149,7 +149,9 @@ let sendMoneyToWallet = async (userid, body, req) => {
         let notificationDataSender = {
             title: "Congrats! Money Successfully Sent to " + receiverInfo.phone,
             subtitle: "Amount: " + body.amount + " Successfully Transfered to " + receiverInfo.phone,
-            redirectscreen: "payment_success_wallet",
+            redirectscreen: "money_sent_wallet",
+            wallet_id: senderWalletInfo.id,
+            transaction_id: senderWalletInfo.trans_id
         }
         await NotificationHelper.sendFriendRequestNotificationToUser(senderInfo.id, notificationDataSender);
 
@@ -188,7 +190,9 @@ let sendMoneyToWallet = async (userid, body, req) => {
         let notificationDataReceiver = {
             title: "Congrats! You have received money from " + senderInfo.phone,
             subtitle: body.amount + " Successfully Transfered from " + senderInfo.phone + " to Your Wallet",
-            redirectscreen: "payment_success_wallet",
+            redirectscreen: "payment_received_wallet",
+            wallet_id: receiverWalletInfo.id,
+            transaction_id: receiverWalletInfo.trans_id
         }
         await NotificationHelper.sendFriendRequestNotificationToUser(receiverInfo.id, notificationDataReceiver);
 
@@ -272,7 +276,8 @@ let cashPickupRequest = async (userid, req) => {
         order_date: new Date(),
         amount: Number(body.amount) * 100,
         order_status: 'success',
-        ordertype: '4'
+        ordertype: '4',
+        trans_id: await CommonHelper.getUniqueTransactionId(),
     }
 
     let senderWalletInfo = await WalletModel.create(senderWalletData);
@@ -300,7 +305,9 @@ let cashPickupRequest = async (userid, req) => {
     let notificationDataSender = {
         title: "Congrats! Cash-pickup request generated for: " + body.phone,
         subtitle: "Amount: " + body.amount + " Successfully Transfered to Merchant For Cash Pickup for:  " + body.phone,
-        redirectscreen: "payment_success_wallet",
+        redirectscreen: "cash_pickup_request_for_self",
+         wallet_id: senderWalletInfo.id,
+            transaction_id: senderWalletInfo.trans_id
     }
     await NotificationHelper.sendFriendRequestNotificationToUser(senderInfo.id, notificationDataSender);
     SEND_SMS.paymentCashPickUpSenderSMS(parseFloat(body.amount), "+" + country.isd_code + senderInfo.phone, body.phone, CashpickData.transaction_id);
@@ -327,7 +334,7 @@ let transactionHistory = async (userid, req) => {
             delete allTransactions[i].source_userId;
             delete allTransactions[i].source_wallet_id;
             delete allTransactions[i].currency;
-            allTransactions[i].cash_pickup_details = await CashPickupModel.findOne({ where: { id: allTransactions[i].cashpickupId }, raw: true, attributes: ['name', 'email', 'phone', 'dob', 'amount', 'transaction_id','receiver_id_document'] });
+            allTransactions[i].cash_pickup_details = await CashPickupModel.findOne({ where: { id: allTransactions[i].cashpickupId }, raw: true, attributes: ['name', 'email', 'phone', 'dob', 'amount', 'transaction_id', 'receiver_id_document'] });
             allTransactions[i].trans_id = allTransactions[i].cash_pickup_details.transaction_id;
 
         } else if (allTransactions[i].ordertype == '3') {
@@ -429,7 +436,9 @@ let bankTransfer = async (userid, req) => {
     let notificationDataSender = {
         title: "Congrats! Bank Transfer request generated for: " + body.phone,
         subtitle: "Amount: " + body.amount + " Successfully Debitd and In 3-5 working days money will be credited to " + body.name + "'s account",
-        redirectscreen: "payment_success_wallet",
+        redirectscreen: "bank_transfer_request_for_self",
+        wallet_id: senderWalletInfo.id,
+        transaction_id: senderWalletInfo.trans_id
     }
     await NotificationHelper.sendFriendRequestNotificationToUser(senderInfo.id, notificationDataSender);
     SEND_SMS.paymentBankTransferSenderSMS(parseFloat(body.amount), "+" + country.isd_code + senderInfo.phone, body.phone, BankTransferData.transaction_id);
@@ -448,7 +457,7 @@ let sendDummyNotification = async (userid, body, req) => {
         let auth = {
             username: 'aee1ca39-28b5-4e20-a746-4366aa4435c5',
             password: '95af4a4e-6e02-40fe-b871-eeb2436ead3e'
-          }
+        }
         //   let country = await axios.get('https://preprod-dvs-api.dtone.com/v1/countries',{
         //       auth: auth
         //   })
@@ -457,28 +466,32 @@ let sendDummyNotification = async (userid, body, req) => {
         //         auth: auth
         //     })
         //     console.log(operator.data );
-        //     let data = {
-        //         mobile_number : "+919377690348",
-        //         page:1,
-        //         per_page:10
-        //     }
-        //     let operator1 = await axios.post('https://preprod-dvs-api.dtone.com/v1/lookup/mobile-number',data,{
-        //         auth: auth
-        //     })
-        //     console.log(operator1.data );
+        // let data = {
+        //     mobile_number : "+919377690348",
+        //     page:1,
+        //     per_page:10
+        // }
+        // let operator1 = await axios.post('https://preprod-dvs-api.dtone.com/v1/lookup/mobile-number',data,{
+        //     auth: auth
+        // })
+        // console.log(operator1.data );
         // let operator = await axios.get('https://preprod-dvs-api.dtone.com/v1/products',{
         //     auth: auth
         // })
         //console.log(operator.data[0].id );
         //return operator.data;
-        // let transaction =  await axios.post('https://preprod-dvs-api.dtone.com/v1/async/transactions',{
-        //     product_id:60,
-        //     external_id: "123456789",
-        // },{
-        //     auth: auth
-        // })
-
-        return true;
+        let data=  {
+            product_id: 8091,
+            external_id: "123456725",
+            credit_party_identifier: {
+                mobile_number: "+6595123100"
+            }
+        }
+        let transaction = await axios.post('https://preprod-dvs-api.dtone.com/v1/async/transactions', data, {
+            auth: auth
+        })
+        console.log(transaction.data)
+        return transaction.data;
     }
     catch (err) {
         console.log(err.response.data);
