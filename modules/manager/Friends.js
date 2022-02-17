@@ -414,7 +414,7 @@ let allUserList = async (userid, req) => {
     });
     matchingProfiles = matchingProfiles.map(function (item) {
         item.mutualfriends = item.mutualfriends ? item.mutualfriends : 0;
-        item.status = item.status ? Number(item.status) : 0;
+        
         return item;
     });
     return matchingProfiles;
