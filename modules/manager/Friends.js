@@ -406,13 +406,15 @@ let allUserList = async (userid, req) => {
         "friends f2 " +
         "on f1.friend_two = f2.friend_two " +
         "WHERE f1.friend_one=" + userid + " AND f2.friend_one=u.id " +
-        "group by f1.friend_one, f2.friend_one ) AS mutualfriends FROM users u WHERE u.id!=" + userid + SearchKeywordsQuery;
+        "group by f1.friend_one, f2.friend_one ) AS mutualfriends,(SELECT f3.status FROM friends f3 WHERE f3.friend_one="+userid+" AND f3.friend_two=u.id ) AS status FROM users u WHERE u.id!=" + userid + SearchKeywordsQuery;
+    
     let matchingProfiles = await CustomQueryModel.query(SearchSql, {
         type: SequelizeObj.QueryTypes.SELECT,
         raw: true
     });
     matchingProfiles = matchingProfiles.map(function (item) {
         item.mutualfriends = item.mutualfriends ? item.mutualfriends : 0;
+        item.status = item.status ? Number(item.status) : 0;
         return item;
     });
     return matchingProfiles;
