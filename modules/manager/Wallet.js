@@ -320,9 +320,10 @@ let transactionHistory = async (userid, req) => {
     let offset = (page - 1) * limit;
 
     let findData = {}
-    findData["$or"] = [{ "order_status": 'success' }, { "order_status": 'failed' }]
-    findData["$and"] = [{ "userId": userid }]
+    findData["$or"] = [{ "order_status": 'success' }, { "order_status": 'failed' }]    
+    findData["$and"] = [{ "userId": userid,"ordertype":{$lt:5} }]
     let allTransactions = await WalletModel.findAll({ where: findData, raw: true, attributes: ['id', 'order_date', 'amount', 'order_status', 'ordertype', 'source_userId', 'destination_userId', 'source_wallet_id', 'currency', 'cashpickupId', 'trans_id', 'bank_transfer_id'], limit, offset, order: [['id', 'DESC']] });
+
     for (let i = 0; i < allTransactions.length; i++) {
         allTransactions[i].amount = parseFloat(Number(allTransactions[i].amount) / 100);
         // delete allTransactions[i].id;
@@ -435,7 +436,7 @@ let bankTransfer = async (userid, req) => {
     let country = await CountryModel.findOne({ where: { iso_code_2: senderInfo.region }, raw: true })
     let notificationDataSender = {
         title: "Congrats! Bank Transfer request generated for: " + body.phone,
-        subtitle: "Amount: " + body.amount + " Successfully Debitd and In 3-5 working days money will be credited to " + body.name + "'s account",
+        subtitle: "Amount: " + body.amount + " Successfully Debited and In 3-5 working days money will be credited to " + body.name + "'s account",
         redirectscreen: "bank_transfer_request_for_self",
         wallet_id: senderWalletInfo.id,
         transaction_id: senderWalletInfo.trans_id
@@ -482,7 +483,7 @@ let sendDummyNotification = async (userid, body, req) => {
         //return operator.data;
         let data=  {
             product_id: 8091,
-            external_id: "123456725",
+            external_id: "123456727",
             credit_party_identifier: {
                 mobile_number: "+6595123100"
             }
@@ -490,7 +491,7 @@ let sendDummyNotification = async (userid, body, req) => {
         let transaction = await axios.post('https://preprod-dvs-api.dtone.com/v1/async/transactions', data, {
             auth: auth
         })
-        console.log(transaction.data)
+        console.log(transaction.data.status.message)
         return transaction.data;
     }
     catch (err) {

@@ -52,7 +52,7 @@ let paymentReceivedWithoutAccount = async (amount, phone,reference_id) => {
   return sentmessage.sid
 };
 let paymentSentSMS = async (amount, senderPhone,reeceiverPhone) => {   
-  let msgbody  ="you have successfully sent money to "+reeceiverPhone+" with amount "+amount+" D."
+  let msgbody  ="You have successfully sent money to "+reeceiverPhone+" with amount "+amount+" D."
   let sentmessage = await client.messages 
       .create({ 
          body: msgbody,  
@@ -113,7 +113,16 @@ let paymentBankTransferReceiverSMS = async (amount, senderPhone,receiverPhone,tr
        });       
   return sentmessage.sid
 };
-
+let paymentMobileRechargeRequestSubmittedSMS = async (amount, senderPhone,receiverPhone,trans_id) => {   
+  let msgbody  ="Recharge Request Successfully Submitted for " + receiverPhone + " With Amount D"+amount + ". Use Reference ID: "+ trans_id
+  let sentmessage = await client.messages 
+      .create({ 
+         body: msgbody,  
+         messagingServiceSid: process.env.MESSAGE_SERVICE_SID,      
+         to: senderPhone
+       });       
+  return sentmessage.sid
+};
 module.exports = {
     sms: sms,
     paymentSuccessSMS:paymentSuccessSMS,
@@ -125,6 +134,7 @@ module.exports = {
     paymentCashPickUpSenderSMS:paymentCashPickUpSenderSMS,
     paymentCashPickUpReceiverSMS:paymentCashPickUpReceiverSMS,
     paymentBankTransferSenderSMS:paymentBankTransferSenderSMS,
-    paymentBankTransferReceiverSMS:paymentBankTransferReceiverSMS
+    paymentBankTransferReceiverSMS:paymentBankTransferReceiverSMS,
+    paymentMobileRechargeRequestSubmittedSMS:paymentMobileRechargeRequestSubmittedSMS
 
 }
