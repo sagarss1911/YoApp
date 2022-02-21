@@ -97,7 +97,7 @@ let processRecharge = async (userid,req) => {
         auth: auth
     })    
     // find plan amount to be cut from wallet   this needs to be fetch from dtone
-    body.amount = Number(planDetails.data.prices.retail.amount);
+    body.amount = Math.round((Number(planDetails.data.prices.retail.amount)*Number(process.env.USD_TO_GMD_RATE)));
     let senderInfo = await UserModel.findOne({ where: { id: userid }, raw: true });
     if (senderInfo.balance < body.amount) {
         throw new BadRequestError("Insufficient Balance");
