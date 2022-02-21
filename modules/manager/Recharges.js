@@ -66,6 +66,10 @@ let getProducts = async (req) => {
     let operator = await axios.get(dtOneBaseUrl + '/products' + queryString, {
         auth: auth
     })
+    operator.data.forEach(element => {
+        element.prices.retail.amount =  Math.round((Number(element.prices.retail.amount)*Number(process.env.USD_TO_GMD_RATE)))    
+        element.prices.retail.unit =  'GMD' 
+    });
     return {
         "x-page": operator.headers["x-page"],
         "x-total-pages": operator.headers["x-total-pages"],
@@ -88,7 +92,8 @@ let getProductsById = async (req) => {
     let operator = await axios.get(dtOneBaseUrl + '/products/' + product_id, {
         auth: auth
     })
-    
+    operator.data.prices.retail.amount =  Math.round((Number(operator.data.prices.retail.amount)*Number(process.env.USD_TO_GMD_RATE)))    
+    operator.data.prices.retail.unit =  'GMD' 
     return operator.data
 }
 let processRecharge = async (userid,req) => {
