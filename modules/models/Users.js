@@ -87,19 +87,19 @@ const UsersModal = sequelize_mysql.define("users",
         },
         isSound: {
             type: Sequelize.INTEGER,           
-            defaultValue: 0
+            defaultValue: 1
         },
         isVibration: {
             type: Sequelize.INTEGER,           
-            defaultValue: 0
+            defaultValue: 1
         },
         isNotification: {
             type: Sequelize.INTEGER,           
-            defaultValue: 0
+            defaultValue: 1
         },
         isTermsConditionAccepted: {
             type: Sequelize.INTEGER,           
-            defaultValue: 0
+            defaultValue: 1
         },
         language: {
             type: Sequelize.ENUM,

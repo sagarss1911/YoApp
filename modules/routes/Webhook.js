@@ -6,4 +6,5 @@ let express = require("express"),
 
 
 router.post("/payment_success", controller.paymentSuccess);
+router.post("/recharge", controller.rechargeCallback);
 module.exports = router;

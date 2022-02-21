@@ -20,8 +20,21 @@
          })
          .catch(next);
  }
+ let rechargeCallback = (req, res, next) => {     
+    return webhookManager
+        .rechargeCallback(req.body)
+        .then(data => {
+            let result = {
+                status: 200,
+                data: data
+            }
+            return res.json(result);
+        })
+        .catch(next);
+}
  
  module.exports = {     
-    paymentSuccess: paymentSuccess
+    paymentSuccess: paymentSuccess,
+    rechargeCallback:rechargeCallback
  
  };

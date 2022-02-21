@@ -58,8 +58,8 @@ const WalletModal = sequelize_mysql.define("walletModal",
         },       
         ordertype: {
             type: Sequelize.ENUM,
-            values: ['1', '2','3','4'],            
-            //1 = wallet transfer,2 = wallet to wallet transfer,3 = bank transfer,4 = cash pickup
+            values: ['1', '2','3','4','5'],            
+            //1 = wallet transfer,2 = wallet to wallet transfer,3 = bank transfer,4 = cash pickup,5= recharge
         },       
         source_userId: {
             type: Sequelize.INTEGER,            

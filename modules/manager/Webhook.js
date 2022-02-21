@@ -140,8 +140,12 @@ let paymentSuccess = async (body) => {
 }
 
 
+let rechargeCallback = async (body) => {
+    console.log(body)
 
+}
 module.exports = {
-    paymentSuccess: paymentSuccess
+    paymentSuccess: paymentSuccess,
+    rechargeCallback:rechargeCallback
 
 };
