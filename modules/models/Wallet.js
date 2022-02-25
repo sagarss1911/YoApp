@@ -80,6 +80,17 @@ const WalletModal = sequelize_mysql.define("walletModal",
             references: 'bank_transfer',
             referencesKey: 'id'
         },
+        recharge_id: {
+            type: Sequelize.INTEGER,              
+            references: 'recharges',
+            referencesKey: 'id'
+        },
+        reversed_wallet_recharge_id: {
+            type: Sequelize.INTEGER,              
+            references: 'wallet',
+            referencesKey: 'id'
+        },
+        
         createdAt: {
             type: Sequelize.DATE,
             defaultValue: ()=>new Date()

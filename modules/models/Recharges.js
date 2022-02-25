@@ -34,11 +34,30 @@ const RechargeModal = sequelize_mysql.define("recharges",
         },       
         amount: {
             type: Sequelize.STRING,            
-        },   
+        },
+        wholesaleprice: {
+            type: Sequelize.DECIMAL,            
+        },
+        wholesalepricecurrency: {
+            type: Sequelize.STRING,            
+        },
+        retailprice: {
+            type: Sequelize.DECIMAL,            
+        },
+        retailpricecurrency: {
+            type: Sequelize.STRING,            
+        },
         status: {
             type: Sequelize.ENUM,
-            values: ['1', '2','3','4'],            
-            //1 = pending,2 = success,3 = failed,4 = cancelled
+            values: ['1', '2','3','4','5','6','7','8'],            
+            // 1 = created
+            // 2 = confirmed
+            // 3=submitted
+            // 4=completed
+            // 5=reversed
+            // 6=rejected
+            // 7=cancelled
+            // 8=declined
         },       
         transaction_date: {
             type: Sequelize.DATE,            

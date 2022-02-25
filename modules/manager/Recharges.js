@@ -108,27 +108,48 @@ let processRecharge = async (userid,req) => {
         throw new BadRequestError("Insufficient Balance");
     }
     let transactionData =  {
-        product_id: 8091,
+        product_id: body.plan_id,
         external_id: await CommonHelper.getUniqueTransactionId(),
         credit_party_identifier: {
             mobile_number: body.mobile_no
         },
-        callback_url: process.env.BASE_URL+"/api/v1/webhook/recharge",
+        auto_confirm: true,
+        callback_url: process.env.BASE_URL + "/api/v1/webhook/recharge",
     }
     let transaction = await axios.post(dtOneBaseUrl+'/async/transactions', transactionData, {
         auth: auth
     })
+    let senderWalletData = {
+        userId: senderInfo.id,
+        order_date: new Date(),
+        amount: Number(body.amount) * 100,
+        order_status: 'pending',
+        ordertype: '5',
+        trans_id: transaction.data.external_id,
+    }    
+    let senderWalletInfo = await WalletModel.create(senderWalletData);
+    let rechargeData = {
+        userId: senderInfo.id,
+        walletId:senderWalletInfo.id,
+        mobile_no:body.mobile_no,
+        selectedplan: body.plan_id,
+        amount: body.amount,
+        benifits: planDetails.data.description,
+        referenceid: senderWalletInfo.trans_id,
+        status:'1',
+        wholesaleprice:planDetails.data.prices.wholesale.amount,
+        wholesalepricecurrency:planDetails.data.prices.wholesale.unit,
+        retailprice:planDetails.data.prices.retail.amount,
+        retailpricecurrency:planDetails.data.prices.retail.unit,
+        transaction_date: new Date(transaction.data.creation_date)
+    }
+    let recharge = await RechargeModel.create(rechargeData)
+    await WalletModel.update({ recharge_id: recharge.id }, { where: { id: senderWalletInfo.id } });
     
-    if(transaction.data.status.message == "CREATED"){
-        let senderWalletData = {
-            userId: senderInfo.id,
-            order_date: new Date(),
-            amount: Number(body.amount) * 100,
-            order_status: 'pending',
-            ordertype: '5',
-            trans_id: transaction.data.external_id,
-        }    
-        let senderWalletInfo = await WalletModel.create(senderWalletData);
+    if(transaction.data.status.message == "CREATED" || transaction.data.status.message == "CONFIRMED"){
+        if(transaction.data.status.message == "CONFIRMED"){
+            await RechargeModel.update({ status: '2' }, { where: { id: recharge.id } });
+        }
         //update balance log
         let senderBalanceLogData = {
             userId: senderInfo.id,
@@ -139,23 +160,11 @@ let processRecharge = async (userid,req) => {
             wallet_id: senderWalletInfo.id
         }
         await BalanceLogModel.create(senderBalanceLogData);
-        await UserModel.update({ balance: Number(senderInfo.balance) - Number(body.amount) }, { where: { id: senderInfo.id } });
-        let rechargeData = {
-            userId: senderInfo.id,
-            walletId:senderWalletInfo.id,
-            mobile_no:body.mobile_no,
-            selectedplan: body.plan_id,
-            amount: body.amount,
-            benifits: transaction.data.product.description,
-            referenceid: senderWalletInfo.trans_id,
-            status:'1',
-            transaction_date: new Date(transaction.data.creation_date)
-        }
-        let recharge = await RechargeModel.create(rechargeData)
+        await UserModel.update({ balance: Number(senderInfo.balance) - Number(body.amount) }, { where: { id: senderInfo.id } });        
         let notificationDataSender = {
             title: "Congrats! Recharge Request Successfully Generated: " + body.mobile_no,
             subtitle: "Amount: " + body.amount + " Successfully Recharged to: " + body.mobile_no,
-            redirectscreen: "mobile_recharge",
+            redirectscreen: "mobile_recharge_initiated",
             wallet_id: senderWalletInfo.id,
             transaction_id: senderWalletInfo.trans_id,
             recharge_id: recharge.id
@@ -165,7 +174,27 @@ let processRecharge = async (userid,req) => {
         SEND_SMS.paymentMobileRechargeRequestSubmittedSMS(parseFloat(body.amount), "+" + country.isd_code + senderInfo.phone, body.mobile_no, recharge.referenceid);
         return recharge;
     }else{
-        throw new BadRequestError("Transaction Failed"+ transaction.data.status.message);
+      
+        if(transaction.data.status.message == "REJECTED"){
+            await RechargeModel.update({ status: '6' }, { where: { id: recharge.id } });
+            await WalletModel.update({ order_status: 'REJECTED' }, { where: { id: senderWalletInfo.id } });
+        }
+        if(transaction.data.status.message == "CANCELLED"){
+            await RechargeModel.update({ status: '7' }, { where: { id: recharge.id } });
+            await WalletModel.update({ order_status: 'CANCELLED' }, { where: { id: senderWalletInfo.id } });
+        }
+        let notificationDataSender = {
+            title: "Recharge Request "+transaction.data.status.message+" For: " + body.mobile_no,
+            subtitle: "Recharge Request "+transaction.data.status.message+" For: " + body.mobile_no,
+            redirectscreen: "mobile_recharge",
+            wallet_id: 0,
+            transaction_id: senderWalletInfo.trans_id,
+            recharge_id: recharge.id
+        }
+        let country = await CountryModel.findOne({ where: { iso_code_2: senderInfo.region }, raw: true })
+        await NotificationHelper.sendFriendRequestNotificationToUser(senderInfo.id, notificationDataSender);
+        SEND_SMS.paymentMobileRechargeRequestFailedSMS(parseFloat(body.amount), "+" + country.isd_code + senderInfo.phone, body.mobile_no, recharge.referenceid);
+        return recharge;
     }
   
 
@@ -175,18 +204,11 @@ let recentRecharge = async (req,userid) => {
     let limit = 5;
     let page = 1;
     let offset = (page - 1) * limit;
-    let findData = { userId: userid };
+    let findData = { userId: userid,status:'4' };
     let rechargeData = await RechargeModel.findAll({ where: findData, raw: true, attributes: ['id', 'walletId', 'mobile_no', 'benifits', 'referenceid', 'amount', 'status'], limit, offset, order: [['id', 'DESC']] });
     rechargeData.forEach(element => {
-        if(element.status == '1'){
-            element.order_status = 'Pending'
-        }else if(element.status == '2'){
-            element.order_status = 'Success'
-        }else if(element.status == '3'){
-            element.order_status = 'Failed'
-        }else if(element.status == '4'){
-            element.order_status = 'Cancelled'
-        }
+            element.order_status = 'Completed'
+        
     });
     return rechargeData 
 }
@@ -200,12 +222,22 @@ let rechargeHistory = async (req,userid) => {
         if(element.status == '1'){
             element.order_status = 'Pending'
         }else if(element.status == '2'){
-            element.order_status = 'Success'
+            element.order_status = 'Confirmed'
         }else if(element.status == '3'){
-            element.order_status = 'Failed'
+            element.order_status = 'Submitted to Operator'
         }else if(element.status == '4'){
+            element.order_status = 'Completed'
+        }else if(element.status == '5'){
+            element.order_status = 'Reversed'
+        }else if(element.status == '6'){
+            element.order_status = 'Rejected'
+        }else if(element.status == '7'){
             element.order_status = 'Cancelled'
-        }        
+        }else if(element.status == '8'){
+            element.order_status = 'Declined'
+        }
+
+
     });    
     let rechargeDataTotal = await RechargeModel.findAll({ where: findData, raw: true, attributes: ['id', 'walletId', 'mobile_no', 'benifits', 'referenceid', 'amount', 'status'], order: [['id', 'DESC']] });
     return { total: rechargeDataTotal.length, recharge: rechargeData };

@@ -123,6 +123,36 @@ let paymentMobileRechargeRequestSubmittedSMS = async (amount, senderPhone,receiv
        });       
   return sentmessage.sid
 };
+let paymentMobileRechargeRequestFailedSMS = async (amount, senderPhone,receiverPhone,trans_id) => {   
+  let msgbody  ="Recharge Request  Submitted for " + receiverPhone + " With Amount D"+amount + ". is Failed Please Try Later";
+  let sentmessage = await client.messages 
+      .create({ 
+         body: msgbody,  
+         messagingServiceSid: process.env.MESSAGE_SERVICE_SID,      
+         to: senderPhone
+       });       
+  return sentmessage.sid
+};
+let paymentMobileRechargeRequestFailedWebhookSMS = async (amount, senderPhone,receiverPhone,trans_id) => {   
+  let msgbody  ="Recharge Request  Submitted for " + receiverPhone + " With Amount D"+amount + ". is Failed and Amount is Reveresed into your wallet. Please Use Reference ID: "+ trans_id
+  let sentmessage = await client.messages 
+      .create({ 
+         body: msgbody,  
+         messagingServiceSid: process.env.MESSAGE_SERVICE_SID,      
+         to: senderPhone
+       });       
+  return sentmessage.sid
+};
+let paymentMobileRechargeRequestCompletedSMS = async (amount, senderPhone,receiverPhone,trans_id) => {   
+  let msgbody  ="Recharge Request Successfully Completed for " + receiverPhone + " With Amount D"+amount + ". Use Reference ID: "+ trans_id
+  let sentmessage = await client.messages 
+      .create({ 
+         body: msgbody,  
+         messagingServiceSid: process.env.MESSAGE_SERVICE_SID,      
+         to: senderPhone
+       });       
+  return sentmessage.sid
+};
 module.exports = {
     sms: sms,
     paymentSuccessSMS:paymentSuccessSMS,
@@ -135,6 +165,9 @@ module.exports = {
     paymentCashPickUpReceiverSMS:paymentCashPickUpReceiverSMS,
     paymentBankTransferSenderSMS:paymentBankTransferSenderSMS,
     paymentBankTransferReceiverSMS:paymentBankTransferReceiverSMS,
-    paymentMobileRechargeRequestSubmittedSMS:paymentMobileRechargeRequestSubmittedSMS
+    paymentMobileRechargeRequestSubmittedSMS:paymentMobileRechargeRequestSubmittedSMS,
+    paymentMobileRechargeRequestFailedSMS:paymentMobileRechargeRequestFailedSMS,
+    paymentMobileRechargeRequestFailedWebhookSMS :paymentMobileRechargeRequestFailedWebhookSMS ,
+    paymentMobileRechargeRequestCompletedSMS:paymentMobileRechargeRequestCompletedSMS
 
 }

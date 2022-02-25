@@ -132,7 +132,7 @@ let addMoneyToWallet = (req, res, next) => {
 */
 let transactionStatus = (req, res, next) => {
     let userid = req.user ? req.user.userId : null;
-    console.log(req.params.client_secret)
+   
     return walletManager
         .transactionStatus(userid, req.params.client_secret, req)
         .then(data => {
