@@ -19,7 +19,10 @@ module.exports = app => {
     });
 
     app.use('/api/v1/webhook', require('./modules/routes/Webhook'));
+    app.use('/api/v1/auth', require('./modules/routes/Admin'));   
     app.use(auth.validateApiKey);
+    app.use('/api/v1/faqs',require('./modules/routes/faqs'));
+    app.use('/api/v1/legal',require('./modules/routes/Legal'));
     app.use('/api/v1/user', require('./modules/routes/Users'));
     app.use('/api/v1/friends', require('./modules/routes/Friends'));
     app.use('/api/v1/stripe', require('./modules/routes/Stripe'));
