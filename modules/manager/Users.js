@@ -647,7 +647,6 @@ let deleteUser = async (uuid) => {
         "json": true
     };
     let resp = await axios(options);
-    console.log(resp.data);
 }
 module.exports = {
     countryList: countryList,
