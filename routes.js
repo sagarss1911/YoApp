@@ -29,6 +29,12 @@ module.exports = app => {
     app.use('/api/v1/wallet', require('./modules/routes/Wallet'));
     app.use('/api/v1/notification_details', require('./modules/routes/Notification_details'));
     app.use('/api/v1/recharges', require('./modules/routes/Recharges'));
+    app.use('/api/v1/support_category', require('./modules/routes/Support_category'));
+    app.use('/api/v1/support_request', require('./modules/routes/Support_request'));
+    app.use('/api/v1/admin/support_category', require('./modules/routes/Admin/Support_category'));
+    app.use('/api/v1/admin/support_request', require('./modules/routes/Admin/Support_request'));
+    app.use('/api/v1/admin/bank_transfer', require('./modules/routes/Admin/Bank_transfer'));
+
     /**
      * Throw 404 for all other routes.
      */
