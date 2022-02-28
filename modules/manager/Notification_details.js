@@ -12,6 +12,7 @@ let helper = require("../helpers/helpers"),
     BalanceLogModel = require("../models/Balance_log"),
     FriendsModel = require("../models/Friends"),
     BankTransferModel = require("../models/Bank_transfer"),
+    RechargeModel = require("../models/Recharges"),
     CustomQueryModel = require("../models/Custom_query"),
     StripeManager = require("../manager/Stripe"),
     fs = require('fs'),
@@ -100,8 +101,41 @@ let transactionDetails = async (userid, wallet_id, req) => {
 
 
 }
+let rechargeDetails = async (userid, recharge_id, req) => {
+    if (!recharge_id) {
+        throw new BadRequestError("recharge_id is required");
+    }
+    let findData = {userId: userid,id: recharge_id }
+
+    let rechargeDetailsData = await RechargeModel.findOne({ where: findData, raw: true, attributes: ['id', 'mobile_no', 'benifits', 'referenceid', 'amount', 'status', 'transaction_date'] });
+    if (!rechargeDetailsData) {
+        throw new BadRequestError("No Recharge Found")
+    }    
+    if(rechargeDetailsData.status == '1'){
+        rechargeDetailsData.order_status = 'Pending'
+    }else if(rechargeDetailsData.status == '2'){
+        rechargeDetailsData.order_status = 'Confirmed'
+    }else if(rechargeDetailsData.status == '3'){
+        rechargeDetailsData.order_status = 'Submitted to Operator'
+    }else if(rechargeDetailsData.status == '4'){
+        rechargeDetailsData.order_status = 'Completed'
+    }else if(rechargeDetailsData.status == '5'){
+        rechargeDetailsData.order_status = 'Reversed'
+    }else if(rechargeDetailsData.status == '6'){
+        rechargeDetailsData.order_status = 'Rejected'
+    }else if(rechargeDetailsData.status == '7'){
+        rechargeDetailsData.order_status = 'Cancelled'
+    }else if(rechargeDetailsData.status == '8'){
+        rechargeDetailsData.order_status = 'Declined'
+    }
+
+    return rechargeDetailsData;
+
+
+}
 module.exports = {
     friendRequestDetails: friendRequestDetails,
-    transactionDetails: transactionDetails
+    transactionDetails: transactionDetails,
+    rechargeDetails:rechargeDetails
 
 };
