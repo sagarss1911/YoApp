@@ -50,34 +50,37 @@ let getOperators = async (userid, mobile_no, req) => {
 
 let getProducts = async (req) => {
 
+    try {
+        let page = req.query.page ? req.query.page : 1;
+        let per_page = req.query.per_page ? req.query.per_page : 10;
+        let operator_id = req.query.operator_id ? req.query.operator_id : ''
+        let country_iso_code = req.query.country_iso_code ? req.query.country_iso_code : ''
 
-    let page = req.query.page ? req.query.page : 1;
-    let per_page = req.query.per_page ? req.query.per_page : 10;
-    let operator_id = req.query.operator_id ? req.query.operator_id : ''
-    let country_iso_code = req.query.country_iso_code ? req.query.country_iso_code : ''
-
-    let queryString = "?";
-    queryString += "page=" + page;
-    queryString += "&per_page=" + per_page;
-    queryString += operator_id ? "&operator_id=" + operator_id : '';
-    queryString += country_iso_code ? "&country_iso_code=" + country_iso_code : '';
+        let queryString = "?";
+        queryString += "page=" + page;
+        queryString += "&per_page=" + per_page;
+        queryString += operator_id ? "&operator_id=" + operator_id : '';
+        queryString += country_iso_code ? "&country_iso_code=" + country_iso_code : '';
 
 
-    let operator = await axios.get(dtOneBaseUrl + '/products' + queryString, {
-        auth: auth
-    })
-    operator.data.forEach(element => {
-        element.prices.retail.amount =  Math.round((Number(element.prices.retail.amount)*Number(process.env.USD_TO_GMD_RATE)))    
-        element.prices.retail.unit =  'GMD' 
-    });
-    return {
-        "x-page": operator.headers["x-page"],
-        "x-total-pages": operator.headers["x-total-pages"],
-        "x-total": operator.headers["x-total"],
-        "x-per-page": operator.headers["x-per-page"],
-        plans: operator.data
-    };
-
+        let operator = await axios.get(dtOneBaseUrl + '/products' + queryString, {
+            auth: auth
+        })
+        operator.data.forEach(element => {
+            element.prices.retail.amount = Math.round((Number(element.prices.retail.amount) * Number(process.env.USD_TO_GMD_RATE)))
+            element.prices.retail.unit = 'GMD'
+        });
+        return {
+            "x-page": operator.headers["x-page"],
+            "x-total-pages": operator.headers["x-total-pages"],
+            "x-total": operator.headers["x-total"],
+            "x-per-page": operator.headers["x-per-page"],
+            plans: operator.data
+        };
+    }
+    catch (e) {
+        throw new BadRequestError(e.response.data.errors[0].message ? e.response.data.errors[0].message : "Error while getting products");
+    }
 
 }
 let getProductsById = async (req) => {
@@ -92,22 +95,22 @@ let getProductsById = async (req) => {
     let operator = await axios.get(dtOneBaseUrl + '/products/' + product_id, {
         auth: auth
     })
-    operator.data.prices.retail.amount =  Math.round((Number(operator.data.prices.retail.amount)*Number(process.env.USD_TO_GMD_RATE)))    
-    operator.data.prices.retail.unit =  'GMD' 
+    operator.data.prices.retail.amount = Math.round((Number(operator.data.prices.retail.amount) * Number(process.env.USD_TO_GMD_RATE)))
+    operator.data.prices.retail.unit = 'GMD'
     return operator.data
 }
-let processRecharge = async (userid,req) => {
+let processRecharge = async (userid, req) => {
     let body = req.body;
     let planDetails = await axios.get(dtOneBaseUrl + '/products/' + body.plan_id, {
         auth: auth
-    })    
+    })
     // find plan amount to be cut from wallet   this needs to be fetch from dtone
-    body.amount = Math.round((Number(planDetails.data.prices.retail.amount)*Number(process.env.USD_TO_GMD_RATE)));
+    body.amount = Math.round((Number(planDetails.data.prices.retail.amount) * Number(process.env.USD_TO_GMD_RATE)));
     let senderInfo = await UserModel.findOne({ where: { id: userid }, raw: true });
     if (senderInfo.balance < body.amount) {
         throw new BadRequestError("Insufficient Balance");
     }
-    let transactionData =  {
+    let transactionData = {
         product_id: body.plan_id,
         external_id: await CommonHelper.getUniqueTransactionId(),
         credit_party_identifier: {
@@ -116,7 +119,7 @@ let processRecharge = async (userid,req) => {
         auto_confirm: true,
         callback_url: process.env.BASE_URL + "/api/v1/webhook/recharge",
     }
-    let transaction = await axios.post(dtOneBaseUrl+'/async/transactions', transactionData, {
+    let transaction = await axios.post(dtOneBaseUrl + '/async/transactions', transactionData, {
         auth: auth
     })
     let senderWalletData = {
@@ -126,28 +129,28 @@ let processRecharge = async (userid,req) => {
         order_status: 'pending',
         ordertype: '5',
         trans_id: transaction.data.external_id,
-    }    
+    }
     let senderWalletInfo = await WalletModel.create(senderWalletData);
     let rechargeData = {
         userId: senderInfo.id,
-        walletId:senderWalletInfo.id,
-        mobile_no:body.mobile_no,
+        walletId: senderWalletInfo.id,
+        mobile_no: body.mobile_no,
         selectedplan: body.plan_id,
         amount: body.amount,
         benifits: planDetails.data.description,
         referenceid: senderWalletInfo.trans_id,
-        status:'1',
-        wholesaleprice:planDetails.data.prices.wholesale.amount,
-        wholesalepricecurrency:planDetails.data.prices.wholesale.unit,
-        retailprice:planDetails.data.prices.retail.amount,
-        retailpricecurrency:planDetails.data.prices.retail.unit,
+        status: '1',
+        wholesaleprice: planDetails.data.prices.wholesale.amount,
+        wholesalepricecurrency: planDetails.data.prices.wholesale.unit,
+        retailprice: planDetails.data.prices.retail.amount,
+        retailpricecurrency: planDetails.data.prices.retail.unit,
         transaction_date: new Date(transaction.data.creation_date)
     }
     let recharge = await RechargeModel.create(rechargeData)
     await WalletModel.update({ recharge_id: recharge.id }, { where: { id: senderWalletInfo.id } });
-    
-    if(transaction.data.status.message == "CREATED" || transaction.data.status.message == "CONFIRMED"){
-        if(transaction.data.status.message == "CONFIRMED"){
+
+    if (transaction.data.status.message == "CREATED" || transaction.data.status.message == "CONFIRMED") {
+        if (transaction.data.status.message == "CONFIRMED") {
             await RechargeModel.update({ status: '2' }, { where: { id: recharge.id } });
         }
         //update balance log
@@ -160,7 +163,7 @@ let processRecharge = async (userid,req) => {
             wallet_id: senderWalletInfo.id
         }
         await BalanceLogModel.create(senderBalanceLogData);
-        await UserModel.update({ balance: Number(senderInfo.balance) - Number(body.amount) }, { where: { id: senderInfo.id } });        
+        await UserModel.update({ balance: Number(senderInfo.balance) - Number(body.amount) }, { where: { id: senderInfo.id } });
         let notificationDataSender = {
             title: "Congrats! Recharge Request Successfully Generated: " + body.mobile_no,
             subtitle: "Amount: " + body.amount + " Successfully Recharged to: " + body.mobile_no,
@@ -169,76 +172,82 @@ let processRecharge = async (userid,req) => {
             transaction_id: senderWalletInfo.trans_id,
             recharge_id: recharge.id
         }
-        let country = await CountryModel.findOne({ where: { iso_code_2: senderInfo.region }, raw: true })
         await NotificationHelper.sendFriendRequestNotificationToUser(senderInfo.id, notificationDataSender);
-        SEND_SMS.paymentMobileRechargeRequestSubmittedSMS(parseFloat(body.amount), "+" + country.isd_code + senderInfo.phone, body.mobile_no, recharge.referenceid);
+        if(senderInfo.phone && senderInfo.region){
+            let country = await CountryModel.findOne({ where: { iso_code_2: senderInfo.region }, raw: true })
+            SEND_SMS.paymentMobileRechargeRequestSubmittedSMS(parseFloat(body.amount), "+" + country.isd_code + senderInfo.phone, body.mobile_no, recharge.referenceid);
+        }
         return recharge;
-    }else{
-      
-        if(transaction.data.status.message == "REJECTED"){
+    } else {
+
+        if (transaction.data.status.message == "REJECTED") {
             await RechargeModel.update({ status: '6' }, { where: { id: recharge.id } });
             await WalletModel.update({ order_status: 'REJECTED' }, { where: { id: senderWalletInfo.id } });
         }
-        if(transaction.data.status.message == "CANCELLED"){
+        if (transaction.data.status.message == "CANCELLED") {
             await RechargeModel.update({ status: '7' }, { where: { id: recharge.id } });
             await WalletModel.update({ order_status: 'CANCELLED' }, { where: { id: senderWalletInfo.id } });
         }
         let notificationDataSender = {
-            title: "Recharge Request "+transaction.data.status.message+" For: " + body.mobile_no,
-            subtitle: "Recharge Request "+transaction.data.status.message+" For: " + body.mobile_no,
+            title: "Recharge Request " + transaction.data.status.message + " For: " + body.mobile_no,
+            subtitle: "Recharge Request " + transaction.data.status.message + " For: " + body.mobile_no,
             redirectscreen: "mobile_recharge",
             wallet_id: 0,
             transaction_id: senderWalletInfo.trans_id,
             recharge_id: recharge.id
         }
-        let country = await CountryModel.findOne({ where: { iso_code_2: senderInfo.region }, raw: true })
         await NotificationHelper.sendFriendRequestNotificationToUser(senderInfo.id, notificationDataSender);
-        SEND_SMS.paymentMobileRechargeRequestFailedSMS(parseFloat(body.amount), "+" + country.isd_code + senderInfo.phone, body.mobile_no, recharge.referenceid);
+        if(senderInfo.phone && senderInfo.region){
+            let country = await CountryModel.findOne({ where: { iso_code_2: senderInfo.region }, raw: true })
+            SEND_SMS.paymentMobileRechargeRequestFailedSMS(parseFloat(body.amount), "+" + country.isd_code + senderInfo.phone, body.mobile_no, recharge.referenceid);
+        }   
+        
+        
         return recharge;
     }
-  
+
 
 }
 
-let recentRecharge = async (req,userid) => {
+let recentRecharge = async (req, userid) => {
     let limit = 5;
     let page = 1;
     let offset = (page - 1) * limit;
-    let findData = { userId: userid,status:'4' };
+    let findData = { userId: userid, status: '4' };
     let rechargeData = await RechargeModel.findAll({ where: findData, raw: true, attributes: ['id', 'walletId', 'mobile_no', 'benifits', 'referenceid', 'amount', 'status'], limit, offset, order: [['id', 'DESC']] });
     rechargeData.forEach(element => {
-            element.order_status = 'Completed'
-        
+        element.order_status = 'Completed'
+
     });
-    return rechargeData 
+    return rechargeData
 }
-let rechargeHistory = async (req,userid) => {
+let rechargeHistory = async (req, userid) => {
     let limit = (req.query.limit) ? parseInt(req.query.limit) : 10;
     let page = req.query.page || 1;
     let offset = (page - 1) * limit;
     let findData = { userId: userid };
     let rechargeData = await RechargeModel.findAll({ where: findData, raw: true, attributes: ['id', 'walletId', 'mobile_no', 'benifits', 'referenceid', 'amount', 'status'], limit, offset, order: [['id', 'DESC']] });
     rechargeData.forEach(element => {
-        if(element.status == '1'){
+        if (element.status == '1') {
             element.order_status = 'Pending'
-        }else if(element.status == '2'){
+        } else if (element.status == '2') {
             element.order_status = 'Confirmed'
-        }else if(element.status == '3'){
+        } else if (element.status == '3') {
             element.order_status = 'Submitted to Operator'
-        }else if(element.status == '4'){
+        } else if (element.status == '4') {
             element.order_status = 'Completed'
-        }else if(element.status == '5'){
+        } else if (element.status == '5') {
             element.order_status = 'Reversed'
-        }else if(element.status == '6'){
+        } else if (element.status == '6') {
             element.order_status = 'Rejected'
-        }else if(element.status == '7'){
+        } else if (element.status == '7') {
             element.order_status = 'Cancelled'
-        }else if(element.status == '8'){
+        } else if (element.status == '8') {
             element.order_status = 'Declined'
         }
 
 
-    });    
+    });
     let rechargeDataTotal = await RechargeModel.findAll({ where: findData, raw: true, attributes: ['id', 'walletId', 'mobile_no', 'benifits', 'referenceid', 'amount', 'status'], order: [['id', 'DESC']] });
     return { total: rechargeDataTotal.length, recharge: rechargeData };
 }
@@ -246,8 +255,8 @@ module.exports = {
     getOperators: getOperators,
     getProducts: getProducts,
     getProductsById: getProductsById,
-    processRecharge:processRecharge,
-    recentRecharge:recentRecharge,
-    rechargeHistory:rechargeHistory
+    processRecharge: processRecharge,
+    recentRecharge: recentRecharge,
+    rechargeHistory: rechargeHistory
 
 };
