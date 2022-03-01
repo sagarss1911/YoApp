@@ -6,7 +6,9 @@ let express = require("express"),
     validateAccess = require('../../policies/Validate_request_access');
 
 router.post("/get_all_support_request", validateAccess.isValidAdmin, controller.getAllSupportRequest);
+router.post("/export_all_support_request", validateAccess.isValidAdmin, controller.exportAllSupportRequest);
+
 router.put("/update_support_request_status/:slider_id", validateAccess.isValidAdmin, controller.updateSupportRequestStatus);
-router.delete("/delete_support_request/:slider_id", validateAccess.isValidAdmin, controller.deleteSupportRequest);
+
 
 module.exports = router;

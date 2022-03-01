@@ -6,18 +6,17 @@ let BadRequestError = require('../errors/badRequestError'),
 
     let addSupportRequest = async (userid,req) => {
         let body = req.body
-        if (!body.categoryId) {
+        if (!body.supportCategoryId) {
             throw new BadRequestError('Category can not empty');
         }
         if (!body.text) {
             throw new BadRequestError('Text can not empty');
         }
         let requestData = {
-            categoryId: body.categoryId,
+            supportCategoryId: body.supportCategoryId,
             text: body.text,
             userId : userid
-        }
-        console.log(requestData)
+        }        
         await RequestModal.create(requestData);
         return true;
     

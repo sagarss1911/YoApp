@@ -15,21 +15,9 @@ let getAllSupportRequest = (req, res, next) => {
         })
         .catch(next);
 }
-let updateSupportRequestStatus = (req, res, next) => {
+let exportAllSupportRequest = (req, res, next) => {
     return categoryManager
-        .updateSupportRequestStatus(req)
-        .then(data => {
-            let result = {
-                status: 200,
-                data: data
-            }
-            return res.json(result);
-        })
-        .catch(next);
-}
-let deleteSupportRequest = (req, res, next) => {
-    return categoryManager
-        .deleteSupportRequest(req.params.slider_id)
+        .exportAllSupportRequest(req.body)
         .then(data => {
             let result = {
                 status: 200,
@@ -40,8 +28,22 @@ let deleteSupportRequest = (req, res, next) => {
         .catch(next);
 }
 
+let updateSupportRequestStatus = (req, res, next) => {
+    return categoryManager
+        .updateSupportRequest(req)
+        .then(data => {
+            let result = {
+                status: 200,
+                data: data
+            }
+            return res.json(result);
+        })
+        .catch(next);
+}
+
+
  module.exports = {
     getAllSupportRequest : getAllSupportRequest,
     updateSupportRequestStatus : updateSupportRequestStatus,
-    deleteSupportRequest : deleteSupportRequest
- };
+    exportAllSupportRequest:exportAllSupportRequest
+ }

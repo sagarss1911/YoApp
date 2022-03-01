@@ -1,15 +1,17 @@
 'use strict';
 let sequelize_mysql = require("../../helpers/sequelize-mysql");
 let Sequelize = require("sequelize");
+let CategoryModel = require('../Admin/Support_category');
+let UserModel = require('../Users');
 
-module.exports = sequelize_mysql.define("support_request",
+const RequestModel =  sequelize_mysql.define("support_request",
     {
         id: {
             type: Sequelize.INTEGER,
             autoIncrement: true,
             primaryKey: true
         },
-        categoryId :{
+        supportCategoryId :{
             type: Sequelize.INTEGER,
             references: 'support_category',
             referencesKey: 'id'
@@ -34,6 +36,10 @@ module.exports = sequelize_mysql.define("support_request",
     }
 );
 
+CategoryModel.hasMany(RequestModel);
+RequestModel.belongsTo(CategoryModel,{foreignKey: 'supportCategoryId', as: 'Category'});
+RequestModel.belongsTo(UserModel,{foreignKey: 'userId', as: 'Users'});
 
+module.exports = RequestModel;
 
 

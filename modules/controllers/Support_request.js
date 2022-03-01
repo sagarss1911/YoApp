@@ -32,7 +32,7 @@
   *           schema:
   *             type: object
   *             properties:
-  *               categoryId:
+  *               supportCategoryId:
   *                 type: integer
   *                 example: 1
   *                 paramType: body
@@ -64,8 +64,7 @@
   *                   example: 400
  */
   let addSupportRequest = (req, res, next) => {
-    let userid = req.user ? req.user.userId : null;
-    console.log("userid",userid)
+    let userid = req.user ? req.user.userId : null;    
     return RequestManager
         .addSupportRequest(userid,req)
         .then(data => {

@@ -10,13 +10,10 @@ const RequestModal = sequelize_mysql.define("support_request",
             autoIncrement: true,
             primaryKey: true
         },
-        categoryId :{
+        supportCategoryId :{
             type: Sequelize.INTEGER,
-            allowNull: false,
-            references: {         // catid belongsTo category 1:1
-                model: 'CategoryModel',
-                key: 'id'
-            }
+            references: 'support_category',
+            referencesKey: 'id'
         },
         userId: {
             type: Sequelize.INTEGER,
@@ -38,7 +35,7 @@ const RequestModal = sequelize_mysql.define("support_request",
     }
 );
 CategoryModel.hasMany(RequestModal);
-RequestModal.belongsTo(CategoryModel,{foreignKey: 'categoryId', as: 'support_category'});
+RequestModal.belongsTo(CategoryModel,{foreignKey: 'supportCategoryId', as: 'support_category'});
 
 module.exports = RequestModal;
 
