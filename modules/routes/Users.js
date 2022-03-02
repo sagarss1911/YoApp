@@ -7,6 +7,7 @@ let express = require("express"),
     validateAccess = require('../policies/Validate_request_access');
 
 router.get("/country_list", controller.countryList);
+router.get("/faq_list", controller.faqList);
 router.post("/send_otp_for_registration", controller.sendOtpForRegistration);
 router.post("/register", controller.signup);
 router.post("/resend_otp", validateAccess.isValidUser, controller.resendOTP);

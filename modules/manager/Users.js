@@ -6,6 +6,7 @@ let helper = require("../helpers/helpers"),
     SEND_SMS = require("../helpers/send_sms"),
     SEND_EMAIL = require("../helpers/send_email"),
     CountryModel = require("../models/Country"),
+    FAQModel = require("../models/faqs"),
     UserModel = require("../models/Users"),
     TermsConditionModel = require("../models/TermsCondition"),
     UserAuthModel = require("../models/Users_auth"),
@@ -460,6 +461,10 @@ let countryList = async () => {
     return Country;
 
 }
+let faqList = async () => {
+    return FAQModel.findAll({ order: [['id', 'DESC']], raw: true })   
+
+}
 let generateAuthToken = async (phone) => {
     return uuidv4();
 }
@@ -650,6 +655,7 @@ let deleteUser = async (uuid) => {
 }
 module.exports = {
     countryList: countryList,
+    faqList:faqList,
     signup: signup,
     sendOtpForRegistration: sendOtpForRegistration,
     resendOTP: resendOTP,

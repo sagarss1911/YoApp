@@ -16,8 +16,19 @@ let getLegal = async (req_body) => {
         raw: true
     });
 }
+let getLegalDataForAPP = async (req_body) => {
+
+    let Legal = await ContentPageModal.findOne({
+        where: { option_key: 'legal' },
+        order: [['id', 'DESC']],
+        attributes: ['option_value'],
+        raw: true
+    });
+    return Legal.option_value
+}
 
 module.exports = {
     addLegal,
-    getLegal
+    getLegal,
+    getLegalDataForAPP
 };
