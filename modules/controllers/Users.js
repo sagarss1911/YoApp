@@ -60,6 +60,60 @@ let countryList = (req, res, next) => {
         })
         .catch(next);
 }
+/**
+ * @swagger
+ * /api/v1/user/faq_list:
+ *   get:
+ *     summary: fetch all faq.
+ *     tags:
+ *      - FAQ List
+ *     parameters :
+ *     - name: x-auth-api-key
+ *       in: header   
+ *       description: an authorization header
+ *       required: true
+ *       type: string
+ *     - name: Accept-Language
+ *       in: header   
+ *       description: Language
+ *       required: false
+ *       type: string 
+ *     responses:
+ *       200:
+ *         description: user object
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: object
+ *       400:
+ *         description: error in request processing
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 status:
+ *                   type: integer
+ *                   example: 400
+*/
+let faqList = (req, res, next) => {
+
+    return usersManager
+        .faqList()
+        .then(data => {
+            let result = {
+                status: 200,
+                data: data
+            }
+            return res.json(result);
+        })
+        .catch(next);
+}
 
 /**
  * @swagger
@@ -1483,6 +1537,7 @@ let getTermsCondition = (req, res, next) => {
 
 module.exports = {
     countryList: countryList,
+    faqList:faqList,
     sendOtpForRegistration: sendOtpForRegistration,
     signup: signup,
     resendOTP: resendOTP,
