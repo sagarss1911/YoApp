@@ -214,9 +214,10 @@ let recentRecharge = async (req, userid) => {
     let page = 1;
     let offset = (page - 1) * limit;
     let findData = { userId: userid, status: '4' };
-    let rechargeData = await RechargeModel.findAll({ where: findData, raw: true, attributes: ['id', 'walletId', 'mobile_no', 'benifits', 'referenceid', 'amount', 'status','createdAt'], limit, offset, order: [['id', 'DESC']] });
+    let rechargeData = await RechargeModel.findAll({ where: findData, raw: true, attributes: ['id', 'walletId', 'mobile_no', 'benifits', 'referenceid', 'amount', 'status','createdAt','selectedplan'], limit, offset, order: [['id', 'DESC']] });
     rechargeData.forEach(element => {
         element.order_status = 'Completed'
+        element.selectedplan = Number(element.selectedplan)
 
     });
     return rechargeData
@@ -226,8 +227,9 @@ let rechargeHistory = async (req, userid) => {
     let page = req.query.page || 1;
     let offset = (page - 1) * limit;
     let findData = { userId: userid };
-    let rechargeData = await RechargeModel.findAll({ where: findData, raw: true, attributes: ['id', 'walletId', 'mobile_no', 'benifits', 'referenceid', 'amount', 'status','createdAt'], limit, offset, order: [['id', 'DESC']] });
+    let rechargeData = await RechargeModel.findAll({ where: findData, raw: true, attributes: ['id', 'walletId', 'mobile_no', 'benifits', 'referenceid', 'amount', 'status','createdAt','selectedplan'], limit, offset, order: [['id', 'DESC']] });
     rechargeData.forEach(element => {
+        element.selectedplan = Number(element.selectedplan)
         if (element.status == '1') {
             element.order_status = 'Pending'
         } else if (element.status == '2') {
@@ -248,7 +250,7 @@ let rechargeHistory = async (req, userid) => {
 
 
     });
-    let rechargeDataTotal = await RechargeModel.findAll({ where: findData, raw: true, attributes: ['id', 'walletId', 'mobile_no', 'benifits', 'referenceid', 'amount', 'status'], order: [['id', 'DESC']] });
+    let rechargeDataTotal = await RechargeModel.findAll({ where: findData, raw: true, attributes: ['id', 'walletId', 'mobile_no', 'benifits', 'referenceid', 'amount', 'status','selectedplan'], order: [['id', 'DESC']] });
     return { total: rechargeDataTotal.length, recharge: rechargeData };
 }
 module.exports = {
