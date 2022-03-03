@@ -35,6 +35,7 @@ module.exports = app => {
     app.use('/api/v1/admin/support_request', require('./modules/routes/Admin/Support_request'));
     app.use('/api/v1/admin/bank_transfer', require('./modules/routes/Admin/Bank_transfer'));
     app.use('/api/v1/admin/cash_pickup', require('./modules/routes/Admin/Cash_pickup'));
+    app.use('/api/v1/admin/dashboard', require('./modules/routes/Admin/Dashboard'));
 
     /**
      * Throw 404 for all other routes.
