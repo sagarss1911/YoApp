@@ -7,7 +7,7 @@ let express = require("express"),
 
 
 
-router.get("/get_all_support_category", validateAccess.isValidAdmin, controller.getAllSupportCategory);
+router.get("/get_all_support_category",  controller.getAllSupportCategory);
 
 
 module.exports = router;

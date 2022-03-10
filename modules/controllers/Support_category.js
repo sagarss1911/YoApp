@@ -9,7 +9,7 @@
  
  /**
  * @swagger
- * /api/v1/support_category/get_all_category:
+ * /api/v1/support_category/get_all_support_category:
  *   get:
  *     summary: Get All category.
  *     tags:
