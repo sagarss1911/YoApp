@@ -282,6 +282,10 @@ let ChangeFriendRequestStatus = async (userid, req) => {
 }
 let myFriendListWithMutualCount = async (userid, req) => {
     let body = req.body
+    let limit = (req.query.limit) ? parseInt(req.query.limit) : 10;
+    let page = req.query.page || 1;
+    let offset = (page - 1) * limit;
+
     let SearchKeywordsQuery = "";
     if (body.keyword) {
         SearchKeywordsQuery = "and (u.name like '%" + body.keyword + "%' or u.username like '%" + body.keyword + "%' or u.email like '%" + body.keyword + "%' or u.phone like '%" + body.keyword + "%')";
@@ -291,7 +295,7 @@ let myFriendListWithMutualCount = async (userid, req) => {
         "friends f2 " +
         "on f1.friend_two = f2.friend_two " +
         "WHERE f1.friend_one=" + userid + " AND f2.friend_one=u.id " +
-        "group by f1.friend_one, f2.friend_one ) AS mutualfriends FROM friends f inner join users u on f.friend_two=u.id WHERE f.friend_one=" + userid + " and f.status='1'" + SearchKeywordsQuery;
+        "group by f1.friend_one, f2.friend_one ) AS mutualfriends FROM friends f inner join users u on f.friend_two=u.id WHERE f.friend_one=" + userid + " and f.status='1'" + SearchKeywordsQuery+" LIMIT " + offset + "," + limit;
     let matchingProfiles = await CustomQueryModel.query(SearchSql, {
         type: SequelizeObj.QueryTypes.SELECT,
         raw: true
@@ -305,6 +309,9 @@ let myFriendListWithMutualCount = async (userid, req) => {
 }
 let myBlockedFriendListWithMutualCount = async (userid, req) => {
     let body = req.body
+    let limit = (req.query.limit) ? parseInt(req.query.limit) : 10;
+    let page = req.query.page || 1;
+    let offset = (page - 1) * limit;
     let SearchKeywordsQuery = ""
     if (body.keyword) {
         SearchKeywordsQuery = "and (u.name like '%" + body.keyword + "%' or u.username like '%" + body.keyword + "%' or u.email like '%" + body.keyword + "%' or u.phone like '%" + body.keyword + "%')";
@@ -314,7 +321,7 @@ let myBlockedFriendListWithMutualCount = async (userid, req) => {
         "friends f2 " +
         "on f1.friend_two = f2.friend_two " +
         "WHERE f1.friend_one=" + userid + " AND f2.friend_one=u.id " +
-        "group by f1.friend_one, f2.friend_one ) AS mutualfriends FROM friends f inner join users u on f.friend_two=u.id WHERE f.friend_one=" + userid + " and f.status='3'" + SearchKeywordsQuery;
+        "group by f1.friend_one, f2.friend_one ) AS mutualfriends FROM friends f inner join users u on f.friend_two=u.id WHERE f.friend_one=" + userid + " and f.status='3'" + SearchKeywordsQuery+" LIMIT " + offset + "," + limit;;
 
     let matchingProfiles = await CustomQueryModel.query(SearchSql, {
         type: SequelizeObj.QueryTypes.SELECT,
@@ -397,6 +404,9 @@ let unBlockFriend = async (userid, friends_id, req,uuid=0) => {
 }
 let allUserList = async (userid, req) => {
     let body = req.body
+    let limit = (req.query.limit) ? parseInt(req.query.limit) : 10;
+    let page = req.query.page || 1;
+    let offset = (page - 1) * limit;
     let SearchKeywordsQuery = ""
     if (body.keyword) {
         SearchKeywordsQuery = " and (u.name like '%" + body.keyword + "%' or u.username like '%" + body.keyword + "%' or u.email like '%" + body.keyword + "%' or u.phone like '%" + body.keyword + "%')";
@@ -406,7 +416,7 @@ let allUserList = async (userid, req) => {
         "friends f2 " +
         "on f1.friend_two = f2.friend_two " +
         "WHERE f1.friend_one=" + userid + " AND f2.friend_one=u.id " +
-        "group by f1.friend_one, f2.friend_one ) AS mutualfriends,(SELECT f3.status FROM friends f3 WHERE f3.friend_one="+userid+" AND f3.friend_two=u.id ) AS status FROM users u WHERE u.customer_id is not null and u.id!=" + userid + SearchKeywordsQuery;
+        "group by f1.friend_one, f2.friend_one ) AS mutualfriends,(SELECT f3.status FROM friends f3 WHERE f3.friend_one="+userid+" AND f3.friend_two=u.id ) AS status FROM users u WHERE u.customer_id is not null and u.id!=" + userid + SearchKeywordsQuery+" LIMIT " + offset + "," + limit;;
     
     let matchingProfiles = await CustomQueryModel.query(SearchSql, {
         type: SequelizeObj.QueryTypes.SELECT,
@@ -421,6 +431,9 @@ let allUserList = async (userid, req) => {
 }
 let myIncomingFriendRequest = async (userid, req) => {
     let body = req.body
+    let limit = (req.query.limit) ? parseInt(req.query.limit) : 10;
+    let page = req.query.page || 1;
+    let offset = (page - 1) * limit;
     let SearchKeywordsQuery = ""
     if (body.keyword) {
         SearchKeywordsQuery = "and (u.name like '%" + body.keyword + "%' or u.username like '%" + body.keyword + "%' or u.email like '%" + body.keyword + "%' or u.phone like '%" + body.keyword + "%')";
@@ -430,7 +443,7 @@ let myIncomingFriendRequest = async (userid, req) => {
         "friends f2 " +
         "on f1.friend_two = f2.friend_two " +
         "WHERE f1.friend_one=" + userid + " AND f2.friend_one=u.id " +
-        "group by f1.friend_one, f2.friend_one ) AS mutualfriends FROM friends f inner join users u on f.friend_one=u.id WHERE f.friend_two=" + userid + " and f.status='0'" + SearchKeywordsQuery;
+        "group by f1.friend_one, f2.friend_one ) AS mutualfriends FROM friends f inner join users u on f.friend_one=u.id WHERE f.friend_two=" + userid + " and f.status='0'" + SearchKeywordsQuery+" LIMIT " + offset + "," + limit;;
 
     let matchingProfiles = await CustomQueryModel.query(SearchSql, {
         type: SequelizeObj.QueryTypes.SELECT,

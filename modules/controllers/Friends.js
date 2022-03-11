@@ -178,6 +178,16 @@
   *       description: Language
   *       required: false
   *       type: string
+  *     - name: page
+  *       in: query   
+  *       description: page
+  *       required: false
+  *       type: number
+  *     - name: limit
+  *       in: query   
+  *       description: page
+  *       required: false
+  *       type: number
   *     requestBody:
   *       required: true
   *       content:
@@ -248,6 +258,16 @@
   *       description: Language
   *       required: false
   *       type: string
+  *     - name: page
+  *       in: query   
+  *       description: page
+  *       required: false
+  *       type: number
+  *     - name: limit
+  *       in: query   
+  *       description: page
+  *       required: false
+  *       type: number
   *     requestBody:
   *       required: true
   *       content:
@@ -392,6 +412,16 @@
   *       description: Language
   *       required: false
   *       type: string
+  *     - name: page
+  *       in: query   
+  *       description: page
+  *       required: false
+  *       type: number
+  *     - name: limit
+  *       in: query   
+  *       description: page
+  *       required: false
+  *       type: number
   *     requestBody:
   *       required: true
   *       content:
@@ -462,6 +492,16 @@
   *       description: Language
   *       required: false
   *       type: string
+  *     - name: page
+  *       in: query   
+  *       description: page
+  *       required: false
+  *       type: number
+  *     - name: limit
+  *       in: query   
+  *       description: page
+  *       required: false
+  *       type: number
   *     requestBody:
   *       required: true
   *       content:
