@@ -10,6 +10,7 @@ let helper = require("../helpers/helpers"),
     UserModel = require("../models/Users"),
     TermsConditionModel = require("../models/TermsCondition"),
     UserAuthModel = require("../models/Users_auth"),
+    TransactionalOTPModel = require("../models/Transactional_otp"),
     config = process.config.global_config,
     s3Helper = require('../helpers/awsS3Helper'),
     StripeFunc = require("../manager/Stripe"),
@@ -653,6 +654,31 @@ let deleteUser = async (uuid) => {
     };
     let resp = await axios(options);
 }
+let verifyTransactionalOTP = async (userid, body, req) => {    
+    let matchedResult = await TransactionalOTPModel.findOne({ where: { otp: body.otp, hash: body.hash,userId:userid,type:body.type }, order: [['id', 'DESC']],raw: true });    
+    if (!matchedResult) {
+        throw new BadRequestError(req.t("otp_invalid"));
+    }
+    await TransactionalOTPModel.destroy({ where: { id: matchedResult.id } });
+    return true;
+}
+let generateTransactionalOTP = async (userid, body, req) => {
+    let user = await UserModel.findOne({ where: { id: userid }, attributes: ['id', 'region', 'phone'], raw: true })    
+    let otp = await generateOTP();    
+    let country = await CountryModel.findOne({ where: { iso_code_2: user.region }, raw: true })
+    let data = { otp: otp, hash: body.hash,userId:userid,type:body.type}
+    await TransactionalOTPModel.create(data);    
+    if(body.type == 1){
+        await SEND_SMS.TransactionalOTPForBankTransfer(otp, "+" + country.isd_code + user.phone);
+    }else if(body.type == 2){
+        await SEND_SMS.TransactionalOTPForCashPickup(otp, "+" + country.isd_code + user.phone);
+    }else if(body.type == 3){
+        await SEND_SMS.TransactionalOTPForWalletTransfer(otp, "+" + country.isd_code + user.phone);
+    }else if (body.type == 4){
+        await SEND_SMS.TransactionalOTPForRecharge(otp, "+" + country.isd_code + user.phone);
+    }
+    return true;
+}
 module.exports = {
     countryList: countryList,
     faqList:faqList,
@@ -676,5 +702,7 @@ module.exports = {
     updatePassword: updatePassword,
     updatePhone: updatePhone,
     getTermsCondition: getTermsCondition,
-    deleteUser: deleteUser
+    deleteUser: deleteUser,
+    generateTransactionalOTP:generateTransactionalOTP,
+    verifyTransactionalOTP:verifyTransactionalOTP
 };
