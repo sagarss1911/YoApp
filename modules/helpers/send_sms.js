@@ -153,6 +153,46 @@ let paymentMobileRechargeRequestCompletedSMS = async (amount, senderPhone,receiv
        });       
   return sentmessage.sid
 };
+let TransactionalOTPForBankTransfer = async (otp,receiverPhone) => {   
+  let msgbody  ="Use OTP: "+otp+" to complete your Bank Transfer Request. Please Do Not Share With Anyone."
+  let sentmessage = await client.messages 
+      .create({ 
+         body: msgbody,  
+         messagingServiceSid: process.env.MESSAGE_SERVICE_SID,      
+         to: receiverPhone
+       });       
+  return sentmessage.sid
+};
+let TransactionalOTPForCashPickup = async (otp,receiverPhone) => {   
+  let msgbody  ="Use OTP: "+otp+" to complete your Cash Pickup Request. Please Do Not Share With Anyone."
+  let sentmessage = await client.messages 
+      .create({ 
+         body: msgbody,  
+         messagingServiceSid: process.env.MESSAGE_SERVICE_SID,      
+         to: receiverPhone
+       });       
+  return sentmessage.sid
+};
+let TransactionalOTPForWalletTransfer = async (otp,receiverPhone) => {   
+  let msgbody  ="Use OTP: "+otp+" to complete your Amount From Wallet. Please Do Not Share With Anyone."
+  let sentmessage = await client.messages 
+      .create({ 
+         body: msgbody,  
+         messagingServiceSid: process.env.MESSAGE_SERVICE_SID,      
+         to: receiverPhone
+       });       
+  return sentmessage.sid
+};
+let TransactionalOTPForRecharge = async (otp,receiverPhone) => {   
+  let msgbody  ="Use OTP: "+otp+" to complete your Recharge. Please Do Not Share With Anyone."
+  let sentmessage = await client.messages 
+      .create({ 
+         body: msgbody,  
+         messagingServiceSid: process.env.MESSAGE_SERVICE_SID,      
+         to: receiverPhone
+       });       
+  return sentmessage.sid
+};
 module.exports = {
     sms: sms,
     paymentSuccessSMS:paymentSuccessSMS,
@@ -168,6 +208,12 @@ module.exports = {
     paymentMobileRechargeRequestSubmittedSMS:paymentMobileRechargeRequestSubmittedSMS,
     paymentMobileRechargeRequestFailedSMS:paymentMobileRechargeRequestFailedSMS,
     paymentMobileRechargeRequestFailedWebhookSMS :paymentMobileRechargeRequestFailedWebhookSMS ,
-    paymentMobileRechargeRequestCompletedSMS:paymentMobileRechargeRequestCompletedSMS
+    paymentMobileRechargeRequestCompletedSMS:paymentMobileRechargeRequestCompletedSMS,
+    TransactionalOTPForBankTransfer:TransactionalOTPForBankTransfer,
+    TransactionalOTPForCashPickup:TransactionalOTPForCashPickup,
+    TransactionalOTPForWalletTransfer:TransactionalOTPForWalletTransfer,
+    TransactionalOTPForRecharge:TransactionalOTPForRecharge
+
+
 
 }

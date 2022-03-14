@@ -27,6 +27,8 @@ router.post("/update_phone",validateAccess.isValidUser, controller.updatePhone);
 router.get("/get_terms_condition", controller.getTermsCondition);
 router.post("/signout", validateAccess.isValidUser, controller.signout);
 router.post("/deleteuser", controller.deleteUser);
+router.post("/generate_transactional_otp", validateAccess.isValidUser, controller.generateTransactionalOTP);
+router.post("/verify_transactional_otp", validateAccess.isValidUser, controller.verifyTransactionalOTP);
 
 
 module.exports = router;
