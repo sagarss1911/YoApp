@@ -313,7 +313,7 @@ let myFriendListWithMutualCount = async (userid, req) => {
     totalCount = totalCount[0].total;
     return {
         total: totalCount,
-        matchingProfiles: matchingProfiles
+        list: matchingProfiles
     }    
 }
 let myBlockedFriendListWithMutualCount = async (userid, req) => {
@@ -349,7 +349,7 @@ let myBlockedFriendListWithMutualCount = async (userid, req) => {
     totalCount = totalCount[0].total;
     return {
         total: totalCount,
-        matchingProfiles: matchingProfiles
+        list: matchingProfiles
     }    
     
 }
@@ -454,7 +454,7 @@ let allUserList = async (userid, req) => {
     totalCount = totalCount[0].total;
     return {
         total: totalCount,
-        matchingProfiles: matchingProfiles
+        list: matchingProfiles
     } 
     
 }
@@ -490,7 +490,7 @@ let myIncomingFriendRequest = async (userid, req) => {
     totalCount = totalCount[0].total;
     return {
         total: totalCount,
-        matchingProfiles: matchingProfiles
+        list: matchingProfiles
     } 
     
 }
