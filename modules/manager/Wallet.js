@@ -373,7 +373,12 @@ let transactionHistory = async (userid, req) => {
             delete allTransactions[i].bank_transfer_id;
         }
     }
-    return allTransactions;
+    let allCount = await WalletModel.count({ where: findData, raw: true });
+    return {
+        total: allCount,
+        allTransactions: allTransactions
+    }
+    
 }
 let bankTransfer = async (userid, req) => {
     let body = req.body;

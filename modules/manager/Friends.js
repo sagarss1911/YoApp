@@ -305,7 +305,16 @@ let myFriendListWithMutualCount = async (userid, req) => {
         return item;
     });
 
-    return matchingProfiles;
+    var CountSql = "SELECT count(*) as total FROM friends f inner join users u on f.friend_two=u.id WHERE f.friend_one=" + userid + " and f.status='1'" + SearchKeywordsQuery;
+    let totalCount = await CustomQueryModel.query(CountSql, {
+        type: SequelizeObj.QueryTypes.SELECT,
+        raw: true
+    });
+    totalCount = totalCount[0].total;
+    return {
+        total: totalCount,
+        matchingProfiles: matchingProfiles
+    }    
 }
 let myBlockedFriendListWithMutualCount = async (userid, req) => {
     let body = req.body
@@ -331,7 +340,18 @@ let myBlockedFriendListWithMutualCount = async (userid, req) => {
         item.mutualfriends = item.mutualfriends ? item.mutualfriends : 0;
         return item;
     });
-    return matchingProfiles;
+    
+    var CountSql = "SELECT count(*) as total FROM friends f inner join users u on f.friend_two=u.id WHERE f.friend_one=" + userid + " and f.status='3'" + SearchKeywordsQuery;
+    let totalCount = await CustomQueryModel.query(CountSql, {
+        type: SequelizeObj.QueryTypes.SELECT,
+        raw: true
+    });
+    totalCount = totalCount[0].total;
+    return {
+        total: totalCount,
+        matchingProfiles: matchingProfiles
+    }    
+    
 }
 let unBlockFriend = async (userid, friends_id, req,uuid=0) => {    
     let userObj;    
@@ -416,7 +436,7 @@ let allUserList = async (userid, req) => {
         "friends f2 " +
         "on f1.friend_two = f2.friend_two " +
         "WHERE f1.friend_one=" + userid + " AND f2.friend_one=u.id " +
-        "group by f1.friend_one, f2.friend_one ) AS mutualfriends,(SELECT f3.status FROM friends f3 WHERE f3.friend_one="+userid+" AND f3.friend_two=u.id ) AS status FROM users u WHERE u.customer_id is not null and u.id!=" + userid + SearchKeywordsQuery+" LIMIT " + offset + "," + limit;;
+        "group by f1.friend_one, f2.friend_one ) AS mutualfriends,(SELECT f3.status FROM friends f3 WHERE f3.friend_one="+userid+" AND f3.friend_two=u.id ) AS status FROM users u WHERE u.customer_id is not null and u.id!=" + userid + SearchKeywordsQuery+" LIMIT " + offset + "," + limit;
     
     let matchingProfiles = await CustomQueryModel.query(SearchSql, {
         type: SequelizeObj.QueryTypes.SELECT,
@@ -424,10 +444,19 @@ let allUserList = async (userid, req) => {
     });
     matchingProfiles = matchingProfiles.map(function (item) {
         item.mutualfriends = item.mutualfriends ? item.mutualfriends : 0;
-        
         return item;
     });
-    return matchingProfiles;
+    var CountSql = "SELECT count(*) as total FROM users u WHERE u.customer_id is not null and u.id!=" + userid + SearchKeywordsQuery;
+    let totalCount = await CustomQueryModel.query(CountSql, {
+        type: SequelizeObj.QueryTypes.SELECT,
+        raw: true
+    });
+    totalCount = totalCount[0].total;
+    return {
+        total: totalCount,
+        matchingProfiles: matchingProfiles
+    } 
+    
 }
 let myIncomingFriendRequest = async (userid, req) => {
     let body = req.body
@@ -443,7 +472,7 @@ let myIncomingFriendRequest = async (userid, req) => {
         "friends f2 " +
         "on f1.friend_two = f2.friend_two " +
         "WHERE f1.friend_one=" + userid + " AND f2.friend_one=u.id " +
-        "group by f1.friend_one, f2.friend_one ) AS mutualfriends FROM friends f inner join users u on f.friend_one=u.id WHERE f.friend_two=" + userid + " and f.status='0'" + SearchKeywordsQuery+" LIMIT " + offset + "," + limit;;
+        "group by f1.friend_one, f2.friend_one ) AS mutualfriends FROM friends f inner join users u on f.friend_one=u.id WHERE f.friend_two=" + userid + " and f.status='0'" + SearchKeywordsQuery+" LIMIT " + offset + "," + limit;
 
     let matchingProfiles = await CustomQueryModel.query(SearchSql, {
         type: SequelizeObj.QueryTypes.SELECT,
@@ -453,7 +482,17 @@ let myIncomingFriendRequest = async (userid, req) => {
         item.mutualfriends = item.mutualfriends ? item.mutualfriends : 0;
         return item;
     });
-    return matchingProfiles;
+    var CountSql = "SELECT count(*) as total FROM friends f inner join users u on f.friend_one=u.id WHERE f.friend_two=" + userid + " and f.status='0'" + SearchKeywordsQuery;
+    let totalCount = await CustomQueryModel.query(CountSql, {
+        type: SequelizeObj.QueryTypes.SELECT,
+        raw: true
+    });
+    totalCount = totalCount[0].total;
+    return {
+        total: totalCount,
+        matchingProfiles: matchingProfiles
+    } 
+    
 }
 module.exports = {
     addFriend: addFriend,
