@@ -376,7 +376,7 @@ let transactionHistory = async (userid, req) => {
     let allCount = await WalletModel.count({ where: findData, raw: true });
     return {
         total: allCount,
-        allTransactions: allTransactions
+        list: allTransactions
     }
     
 }
