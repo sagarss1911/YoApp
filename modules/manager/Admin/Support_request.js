@@ -23,7 +23,7 @@ let getAllSupportRequest = async (body) => {
          SearchKeywordsQuery = "where (u.name like '%" + body.filters.searchtext + "%' or u.username like '%" + body.filters.searchtext + "%' or u.email like '%" + body.filters.searchtext + "%' or u.phone like '%" + body.filters.searchtext + "%' or sr.text like '%" + body.filters.searchtext + "%' or sc.title like '%" + body.filters.searchtext+"')";
     }
 }
-    var SearchSql = "SELECT sr.id,sc.title,sr.text,u.name,u.email,u.phone,sr.status FROM support_request sr INNER JOIN support_category sc ON sr.supportCategoryId=sc.id INNER JOIN users u ON sr.userId=u.id "+SearchKeywordsQuery+" LIMIT " + offset + "," + limit;
+    var SearchSql = "SELECT sr.id,sc.title,sr.text,u.name,u.email,u.phone,sr.status FROM support_request sr INNER JOIN support_category sc ON sr.supportCategoryId=sc.id INNER JOIN users u ON sr.userId=u.id "+SearchKeywordsQuery+"  order by id desc LIMIT " + offset + "," + limit;
 
     let allSupportRequest = await CustomQueryModel.query(SearchSql, {
         type: SequelizeObj.QueryTypes.SELECT,
@@ -31,7 +31,7 @@ let getAllSupportRequest = async (body) => {
     });
  
 
-    let allRequestCountQuery  = "SELECT sr.id,sc.title,sr.text,u.name,u.email,u.phone,sr.status FROM support_request sr INNER JOIN support_category sc ON sr.supportCategoryId=sc.id INNER JOIN users u ON sr.userId=u.id "+SearchKeywordsQuery;
+    let allRequestCountQuery  = "SELECT sr.id,sc.title,sr.text,u.name,u.email,u.phone,sr.status FROM support_request sr INNER JOIN support_category sc ON sr.supportCategoryId=sc.id INNER JOIN users u ON sr.userId=u.id "+SearchKeywordsQuery + " order by id desc";
     let allRequestCount = await CustomQueryModel.query(allRequestCountQuery, {
         type: SequelizeObj.QueryTypes.SELECT,
         raw: true
@@ -51,7 +51,7 @@ let exportAllSupportRequest = async (body) => {
          SearchKeywordsQuery = "where (u.name like '%" + body.filters.searchtext + "%' or u.username like '%" + body.filters.searchtext + "%' or u.email like '%" + body.filters.searchtext + "%' or u.phone like '%" + body.filters.searchtext + "%' or sr.text like '%" + body.filters.searchtext + "%' or sc.title like '%" + body.filters.searchtext+"')";
     }
 }
-    var SearchSql = "SELECT sr.id,sc.title,sr.text,u.name,u.email,u.phone,sr.status FROM support_request sr INNER JOIN support_category sc ON sr.supportCategoryId=sc.id INNER JOIN users u ON sr.userId=u.id "+SearchKeywordsQuery;
+    var SearchSql = "SELECT sr.id,sc.title,sr.text,u.name,u.email,u.phone,sr.status FROM support_request sr INNER JOIN support_category sc ON sr.supportCategoryId=sc.id INNER JOIN users u ON sr.userId=u.id "+SearchKeywordsQuery + " order by id desc";
 
     return CustomQueryModel.query(SearchSql, {
         type: SequelizeObj.QueryTypes.SELECT,
@@ -66,7 +66,7 @@ let updateSupportRequest = async (req) => {
     if(body.newStatus){
         status = '1'
     }
-    console.log(status);
+
     await RequestModal.update({status:status}, { where: { id: req.params.slider_id }, raw: true });
     return true
     
