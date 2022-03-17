@@ -480,12 +480,12 @@ let getTermsCondition = async (body) => {
 let getProfile = async (userid, req) => {
 
     return UserModel
-        .findOne({ where: { id: userid }, attributes: ['user_unique_id', 'name', 'profileimage', 'username', 'email', 'phone', 'region', 'dob', 'latitude', 'longitude', 'gender', 'isactive', 'notification_token', 'isSound', 'isVibration', 'isNotification', 'isTermsConditionAccepted', 'language', 'customer_id', 'balance'], raw: true });
+        .findOne({ where: { id: userid }, attributes: ['user_unique_id', 'name', 'profileimage', 'username', 'email', 'phone', 'region',  'latitude', 'longitude', 'gender', 'isactive', 'notification_token', 'isSound', 'isVibration', 'isNotification', 'isTermsConditionAccepted', 'language', 'customer_id', 'balance'], raw: true });
 }
 let getProfileById = async (uuid) => {
 
     return UserModel
-        .findOne({ where: { user_unique_id: uuid }, attributes: ['user_unique_id', 'name', 'profileimage', 'username', 'email', 'phone', 'region', 'dob', 'latitude', 'longitude', 'gender', 'isactive', 'notification_token', 'isSound', 'isVibration', 'isNotification', 'isTermsConditionAccepted', 'language', 'customer_id', 'balance'], raw: true });
+        .findOne({ where: { user_unique_id: uuid }, attributes: ['user_unique_id', 'name', 'profileimage', 'username', 'email', 'phone', 'region', 'latitude', 'longitude', 'gender', 'isactive', 'notification_token', 'isSound', 'isVibration', 'isNotification', 'isTermsConditionAccepted', 'language', 'customer_id', 'balance'], raw: true });
 }
 
 let updateProfile = async (userid, req) => {
