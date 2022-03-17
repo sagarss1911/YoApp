@@ -22,10 +22,7 @@ const CashPickupModal = sequelize_mysql.define("cash_pickup",
         },       
         phone: {
             type: Sequelize.STRING,            
-        },       
-        dob: {
-            type: Sequelize.STRING,            
-        },   
+        }, 
         amount: {
             type: Sequelize.STRING,            
         },       

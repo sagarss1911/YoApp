@@ -15,10 +15,10 @@ let getAllCashPickupDetails = async(body) => {
     let SearchKeywordsQuery = "";
     if (body.filters) {
         if (body.filters.searchtext) {
-           SearchKeywordsQuery = "where (c.name like '%" + body.filters.searchtext + "%' or c.email like '%" + body.filters.searchtext + "%' or c.phone like '%" + body.filters.searchtext + "%' or c.dob like '%" + body.filters.searchtext + "%' or c.amount like '%" + body.filters.searchtext + "%' or c.transaction_id like '%" + body.filters.searchtext+"' or u.email like '%" + body.filters.searchtext + "%')";
+           SearchKeywordsQuery = "where (c.name like '%" + body.filters.searchtext + "%' or c.email like '%" + body.filters.searchtext + "%' or c.phone like '%" + body.filters.searchtext + "%' or c.amount like '%" + body.filters.searchtext + "%' or c.transaction_id like '%" + body.filters.searchtext+"' or u.email like '%" + body.filters.searchtext + "%')";
         }
     }
-    var SearchSql = "SELECT c.id,c.name,c.email,c.phone,c.dob,c.amount,c.transaction_id,u.email AS useremail FROM cash_pickup c INNER JOIN users u ON c.sender_userId=u.id "+SearchKeywordsQuery+" LIMIT " + offset + "," + limit;
+    var SearchSql = "SELECT c.id,c.name,c.email,c.phone,c.amount,c.transaction_id,u.email AS useremail FROM cash_pickup c INNER JOIN users u ON c.sender_userId=u.id "+SearchKeywordsQuery+" LIMIT " + offset + "," + limit;
 
     let allBankRequest = await CustomQueryModel.query(SearchSql, {
         type: SequelizeObj.QueryTypes.SELECT,
@@ -26,7 +26,7 @@ let getAllCashPickupDetails = async(body) => {
     });
  
 
-    let allRequestCountQuery  = "SELECT c.id,c.name,c.email,c.phone,c.dob,c.amount,c.transaction_id,u.email AS useremail FROM cash_pickup c INNER JOIN users u ON c.sender_userId=u.id "+SearchKeywordsQuery;
+    let allRequestCountQuery  = "SELECT c.id,c.name,c.email,c.phone,c.amount,c.transaction_id,u.email AS useremail FROM cash_pickup c INNER JOIN users u ON c.sender_userId=u.id "+SearchKeywordsQuery;
     let allRequestCount = await CustomQueryModel.query(allRequestCountQuery, {
         type: SequelizeObj.QueryTypes.SELECT,
         raw: true
@@ -44,10 +44,10 @@ let exportAllCashPickupRequest = async (body) => {
     let SearchKeywordsQuery = "";
     if (body.filters) {
         if (body.filters.searchtext) {
-            SearchKeywordsQuery = "where (c.name like '%" + body.filters.searchtext + "%' or c.email like '%" + body.filters.searchtext + "%' or c.phone like '%" + body.filters.searchtext + "%' or c.dob like '%" + body.filters.searchtext + "%' or c.amount like '%" + body.filters.searchtext + "%' or c.transaction_id like '%" + body.filters.searchtext+"' or u.email like '%" + body.filters.searchtext + "%')";
+            SearchKeywordsQuery = "where (c.name like '%" + body.filters.searchtext + "%' or c.email like '%" + body.filters.searchtext + "%' or c.phone like '%" + body.filters.searchtext + "%' or c.amount like '%" + body.filters.searchtext + "%' or c.transaction_id like '%" + body.filters.searchtext+"' or u.email like '%" + body.filters.searchtext + "%')";
     }
 }
-    var SearchSql = "SELECT c.id,c.name,c.email,c.phone,c.dob,c.amount,c.transaction_id,u.email AS useremail FROM cash_pickup c INNER JOIN users u ON c.sender_userId=u.id "+SearchKeywordsQuery;
+    var SearchSql = "SELECT c.id,c.name,c.email,c.phone,c.amount,c.transaction_id,u.email AS useremail FROM cash_pickup c INNER JOIN users u ON c.sender_userId=u.id "+SearchKeywordsQuery;
 
     return CustomQueryModel.query(SearchSql, {
         type: SequelizeObj.QueryTypes.SELECT,

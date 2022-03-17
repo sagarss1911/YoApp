@@ -385,10 +385,6 @@ let transactionStatus = (req, res, next) => {
  *               phone:
  *                 type: string
  *                 example: "+919377690348"
- *                 paramType: body 
- *               dob:
- *                 type: string
- *                 example: "12/05/2020"
  *                 paramType: body
  *               amount:
  *                 type: integer

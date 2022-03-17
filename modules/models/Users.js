@@ -51,9 +51,6 @@ const UsersModal = sequelize_mysql.define("users",
         password: {
             type: Sequelize.STRING,            
         },       
-        dob: {
-            type: Sequelize.STRING,            
-        },       
         latitude: {
             type: Sequelize.STRING,
             defaultValue: "0"                     
