@@ -15,7 +15,7 @@ let express         = require('express'),
     i18nMiddleware = require('i18next-http-middleware'),
     swaggerUi = require("swagger-ui-express");
     
-
+process.env.TZ = "Africa/Gamibia";
 console.log('Initializing Server.',new Date().toString() );
 console.log("Environment: " +process.env.NODE_ENV);
 console.log("Loading Environment Constant: " +constant);
