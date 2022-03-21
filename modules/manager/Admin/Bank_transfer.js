@@ -5,7 +5,7 @@
 let BadRequestError = require('../../errors/badRequestError'),
     BankModal = require('../../models/Bank_transfer'),
     CustomQueryModel = require("../../models/Custom_query"),
-    SequelizeObj = require("sequelize");
+    SequelizeObj = require("sequelize"), moment = require("moment");
 
 
 let getAllBankDetails = async(body) => {
@@ -14,11 +14,31 @@ let getAllBankDetails = async(body) => {
     let offset = (page - 1) * limit;    
     let SearchKeywordsQuery = "";
     if (body.filters) {
+        if (body.filters.searchtext || body.filters.from_date || body.filters.to_date) {
+            SearchKeywordsQuery = "where ";
+        }
         if (body.filters.searchtext) {
-           SearchKeywordsQuery = "where (b.name like '%" + body.filters.searchtext + "%' or b.address like '%" + body.filters.searchtext + "%' or b.phone like '%" + body.filters.searchtext + "%' or b.bank_name like '%" + body.filters.searchtext + "%' or b.bank_account like '%" + body.filters.searchtext + "%' or b.amount like '%" + body.filters.searchtext+"' or b.transaction_id like '%" + body.filters.searchtext + "%' or u.email like '%" + body.filters.searchtext + "%')";
+            SearchKeywordsQuery += "(b.name like '%" + body.filters.searchtext + "%' or b.address like '%" + body.filters.searchtext + "%' or b.phone like '%" + body.filters.searchtext + "%' or b.bank_name like '%" + body.filters.searchtext + "%' or b.bank_account like '%" + body.filters.searchtext + "%' or b.amount like '%" + body.filters.searchtext+"' or b.transaction_id like '%" + body.filters.searchtext + "%' or u.email like '%" + body.filters.searchtext + "%')";
+        }
+        if (body.filters.from_date) {
+            let from_date = moment(body.filters.from_date).format('YYYY-MM-DD');
+            from_date += " 00:00:00"
+            if (body.filters.searchtext) {
+                SearchKeywordsQuery = SearchKeywordsQuery + " and ";
+            }
+            SearchKeywordsQuery += " b.createdAt >= '" + from_date + "'";
+        }
+        if (body.filters.to_date) {
+            let to_date = moment(body.filters.to_date).format('YYYY-MM-DD');
+            to_date += " 23:59:59"
+            if (body.filters.searchtext || body.filters.from_date) {
+                SearchKeywordsQuery = SearchKeywordsQuery + " and ";
+            }
+            SearchKeywordsQuery += " b.createdAt <= '" + to_date + "'";
         }
     }
-    var SearchSql = "select b.id,b.name,b.address,b.phone,b.bank_name,b.bank_account,b.country,b.amount,b.transaction_id,b.status,u.email FROM bank_transfer b INNER JOIN users u ON b.sender_userId = u.id "+SearchKeywordsQuery+"  order by id desc LIMIT " + offset + "," + limit;
+    
+    var SearchSql = "select b.id,b.name,b.address,b.phone,b.bank_name,b.bank_account,b.country,b.amount,b.transaction_id,b.status,u.email,b.createdAt FROM bank_transfer b INNER JOIN users u ON b.sender_userId = u.id "+SearchKeywordsQuery+"  order by id desc LIMIT " + offset + "," + limit;
 
     let allBankRequest = await CustomQueryModel.query(SearchSql, {
         type: SequelizeObj.QueryTypes.SELECT,
@@ -26,7 +46,7 @@ let getAllBankDetails = async(body) => {
     });
  
 
-    let allRequestCountQuery  = "select b.id,b.name,b.address,b.phone,b.bank_name,b.bank_account,b.country,b.amount,b.transaction_id,b.status,u.email FROM bank_transfer b INNER JOIN users u ON b.sender_userId = u.id "+SearchKeywordsQuery + "  order by id desc";
+    let allRequestCountQuery  = "select b.id,b.name,b.address,b.phone,b.bank_name,b.bank_account,b.country,b.amount,b.transaction_id,b.status,u.email,b.createdAt FROM bank_transfer b INNER JOIN users u ON b.sender_userId = u.id "+SearchKeywordsQuery + "  order by id desc";
     let allRequestCount = await CustomQueryModel.query(allRequestCountQuery, {
         type: SequelizeObj.QueryTypes.SELECT,
         raw: true
@@ -43,11 +63,30 @@ let getAllBankDetails = async(body) => {
 let exportAllBankRequest = async (body) => {
     let SearchKeywordsQuery = "";
     if (body.filters) {
+        if (body.filters.searchtext || body.filters.from_date || body.filters.to_date) {
+            SearchKeywordsQuery = "where ";
+        }
         if (body.filters.searchtext) {
-            SearchKeywordsQuery = "where (b.name like '%" + body.filters.searchtext + "%' or b.address like '%" + body.filters.searchtext + "%' or b.phone like '%" + body.filters.searchtext + "%' or b.bank_name like '%" + body.filters.searchtext + "%' or b.bank_account like '%" + body.filters.searchtext + "%' or b.amount like '%" + body.filters.searchtext+"' or b.transaction_id like '%" + body.filters.searchtext + "%' or u.email like '%" + body.filters.searchtext + "%')";
+            SearchKeywordsQuery += "(b.name like '%" + body.filters.searchtext + "%' or b.address like '%" + body.filters.searchtext + "%' or b.phone like '%" + body.filters.searchtext + "%' or b.bank_name like '%" + body.filters.searchtext + "%' or b.bank_account like '%" + body.filters.searchtext + "%' or b.amount like '%" + body.filters.searchtext+"' or b.transaction_id like '%" + body.filters.searchtext + "%' or u.email like '%" + body.filters.searchtext + "%')";
+        }
+        if (body.filters.from_date) {
+            let from_date = moment(body.filters.from_date).format('YYYY-MM-DD');
+            from_date += " 00:00:00"
+            if (body.filters.searchtext) {
+                SearchKeywordsQuery = SearchKeywordsQuery + " and ";
+            }
+            SearchKeywordsQuery += " b.createdAt >= '" + from_date + "'";
+        }
+        if (body.filters.to_date) {
+            let to_date = moment(body.filters.to_date).format('YYYY-MM-DD');
+            to_date += " 23:59:59"
+            if (body.filters.searchtext || body.filters.from_date) {
+                SearchKeywordsQuery = SearchKeywordsQuery + " and ";
+            }
+            SearchKeywordsQuery += " b.createdAt <= '" + to_date + "'";
+        }
     }
-}
-    var SearchSql = "select b.id,b.name,b.address,b.phone,b.bank_name,b.bank_account,b.country,b.amount,b.transaction_id,b.status,u.email FROM bank_transfer b INNER JOIN users u ON b.sender_userId = u.id "+SearchKeywordsQuery + " order by id desc";
+    var SearchSql = "select b.id,b.name,b.address,b.phone,b.bank_name,b.bank_account,b.country,b.amount,b.transaction_id,b.status,u.email,b.createdAt FROM bank_transfer b INNER JOIN users u ON b.sender_userId = u.id "+SearchKeywordsQuery + " order by id desc";
 
     return CustomQueryModel.query(SearchSql, {
         type: SequelizeObj.QueryTypes.SELECT,
