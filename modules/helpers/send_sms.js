@@ -27,7 +27,7 @@ let sms = async (message, phone) => {
   return commonSMS(msgbody, phone)  
 };
 let paymentSuccessSMS = async (amount, phone) => {
-  let msgbody = "Thanks for using Alcophony, Your Transaction with Amount " + amount + " D is Successfully Done. Have a great day."
+  let msgbody = "Thanks for using Alcophony, Your Transaction with Amount " + amount + " D is Successfully Completed. Have a great day."
   return commonSMS(msgbody, phone)  
 };
 let paymentFailedSMS = async (amount, phone) => {
@@ -39,7 +39,7 @@ let paymentCancelledSMS = async (amount, phone) => {
   return commonSMS(msgbody, phone)
 };
 let paymentReceivedWithoutAccount = async (amount, phone, reference_id) => {
-  let msgbody = "Someone Sent Money To Your Alcophony Account. Your Transaction with Amount " + amount + " D is Successfully Done. Have a great day. Please use reference id: " + reference_id + " While Creating Account. Download the app from:"
+  let msgbody = "Someone Sent Money To Your Alcophony Account. Your Transaction with Amount " + amount + " D is Successfully Completed. Have a great day. Please use reference id: " + reference_id + " While Creating Account. Download the app from:"
   return commonSMS(msgbody, phone)
 };
 let paymentSentSMS = async (amount, senderPhone, reeceiverPhone) => {
@@ -95,7 +95,7 @@ let TransactionalOTPForCashPickup = async (otp, receiverPhone) => {
   return commonSMS(msgbody, receiverPhone)
 };
 let TransactionalOTPForWalletTransfer = async (otp, receiverPhone) => {
-  let msgbody = "Use OTP: " + otp + " to complete your Amount From Wallet. Please Do Not Share With Anyone."
+  let msgbody = "Use OTP: " + otp + " to complete your wallet top-up transaction. Please Do Not Share With Anyone."
   return commonSMS(msgbody, receiverPhone)
 };
 let TransactionalOTPForRecharge = async (otp, receiverPhone) => {
