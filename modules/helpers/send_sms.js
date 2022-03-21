@@ -20,7 +20,7 @@ let commonSMS = async (message, phone) => {
   } else {
     return sentSMSData.data.response.data.acceptreport.messageid    
   }
-
+  
 }
 let sms = async (message, phone) => {
   let msgbody = "Thanks for using Alcophony, Your OTP is " + message + ". Please do not share your OTP with anyone else. Have a great day."
