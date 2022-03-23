@@ -4,6 +4,8 @@
 
 let BadRequestError = require('../../errors/badRequestError'),
 BankModal = require('../../models/Bank_transfer'),
+SupportModal = require('../../models/Admin/Support_request'),
+
     CustomQueryModel = require("../../models/Custom_query"),
     SequelizeObj = require("sequelize"),
     moment = require("moment");
@@ -50,6 +52,15 @@ let getBankTransferReporting = async () => {
         raw: true
     })
 
+    let totalSupportRequest = await SupportModal.count();
+    let pendingSupportRequest = await SupportModal.count({
+        where: {status:'pending' },
+        raw: true
+    })
+    let completedSupportRequest = await BankModal.count({
+        where: {status:'completed' },
+        raw: true
+    })
     return { 
         totalBankTransferRequestToday,
         totalBankTransferPendingRequestToday,
@@ -59,7 +70,10 @@ let getBankTransferReporting = async () => {
         totalBankTransferPendingRequesttillDate,
         totalBankTransferCompletedRequestToday,
         totalBankTransferCompletedRequestForCurrentMonth,
-        totalBankTransferCompletedRequesttillDate
+        totalBankTransferCompletedRequesttillDate,
+        totalSupportRequest,
+        pendingSupportRequest,
+        completedSupportRequest
     }
 }
 
