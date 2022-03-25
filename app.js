@@ -27,7 +27,7 @@ i18next.use(i18nFsBackend).use(i18nMiddleware.LanguageDetector).init({
   }
 });
 
-//app.use(cors());
+app.use(cors());
 app.use(i18nMiddleware.handle(i18next));
 app.use(function (req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
