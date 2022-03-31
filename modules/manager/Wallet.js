@@ -5,6 +5,7 @@ let helper = require("../helpers/helpers"),
     SEND_SMS = require("../helpers/send_sms"),
     UserModel = require("../models/Users"),
     WalletModel = require("../models/Wallet"),
+    WalletClaimsModel = require("../models/Wallet_claims"),
     NotificationHelper = require("../helpers/notifications"),
     CountryModel = require("../models/Country"),
     CashPickupModel = require("../models/Cash_pickup"),
@@ -107,21 +108,9 @@ let sendMoneyToWallet = async (userid, body, req) => {
             { phone: { $eq: body.receiver_uuid } }
         ]
         let receiverInfo = await UserModel.findOne({ where: findData, raw: true });
-
-        if (!receiverInfo) {
-            //create new user
-            let createData = {
-                user_unique_id: Date.now().toString(),
-                balance: 0,
-                phone: body.receiver_uuid,
-                reference_id: Date.now().toString()
-
-            }
-            receiverInfo = await UserModel.create(createData);
-            SEND_SMS.paymentReceivedWithoutAccount(parseFloat(body.amount), receiverInfo.phone, receiverInfo.reference_id);
-        }
-
-        //add entry to sender
+        if(receiverInfo){
+            //if receiver exist 
+            //add entry to sender
         let senderWalletData = {
             userId: senderInfo.id,
             order_date: new Date(),
@@ -197,9 +186,51 @@ let sendMoneyToWallet = async (userid, body, req) => {
         await NotificationHelper.sendFriendRequestNotificationToUser(receiverInfo.id, notificationDataReceiver);
 
         SEND_SMS.paymentReceivedSMS(parseFloat(body.amount), "+" + country.isd_code + senderInfo.phone, receiverInfo.phone);
+        }else{
+            let senderWalletData = {
+                userId: senderInfo.id,
+                order_date: new Date(),
+                amount: Number(body.amount) * 100,
+                order_status: 'success',
+                ordertype: '2',
+                trans_id: await CommonHelper.getUniqueTransactionId()
+            }
+            let senderWalletInfo = await WalletModel.create(senderWalletData);
+            let senderBalanceLogData = {
+                userId: senderInfo.id,
+                amount: Number(body.amount),
+                oldbalance: Number(senderInfo.balance),
+                newbalance: Number(senderInfo.balance) - Number(body.amount),
+                transaction_type: '2',
+                wallet_id: senderWalletInfo.id
+            }
+            await BalanceLogModel.create(senderBalanceLogData);
+            await UserModel.update({ balance: Number(senderInfo.balance) - Number(body.amount) }, { where: { id: senderInfo.id } });
+            let country = await CountryModel.findOne({ where: { iso_code_2: senderInfo.region }, raw: true })
+            let notificationDataSender = {
+                title: "Congrats! Money Successfully Sent to " + body.receiver_uuid,
+                subtitle: "Amount: " + body.amount + " Successfully Transfered to " + body.receiver_uuid,
+                redirectscreen: "money_sent_wallet",
+                wallet_id: senderWalletInfo.id,
+                transaction_id: senderWalletInfo.trans_id
+            }
+            await NotificationHelper.sendFriendRequestNotificationToUser(senderInfo.id, notificationDataSender);    
+            SEND_SMS.paymentSentSMS(parseFloat(body.amount), "+" + country.isd_code + senderInfo.phone, body.receiver_uuid);
+            let receiverData = {
+                phone:body.receiver_uuid,
+                reference_id:Date.now().toString(),
+                amount:body.amount,
+                senderWalletId:senderWalletInfo.id,
+                isClaimed:0
+            }
+            let walletClaims = await WalletClaimsModel.create(receiverData);
+            await WalletModel.update({ claim_id: walletClaims.id }, { where: { id: senderWalletInfo.id } });
+            SEND_SMS.paymentReceivedWithoutAccount(parseFloat(body.amount), body.receiver_uuid, walletClaims.reference_id);
+            return true;
 
-
-        return true;
+        }
+        
+        
 
     }
     catch (err) {
@@ -452,6 +483,66 @@ let bankTransfer = async (userid, req) => {
     return { transaction_id: BankTransferData.transaction_id };
 
 }
+let claimWalletTransfer = async (userid, req) => {
+    let body = req.body;
+    let referralData;
+    if (!body.reference_code) {
+        throw new BadRequestError("Reference Code is required");
+    }
+     referralData = await WalletClaimsModel.findOne({ where: { reference_id: body.reference_code,isClaimed:0 },raw: true});
+     if(!referralData){
+            throw new BadRequestError(req.t("reference_code_not_exist"));
+     }
+     let senderWalletInfo  = await WalletModel.findOne({ where: { id: referralData.senderWalletId }, raw: true });             
+     let senderInfo = await UserModel.findOne({ where: { id: senderWalletInfo.userId }, raw: true });           
+     let country = await CountryModel.findOne({ where: { iso_code_2: senderInfo.region }, raw: true })
+     let receiverInfo = await UserModel.findOne({ where: { id: userid }, raw: true });
+     await WalletModel.update({ destination_userId:receiverInfo.id  }, { where: { id: senderWalletInfo.id } });
+     let receiverWalletData = {
+        userId: receiverInfo.id,
+        order_date: new Date(),
+        amount: Number(referralData.amount) * 100,
+        order_status: 'success',
+        ordertype: '2',
+        trans_id: await CommonHelper.getUniqueTransactionId(),
+        source_userId: senderWalletInfo.userId,
+        source_wallet_id: senderWalletInfo.id
+    }
+    let receiverWalletInfo = await WalletModel.create(receiverWalletData);
+
+    //update receiver wallet
+    let receiverBalanceLogData = {
+        userId: receiverInfo.id,
+        amount: Number(referralData.amount),
+        oldbalance: Number(receiverInfo.balance),
+        newbalance:  Number(receiverInfo.balance) + Number(referralData.amount),
+        transaction_type: '1',
+        wallet_id: receiverWalletInfo.id
+    }
+    await BalanceLogModel.create(receiverBalanceLogData);
+    await WalletClaimsModel.update({ isClaimed: 1, receiverWalletId:receiverWalletInfo.id}, { where: { id: referralData.id } });
+    await UserModel.update({ balance: Number(receiverInfo.balance) + Number(referralData.amount)  }, { where: { id: receiverInfo.id } });
+    let receiverCountry;
+    if (receiverInfo.region) {
+        receiverCountry = await CountryModel.findOne({ where: { iso_code_2: receiverInfo.region }, raw: true })
+        if (receiverCountry) {
+            receiverInfo.phone = "+" + receiverCountry.isd_code + receiverInfo.phone;
+        }
+    }
+    let notificationDataReceiver = {
+        title: "Congrats! You have received money from " + senderInfo.phone,
+        subtitle: referralData.amount + " Successfully Transfered from " + senderInfo.phone + " to Your Wallet",
+        redirectscreen: "payment_received_wallet",
+        wallet_id: receiverWalletInfo.id,
+        transaction_id: receiverWalletInfo.trans_id
+    }
+    await NotificationHelper.sendFriendRequestNotificationToUser(receiverInfo.id, notificationDataReceiver);
+
+    SEND_SMS.paymentReceivedSMS(parseFloat(referralData.amount), "+" + country.isd_code + senderInfo.phone, receiverInfo.phone);
+    return {amount: Number(referralData.amount),balance: Number(receiverInfo.balance) + Number(referralData.amount)}
+   
+
+}
 let sendDummyNotification = async (userid, body, req) => {
  
 }
@@ -463,5 +554,6 @@ module.exports = {
     sendDummyNotification: sendDummyNotification,
     cashPickupRequest: cashPickupRequest,
     transactionHistory: transactionHistory,
-    bankTransfer: bankTransfer
+    bankTransfer: bankTransfer,
+    claimWalletTransfer:claimWalletTransfer
 };

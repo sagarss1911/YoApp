@@ -14,6 +14,7 @@ router.get("/recent_wallet_to_wallet", validateAccess.isValidUser, controller.re
 router.post("/cash_pickup_request", validateAccess.isValidUser,fileUploadHelper.uploadReceiverImage.fields([{ name: 'receiver_id_document'}]), controller.cashPickupRequest);
 router.get("/transaction_history", validateAccess.isValidUser, controller.transactionHistory);
 router.post("/bank_transfer", validateAccess.isValidUser, controller.bankTransfer);
+router.post("/claim_wallet_transfer", validateAccess.isValidUser, controller.claimWalletTransfer);
 router.post("/send_dummy_notification", controller.sendDummyNotification);
 
 
