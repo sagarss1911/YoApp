@@ -90,7 +90,11 @@ const WalletModal = sequelize_mysql.define("walletModal",
             references: 'wallet',
             referencesKey: 'id'
         },
-        
+        claim_id: {
+            type: Sequelize.INTEGER,              
+            references: 'wallet_claims',
+            referencesKey: 'id'
+        },
         createdAt: {
             type: Sequelize.DATE,
             defaultValue: ()=>new Date()

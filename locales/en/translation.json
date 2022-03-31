@@ -57,6 +57,6 @@
     "comechat_user_create_error":"ComeChat User Create Error",
     "comechat_user_update_image_error":"ComeChat User Profile Image Update Error",
     "insufficient_balance":"Insufficient Balance",
-    "reference_code_not_exist":"Reference Code Not Exist",
+    "reference_code_not_exist":"Reference Code Not Exist or Already Claimed by someone",
     "otp_invalid":"OTP Invalid"
 }
