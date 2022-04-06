@@ -186,6 +186,7 @@ let sendMoneyToWallet = async (userid, body, req) => {
         await NotificationHelper.sendFriendRequestNotificationToUser(receiverInfo.id, notificationDataReceiver);
 
         SEND_SMS.paymentReceivedSMS(parseFloat(body.amount), "+" + country.isd_code + senderInfo.phone, receiverInfo.phone);
+        return {reference_id:0};
         }else{
             let senderWalletData = {
                 userId: senderInfo.id,
@@ -226,7 +227,7 @@ let sendMoneyToWallet = async (userid, body, req) => {
             let walletClaims = await WalletClaimsModel.create(receiverData);
             await WalletModel.update({ claim_id: walletClaims.id }, { where: { id: senderWalletInfo.id } });
             SEND_SMS.paymentReceivedWithoutAccount(parseFloat(body.amount), body.receiver_uuid, walletClaims.reference_id);
-            return true;
+            return {reference_id:walletClaims.reference_id};
 
         }
         

@@ -74,6 +74,10 @@ const UsersModal = sequelize_mysql.define("users",
             type: Sequelize.DATE,
             defaultValue: ()=>new Date()
         },
+        merchantCreatedAt: {
+            type: Sequelize.DATE,
+            defaultValue: ()=>new Date()
+        },
         updatedAt: {
             type: Sequelize.DATE,          
             defaultValue: ()=>new Date()
@@ -108,7 +112,50 @@ const UsersModal = sequelize_mysql.define("users",
         }, 
         reference_id: {
             type: Sequelize.STRING        
-        }, 
+        },
+        isMerchant: {
+            type: Sequelize.INTEGER,           
+            defaultValue: 0
+        },
+        isMerchantVerified: {
+            type: Sequelize.INTEGER,           
+            defaultValue: 0
+        },
+        isMerchantEnabled: {
+            type: Sequelize.INTEGER,           
+            defaultValue: 0
+        },        
+        merchant_name: {
+            type: Sequelize.STRING        
+        },
+        merchant_phone: {
+            type: Sequelize.STRING        
+        },
+        merchant_address: {
+            type: Sequelize.STRING        
+        },
+        licence_proof: {
+            type: Sequelize.STRING        
+        },
+        address_proof: {
+            type: Sequelize.STRING        
+        },
+        utility_proof: {
+            type: Sequelize.STRING        
+        },
+        licence_proof_bucketkey: {
+            type: Sequelize.STRING        
+        },
+        address_proof_bucketkey: {
+            type: Sequelize.STRING        
+        },
+        utility_proof_bucketkey: {
+            type: Sequelize.STRING        
+        },
+        membershipId: {
+            type: Sequelize.INTEGER,           
+            defaultValue: 0
+        } 
     },
     {
         freezeTableName: true,
