@@ -67,7 +67,7 @@ const docOptions = {
           ApiKeyAuth: []
         }]
     },
-    apis: ['./modules/controllers/*.js'],
+    apis: ['./modules/controllers/*.js','./modules/controllers/Merchant/*.js'],
 };
 const swaggerSpec = swaggerJSDoc(docOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));

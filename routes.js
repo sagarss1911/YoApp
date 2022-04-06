@@ -29,11 +29,13 @@ module.exports = app => {
     app.use('/api/v1/wallet', require('./modules/routes/Wallet'));
     app.use('/api/v1/notification_details', require('./modules/routes/Notification_details'));
     app.use('/api/v1/recharges', require('./modules/routes/Recharges'));
+    app.use('/api/v1/merchant', require('./modules/routes/Merchant/Merchant'));
     app.use('/api/v1/support_category', require('./modules/routes/Support_category'));
     app.use('/api/v1/support_request', require('./modules/routes/support_request'));
     app.use('/api/v1/admin/support_category', require('./modules/routes/Admin/Support_category'));
     app.use('/api/v1/admin/support_request', require('./modules/routes/Admin/Support_request'));
     app.use('/api/v1/admin/bank_transfer', require('./modules/routes/Admin/Bank_transfer'));
+    app.use('/api/v1/admin/merchant', require('./modules/routes/Admin/Merchant'));
     app.use('/api/v1/admin/cash_pickup', require('./modules/routes/Admin/Cash_pickup'));
     app.use('/api/v1/admin/dashboard', require('./modules/routes/Admin/Dashboard'));
 
