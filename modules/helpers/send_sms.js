@@ -3,12 +3,7 @@ const authToken = process.env.TWILIO_AUTH_TOKEN;
 const client = require('twilio')(accountSid, authToken);
 let axios = require("axios")
 let commonSMS = async (message, phone) => {
-  let Url = "https://alchemytelco.com:9443/api?action=sendmessage&originator=alchemy&username=" + process.env.ALCOPHONY_INTERNAL_SMS_USERNAME + "&password=" + process.env.ALCOPHONY_INTERNAL_SMS_PASSWORD + "&recipient=" + phone + "&messagetype=SMS:TEXT&messagedata=" + message
-  const headers = {
-    'Content-Type': 'application/json',
-  };
-  let sentSMSData = await axios.get(Url, { headers: headers })
-  if (sentSMSData.data.response.data.acceptreport.statuscode > 0) {
+  try {
     let sentmessage = await client.messages
       .create({
         body: message,
@@ -16,19 +11,44 @@ let commonSMS = async (message, phone) => {
         to: phone
       });
     return sentmessage.sid
-    
-  } else {
-    return sentSMSData.data.response.data.acceptreport.messageid    
+
   }
-  
+  catch (e) {
+    console.log(e)
+    let Url = "https://alchemytelco.com:9443/api?action=sendmessage&originator=alchemy&username=" + process.env.ALCOPHONY_INTERNAL_SMS_USERNAME + "&password=" + process.env.ALCOPHONY_INTERNAL_SMS_PASSWORD + "&recipient=" + phone + "&messagetype=SMS:TEXT&messagedata=" + message
+    const headers = {
+      'Content-Type': 'application/json',
+    };
+    await axios.get(Url, { headers: headers })
+
+
+  }
+  // let Url = "https://alchemytelco.com:9443/api?action=sendmessage&originator=alchemy&username=" + process.env.ALCOPHONY_INTERNAL_SMS_USERNAME + "&password=" + process.env.ALCOPHONY_INTERNAL_SMS_PASSWORD + "&recipient=" + phone + "&messagetype=SMS:TEXT&messagedata=" + message
+  // const headers = {
+  //   'Content-Type': 'application/json',
+  // };
+  // let sentSMSData = await axios.get(Url, { headers: headers })
+  // if (sentSMSData.data.response.data.acceptreport.statuscode > 0) {
+  //   let sentmessage = await client.messages
+  //     .create({
+  //       body: message,
+  //       messagingServiceSid: process.env.MESSAGE_SERVICE_SID,
+  //       to: phone
+  //     });
+  //   return sentmessage.sid
+
+  // } else {
+  //   return sentSMSData.data.response.data.acceptreport.messageid    
+  // }
+
 }
 let sms = async (message, phone) => {
   let msgbody = "Thanks for using Alcophony, Your OTP is " + message + ". Please do not share your OTP with anyone else. Have a great day."
-  return commonSMS(msgbody, phone)  
+  return commonSMS(msgbody, phone)
 };
 let paymentSuccessSMS = async (amount, phone) => {
   let msgbody = "Thanks for using Alcophony, Your Transaction with Amount " + amount + " D is Successfully Completed. Have a great day."
-  return commonSMS(msgbody, phone)  
+  return commonSMS(msgbody, phone)
 };
 let paymentFailedSMS = async (amount, phone) => {
   let msgbody = "Thanks for using Alcophony, Your Transaction with Amount " + amount + " D is Failed."
@@ -53,7 +73,7 @@ let paymentReceivedSMS = async (amount, senderPhone, receiverPhone) => {
 let paymentCashPickUpSenderSMS = async (amount, senderPhone, receiverPhone, trans_id) => {
   let msgbody = "Cash Pickup Request Received for " + receiverPhone + " with amount: " + amount + " D. Use Transaction ID: " + trans_id + " Please Do Not Share With Anyone."
   return commonSMS(msgbody, senderPhone)
-  
+
 };
 let paymentCashPickUpReceiverSMS = async (amount, senderPhone, receiverPhone, trans_id) => {
   let msgbody = "You have received Cash Pickup Request from " + senderPhone + " with amount: " + amount + " D. Use Transaction ID: " + trans_id + " Please Do Not Share With Anyone."
@@ -75,12 +95,12 @@ let paymentMobileRechargeRequestSubmittedSMS = async (amount, senderPhone, recei
 let paymentMobileRechargeRequestFailedSMS = async (amount, senderPhone, receiverPhone, trans_id) => {
   let msgbody = "Recharge Request  Submitted for " + receiverPhone + " With Amount D" + amount + ". is Failed Please Try Later";
   return commonSMS(msgbody, senderPhone)
-  
+
 };
 let paymentMobileRechargeRequestFailedWebhookSMS = async (amount, senderPhone, receiverPhone, trans_id) => {
   let msgbody = "Recharge Request  Submitted for " + receiverPhone + " With Amount D" + amount + ". is Failed and Amount is Reveresed into your wallet. Please Use Reference ID: " + trans_id
   return commonSMS(msgbody, senderPhone)
-  
+
 };
 let paymentMobileRechargeRequestCompletedSMS = async (amount, senderPhone, receiverPhone, trans_id) => {
   let msgbody = "Recharge Request Successfully Completed for " + receiverPhone + " With Amount D" + amount + ". Use Reference ID: " + trans_id
@@ -102,6 +122,10 @@ let TransactionalOTPForRecharge = async (otp, receiverPhone) => {
   let msgbody = "Use OTP: " + otp + " to complete your Recharge. Please Do Not Share With Anyone."
   return commonSMS(msgbody, receiverPhone)
 };
+let DummySMS = async (receiverPhone) => {
+  let msgbody = "This is test message"
+  return commonSMS(msgbody, receiverPhone)
+};
 module.exports = {
   sms: sms,
   paymentSuccessSMS: paymentSuccessSMS,
@@ -121,5 +145,6 @@ module.exports = {
   TransactionalOTPForBankTransfer: TransactionalOTPForBankTransfer,
   TransactionalOTPForCashPickup: TransactionalOTPForCashPickup,
   TransactionalOTPForWalletTransfer: TransactionalOTPForWalletTransfer,
-  TransactionalOTPForRecharge: TransactionalOTPForRecharge
+  TransactionalOTPForRecharge: TransactionalOTPForRecharge,
+  DummySMS: DummySMS
 }
