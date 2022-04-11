@@ -79,6 +79,30 @@ let getLegal = (req, res, next) => {
         })
         .catch(next);
 }
+let getMerchantLimit = (req, res, next) => {
+    return termConditionManager
+        .getMerchantLimit(req.body)
+        .then(data => {
+            let result = {
+                status: 200,
+                data: data
+            }
+            return res.json(result);
+        })
+        .catch(next);
+}
+let updateMerchantLimit = (req, res, next) => {
+    return termConditionManager
+        .updateMerchantLimit(req.body)
+        .then(data => {
+            let result = {
+                status: 200,
+                data: data
+            }
+            return res.json(result);
+        })
+        .catch(next);
+}
 
 
 
@@ -87,5 +111,7 @@ let getLegal = (req, res, next) => {
 module.exports = {
     addLegal,
     getLegal,
+    getMerchantLimit,
+    updateMerchantLimit,
     getLegalDataForAPP
 }
