@@ -155,7 +155,39 @@ const UsersModal = sequelize_mysql.define("users",
         membershipId: {
             type: Sequelize.INTEGER,           
             defaultValue: 0
-        } 
+        },
+        isUpgradeRequestSubmitted: {
+            type: Sequelize.INTEGER,           
+            defaultValue: 0
+        },
+        isMerchantUpgraded: {
+            type: Sequelize.INTEGER,           
+            defaultValue: 0
+        },
+        upgraded_image1: {
+            type: Sequelize.STRING        
+        },
+        upgraded_image1_bucketkey: {
+            type: Sequelize.STRING        
+        },
+        upgraded_image2: {
+            type: Sequelize.STRING        
+        },
+        upgraded_image2_bucketkey: {
+            type: Sequelize.STRING        
+        },
+        upgraded_image3: {
+            type: Sequelize.STRING        
+        },
+        upgraded_image3_bucketkey: {
+            type: Sequelize.STRING        
+        },
+        upgraded_image4: {
+            type: Sequelize.STRING        
+        },
+        upgraded_image4_bucketkey: {
+            type: Sequelize.STRING        
+        },
     },
     {
         freezeTableName: true,
