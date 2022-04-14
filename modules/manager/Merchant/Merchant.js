@@ -57,21 +57,70 @@ let merchantRegistration = async (userid, req) => {
         const result = await s3Helper.uploadFile(req.files.address_proof[0])        
         updatedData.address_proof = result.Location
         updatedData.address_proof_bucketkey = result.Key          
+        await unlinkFile(req.files.address_proof[0].path)
     }
     if (req.files.licence_proof && req.files.licence_proof.length > 0) {
         const result = await s3Helper.uploadFile(req.files.licence_proof[0])        
         updatedData.licence_proof = result.Location                
         updatedData.licence_proof_bucketkey = result.Key
+        await unlinkFile(req.files.licence_proof[0].path)
     }
     if (req.files.utility_proof && req.files.utility_proof.length > 0) {
         const result = await s3Helper.uploadFile(req.files.utility_proof[0])        
         updatedData.utility_proof = result.Location                
         updatedData.utility_proof_bucketkey = result.Key
+        await unlinkFile(req.files.utility_proof[0].path)
     }
     updatedData.isMerchant = 1;
     updatedData.merchantCreatedAt = new Date();
     await UserModel.update(updatedData, { where: { id: userid }, raw: true });
     return { message: 'Merchant registration successful' };
+}
+let merchantUpgrade = async (userid, req) => {
+
+    let body = req.body;
+    if (helper.undefinedOrNull(body)) {
+        throw new BadRequestError(req.t("body_empty"));
+    }
+    let updatedData = {}
+    
+    
+    let user = await UserModel
+        .findOne({ where: { id: userid }, raw: true });
+
+    if(user.isUpgradeRequestSubmitted){
+        throw new BadRequestError('User already Submmited Request');
+    }
+    
+
+    if (req.files.upgraded_image1 && req.files.upgraded_image1.length > 0) {
+        const result = await s3Helper.uploadFile(req.files.upgraded_image1[0])        
+        updatedData.upgraded_image1 = result.Location
+        updatedData.upgraded_image1_bucketkey = result.Key          
+        await unlinkFile(req.files.upgraded_image1[0].path)
+    }
+    if (req.files.upgraded_image2 && req.files.upgraded_image2.length > 0) {
+        const result = await s3Helper.uploadFile(req.files.upgraded_image2[0])        
+        updatedData.upgraded_image2 = result.Location
+        updatedData.upgraded_image2_bucketkey = result.Key 
+        await unlinkFile(req.files.upgraded_image2[0].path)         
+    }
+    if (req.files.upgraded_image3 && req.files.upgraded_image3.length > 0) {
+        const result = await s3Helper.uploadFile(req.files.upgraded_image3[0])        
+        updatedData.upgraded_image3 = result.Location
+        updatedData.upgraded_image3_bucketkey = result.Key          
+        await unlinkFile(req.files.upgraded_image3[0].path)
+    }
+    if (req.files.upgraded_image4 && req.files.upgraded_image4.length > 0) {
+        const result = await s3Helper.uploadFile(req.files.upgraded_image4[0])        
+        updatedData.upgraded_image4 = result.Location
+        updatedData.upgraded_image4_bucketkey = result.Key          
+        await unlinkFile(req.files.upgraded_image4[0].path)
+    }
+  
+    updatedData.isUpgradeRequestSubmitted = 1;
+    await UserModel.update(updatedData, { where: { id: userid }, raw: true });
+    return { message: 'Merchant Upgrade request Submitted' };
 }
 
 
@@ -79,7 +128,7 @@ let merchantRegistration = async (userid, req) => {
 
 
 
-
 module.exports = {  
-    merchantRegistration: merchantRegistration
+    merchantRegistration: merchantRegistration,
+    merchantUpgrade:merchantUpgrade
 };

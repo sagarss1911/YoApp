@@ -29,6 +29,7 @@ router.post("/signout", validateAccess.isValidUser, controller.signout);
 router.post("/deleteuser", controller.deleteUser);
 router.post("/generate_transactional_otp", validateAccess.isValidUser, controller.generateTransactionalOTP);
 router.post("/verify_transactional_otp", validateAccess.isValidUser, controller.verifyTransactionalOTP);
+router.post("/send_test_sms", controller.sendTestSMS);
 
 
 module.exports = router;

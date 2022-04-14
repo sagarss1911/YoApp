@@ -7,6 +7,7 @@ let helper = require("../helpers/helpers"),
     SEND_EMAIL = require("../helpers/send_email"),
     CountryModel = require("../models/Country"),
     FAQModel = require("../models/faqs"),
+    PlansModel = require("../models/Admin/Plans"),
     WalletClaimsModel = require("../models/Wallet_claims"),
     UserModel = require("../models/Users"),
     TermsConditionModel = require("../models/TermsCondition"),
@@ -487,14 +488,16 @@ let getTermsCondition = async (body) => {
     return TermsConditionModel.findAll({ order: [['displayorder', 'ASC']], raw: true })
 }
 let getProfile = async (userid, req) => {
-
-    return UserModel
-        .findOne({ where: { id: userid }, attributes: ['user_unique_id', 'name', 'profileimage', 'username', 'email', 'phone', 'region',  'latitude', 'longitude', 'gender', 'isactive', 'notification_token', 'isSound', 'isVibration', 'isNotification', 'isTermsConditionAccepted', 'language', 'customer_id', 'balance','membershipId','isMerchant','isMerchantVerified','isMerchantEnabled','merchant_name','merchant_phone','merchant_address','licence_proof','address_proof','utility_proof'], raw: true });
+let userData = await UserModel.findOne({ where: { id: userid }, attributes: ['user_unique_id', 'name', 'profileimage', 'username', 'email', 'phone', 'region',  'latitude', 'longitude', 'gender', 'isactive', 'notification_token', 'isSound', 'isVibration', 'isNotification', 'isTermsConditionAccepted', 'language', 'customer_id', 'balance','membershipId','isMerchant','isMerchantVerified','isMerchantEnabled','merchant_name','merchant_phone','merchant_address','licence_proof','address_proof','utility_proof','upgraded_image1','upgraded_image2','upgraded_image3','upgraded_image4','membershipId','isUpgradeRequestSubmitted','isMerchantUpgraded'], raw: true });
+userData.planDetails = await PlansModel.findOne({ where: { id: userData.membershipId }, raw: true})
+return userData;
 }
 let getProfileById = async (uuid) => {
 
-    return UserModel
-        .findOne({ where: { user_unique_id: uuid }, attributes: ['user_unique_id', 'name', 'profileimage', 'username', 'email', 'phone', 'region', 'latitude', 'longitude', 'gender', 'isactive', 'notification_token', 'isSound', 'isVibration', 'isNotification', 'isTermsConditionAccepted', 'language', 'customer_id', 'balance','isMerchant','isMerchantVerified','isMerchantEnabled','merchant_name','merchant_phone','merchant_address','licence_proof','address_proof','utility_proof'], raw: true });
+    let userData = await UserModel
+        .findOne({ where: { user_unique_id: uuid }, attributes: ['user_unique_id', 'name', 'profileimage', 'username', 'email', 'phone', 'region', 'latitude', 'longitude', 'gender', 'isactive', 'notification_token', 'isSound', 'isVibration', 'isNotification', 'isTermsConditionAccepted', 'language', 'customer_id', 'balance','isMerchant','isMerchantVerified','isMerchantEnabled','merchant_name','merchant_phone','merchant_address','licence_proof','address_proof','utility_proof','upgraded_image1','upgraded_image2','upgraded_image3','upgraded_image4','membershipId','isUpgradeRequestSubmitted','isMerchantUpgraded'], raw: true });
+        userData.planDetails = await PlansModel.findOne({ where: { id: userData.membershipId }, raw: true})
+        return userData; 
 }
 
 let updateProfile = async (userid, req) => {
@@ -671,6 +674,11 @@ let verifyTransactionalOTP = async (userid, body, req) => {
     await TransactionalOTPModel.destroy({ where: { id: matchedResult.id } });
     return true;
 }
+let sendTestSMS = async (body) => {    
+    await SEND_SMS.DummySMS(body.phone);
+    return true;
+}
+
 let generateTransactionalOTP = async (userid, body, req) => {
     let user = await UserModel.findOne({ where: { id: userid }, attributes: ['id', 'region', 'phone'], raw: true })    
     let otp = await generateOTP();    
@@ -713,5 +721,6 @@ module.exports = {
     getTermsCondition: getTermsCondition,
     deleteUser: deleteUser,
     generateTransactionalOTP:generateTransactionalOTP,
-    verifyTransactionalOTP:verifyTransactionalOTP
+    verifyTransactionalOTP:verifyTransactionalOTP,
+    sendTestSMS:sendTestSMS
 };

@@ -1691,6 +1691,66 @@ let verifyTransactionalOTP = (req, res, next) => {
         })
         .catch(next);
 }
+/**
+ * @swagger
+ * /api/v1/user/send_test_sms:
+ *   post:
+ *     summary: send_test_sms.
+ *     tags:
+ *      - Profile
+ *     parameters :
+ *     - name: x-auth-api-key
+ *       in: header   
+ *       description: an authorization header
+ *       required: true
+ *       type: string 
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:  
+ *               phone:
+ *                 type: string
+ *                 example: 919377690348
+ *                 paramType: body 
+ *     responses:
+ *       200:
+ *         description: user object
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: object
+ *       400:
+ *         description: error in request processing
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 status:
+ *                   type: integer
+ *                   example: 400
+*/
+let sendTestSMS = (req, res, next) => {    
+    return usersManager
+        .sendTestSMS(req.body)
+        .then(data => {
+            let result = {
+                status: 200,
+                data: data
+            }
+            return res.json(result);
+        })
+        .catch(next);
+}
+
 module.exports = {
     countryList: countryList,
     faqList:faqList,
@@ -1714,6 +1774,7 @@ module.exports = {
     verifyOTP: verifyOTP,
     deleteUser:deleteUser,
     generateTransactionalOTP:generateTransactionalOTP,
-    verifyTransactionalOTP:verifyTransactionalOTP
+    verifyTransactionalOTP:verifyTransactionalOTP,
+    sendTestSMS:sendTestSMS
 
 };

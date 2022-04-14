@@ -4,6 +4,7 @@
 
 let BadRequestError = require('../../errors/badRequestError'),
     UserModel = require('../../models/Users'),
+    PlanModel = require('../../models/Admin/Plans'),
     CustomQueryModel = require("../../models/Custom_query"),
     s3Helper = require('../../helpers/awsS3Helper'),
     SequelizeObj = require("sequelize"), moment = require("moment");
@@ -19,7 +20,7 @@ let getAllMerchant = async(body) => {
             SearchKeywordsQuery = "and ";
         }       
         if (body.filters.searchtext) {
-            SearchKeywordsQuery += " (merchant_name like '%" + body.filters.searchtext + "%' or merchant_address like '%" + body.filters.searchtext + "%' or merchant_phone like '%" + body.filters.searchtext + "%' )";
+            SearchKeywordsQuery += " (u.merchant_name like '%" + body.filters.searchtext + "%' or u.merchant_address like '%" + body.filters.searchtext + "%' or u.merchant_phone like '%" + body.filters.searchtext + "%' )";
         } 
         if (body.filters.from_date) {
             let from_date = moment(body.filters.from_date).format('YYYY-MM-DD');
@@ -27,7 +28,7 @@ let getAllMerchant = async(body) => {
             if (body.filters.searchtext) {
                 SearchKeywordsQuery = SearchKeywordsQuery + " and ";
             }
-            SearchKeywordsQuery += " merchantCreatedAt >= '" + from_date + "'";
+            SearchKeywordsQuery += " u.merchantCreatedAt >= '" + from_date + "'";
         }
         if (body.filters.to_date) {
             let to_date = moment(body.filters.to_date).format('YYYY-MM-DD');
@@ -35,11 +36,11 @@ let getAllMerchant = async(body) => {
             if (body.filters.searchtext || body.filters.from_date) {
                 SearchKeywordsQuery = SearchKeywordsQuery + " and ";
             }
-            SearchKeywordsQuery += " merchantCreatedAt <= '" + to_date + "'";
+            SearchKeywordsQuery += " u.merchantCreatedAt <= '" + to_date + "'";
         }       
     }
     
-    var SearchSql = "select id,merchant_name,merchant_address,merchant_phone,licence_proof,address_proof,utility_proof,merchantCreatedAt,isMerchantVerified,isMerchantEnabled from users where isMerchant=1 "+SearchKeywordsQuery+"  order by merchantCreatedAt desc LIMIT " + offset + "," + limit;
+    var SearchSql = "select p.planname,u.id,u.merchant_name,u.merchant_address,u.merchant_phone,u.licence_proof,u.address_proof,u.utility_proof,u.upgraded_image1,u.upgraded_image2,u.upgraded_image3,u.upgraded_image4,u.membershipId,u.merchantCreatedAt,u.isMerchantVerified,u.isMerchantEnabled,u.isUpgradeRequestSubmitted,u.isMerchantUpgraded from users u inner join plans p on p.id=u.membershipId where u.isMerchant=1 "+SearchKeywordsQuery+"  order by u.merchantCreatedAt desc LIMIT " + offset + "," + limit;
     
     let allMerchant = await CustomQueryModel.query(SearchSql, {
         type: SequelizeObj.QueryTypes.SELECT,
@@ -68,7 +69,7 @@ let exportAllMerchant = async (body) => {
             SearchKeywordsQuery = "and ";
         }
         if (body.filters.searchtext) {
-            SearchKeywordsQuery += " (merchant_name like '%" + body.filters.searchtext + "%' or merchant_address like '%" + body.filters.searchtext + "%' or merchant_phone like '%" + body.filters.searchtext + "%' )";
+            SearchKeywordsQuery += " (u.merchant_name like '%" + body.filters.searchtext + "%' or u.merchant_address like '%" + body.filters.searchtext + "%' or u.merchant_phone like '%" + body.filters.searchtext + "%' )";
         }
         if (body.filters.from_date) {
             let from_date = moment(body.filters.from_date).format('YYYY-MM-DD');
@@ -76,7 +77,7 @@ let exportAllMerchant = async (body) => {
             if (body.filters.searchtext) {
                 SearchKeywordsQuery = SearchKeywordsQuery + " and ";
             }
-            SearchKeywordsQuery += " merchantCreatedAt >= '" + from_date + "'";
+            SearchKeywordsQuery += " u.merchantCreatedAt >= '" + from_date + "'";
         }
         if (body.filters.to_date) {
             let to_date = moment(body.filters.to_date).format('YYYY-MM-DD');
@@ -84,12 +85,12 @@ let exportAllMerchant = async (body) => {
             if (body.filters.searchtext || body.filters.from_date) {
                 SearchKeywordsQuery = SearchKeywordsQuery + " and ";
             }
-            SearchKeywordsQuery += " merchantCreatedAt <= '" + to_date + "'";
+            SearchKeywordsQuery += " u.merchantCreatedAt <= '" + to_date + "'";
         } 
         
     }
-    var SearchSql = "select id,merchant_name,merchant_address,merchant_phone,licence_proof,address_proof,utility_proof,merchantCreatedAt,isMerchantEnabled from users where isMerchant=1 "+SearchKeywordsQuery+"  order by merchantCreatedAt desc ";    
-
+    var SearchSql = "select p.planname,u.id,u.merchant_name,u.merchant_address,u.merchant_phone,u.licence_proof,u.address_proof,u.utility_proof,u.upgraded_image1,u.upgraded_image2,u.upgraded_image3,u.upgraded_image4,u.membershipId,u.merchantCreatedAt,u.isMerchantVerified,u.isMerchantEnabled,u.isUpgradeRequestSubmitted,u.isMerchantUpgraded from users u inner join plans p on p.id=u.membershipId where u.isMerchant=1 "+SearchKeywordsQuery+"  order by u.merchantCreatedAt desc ";    
+    console.log(SearchSql)
     return CustomQueryModel.query(SearchSql, {
         type: SequelizeObj.QueryTypes.SELECT,
         raw: true
@@ -101,24 +102,30 @@ let updateMerchantStatus = async (req) => {
     let body = req.body;    
     if(body.field == "isMerchantVerified"){
         await UserModel.update({isMerchantVerified:body.status}, { where: { id: req.params.slider_id }, raw: true });
+        let userData  = await UserModel.findOne({ where: { id: req.params.slider_id }, raw: true });        
+        if(!userData.membershipId){
+            let defaultPlan = await PlanModel.findOne({ where: { isDefault: 1 }, raw: true });            
+            await UserModel.update({membershipId:defaultPlan.id}, { where: { id: req.params.slider_id }, raw: true });
+        }
     }else if(body.field == "isMerchantEnabled"){
         await UserModel.update({isMerchantEnabled:body.status}, { where: { id: req.params.slider_id }, raw: true });
+    }else if(body.field == "isMerchantUpgraded"){
+        await UserModel.update({isMerchantUpgraded:body.status}, { where: { id: req.params.slider_id }, raw: true });
     }
     
     return true
     
 }
 let merchantUpdate = async (req) => {
-    let body = req.body.body ? JSON.parse(req.body.body) : req.body;
-    console.log(body)
+    let body = req.body.body ? JSON.parse(req.body.body) : req.body;    
     let updatedData = {}
-    let requiredFields = ['merchant_name', 'merchant_phone', 'merchant_address'];
+    let requiredFields = ['merchant_name', 'merchant_phone', 'merchant_address','membershipId'];
     requiredFields.forEach(x => {
         if(!body[x]){
             throw new BadRequestError(x + ' is required');
         }
     }); 
-    let optionalFiled = ['merchant_name', 'merchant_phone', 'merchant_address'];
+    let optionalFiled = ['merchant_name', 'merchant_phone', 'merchant_address','membershipId'];
     optionalFiled.forEach(x => {
         updatedData[x] = body[x]
     });
@@ -137,9 +144,13 @@ let merchantUpdate = async (req) => {
         updatedData.utility_proof = result.Location                
         updatedData.utility_proof_bucketkey = result.Key
     }
-    console.log(updatedData)
+    
     await UserModel.update(updatedData, { where: { id: req.params.merchant_id }, raw: true });
- return UserModel.findOne({ where: { id: req.params.merchant_id } ,  raw: true,attributes: ['id', 'merchant_name', 'merchant_address', 'merchant_phone', 'licence_proof', 'address_proof', 'utility_proof', 'merchantCreatedAt', 'isMerchantVerified', 'isMerchantEnabled'] });
+    let planData = await PlanModel.findOne({ where: { id: body.membershipId }, raw: true });
+
+ let userData =  await UserModel.findOne({ where: { id: req.params.merchant_id } ,  raw: true,attributes: ['id', 'merchant_name', 'merchant_address', 'merchant_phone', 'licence_proof', 'address_proof', 'utility_proof', 'merchantCreatedAt', 'isMerchantVerified', 'isMerchantEnabled','upgraded_image1','upgraded_image2','upgraded_image3','upgraded_image4','membershipId','isUpgradeRequestSubmitted','isMerchantUpgraded'] });
+ userData.planname = planData.planname 
+ return userData
 }
 
 module.exports = {
