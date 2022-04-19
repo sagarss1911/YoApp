@@ -211,7 +211,7 @@ let getAllPermissionList =async(body)=>{
 }
 let updatePermission = async(req)=>{
     let body = req.body.body ? JSON.parse(req.body.body) : req.body;
-    console.log(body)
+    
     if (!body.name) {
         throw new BadRequestError('Permission name can not empty');
     }
