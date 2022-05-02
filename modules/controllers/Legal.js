@@ -31,7 +31,7 @@ let addLegal = (req, res, next) => {
  *       in: header   
  *       description: Language
  *       required: false
- *       type: string 
+ *       type: string   
  *     responses:
  *       200:
  *         description: user object
