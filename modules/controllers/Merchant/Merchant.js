@@ -173,8 +173,507 @@
         })
         .catch(next);
 }
+ /**
+  * @swagger
+  * /api/v1/merchant/get_cash_pick_details/{transaction_id}:
+  *   get:
+  *     summary: get_cash_pick_details.
+  *     tags:
+  *      - Merchant
+  *     parameters :
+  *     - name: x-auth-api-key
+  *       in: header   
+  *       description: an authorization header
+  *       required: true
+  *       type: string 
+  *     - name: x-is-merchant
+  *       in: header   
+  *       description: an authorization header
+  *       required: true
+  *       type: string 
+  *     - name: x-auth-token
+  *       in: header   
+  *       description: an authorization header
+  *       required: true
+  *       type: string 
+  *     - name: Accept-Language
+  *       in: header   
+  *       description: Language
+  *       required: false
+  *       type: string 
+  *     - name: transaction_id
+  *       in: path   
+  *       description: Language
+  *       required: true
+  *       type: string   
+  *     responses:
+  *       200:
+  *         description: user object
+  *         content:
+  *           application/json:
+  *             schema:
+  *               type: object
+  *               properties:
+  *                 data:
+  *                   type: object
+  *       400:
+  *         description: error in request processing
+  *         content:
+  *           application/json:
+  *             schema:
+  *               type: object
+  *               properties:
+  *                 message:
+  *                   type: string
+  *                 status:
+  *                   type: integer
+  *                   example: 400
+ */
+  let getCashpickupDetails = (req, res, next) => {
+    let userid = req.user ? req.user.userId : null;
+    let transaction_id = req.params.transaction_id;
+    return merchantManager
+        .getCashpickupDetails(userid, req,transaction_id)
+        .then(data => {
+            let result = {
+                status: 200,
+                data: data
+            }
+            return res.json(result);
+        })
+        .catch(next);
+}
+/**
+  * @swagger
+  * /api/v1/merchant/send_cash_pick_up_otp/{transaction_id}:
+  *   post:
+  *     summary: send_cash_pick_up_otp.
+  *     tags:
+  *      - Merchant
+  *     parameters :
+  *     - name: x-auth-api-key
+  *       in: header   
+  *       description: an authorization header
+  *       required: true
+  *       type: string 
+  *     - name: x-auth-token
+  *       in: header   
+  *       description: an authorization header
+  *       required: true
+  *       type: string
+  *     - name: x-is-merchant
+  *       in: header   
+  *       description: an authorization header
+  *       required: true
+  *       type: string
+  *     - name: transaction_id
+  *       in: path
+  *       description: transaction_id
+  *       required: true  
+  *     - name: Accept-Language
+  *       in: header   
+  *       description: Language
+  *       required: false
+  *       type: string  
+  *     responses:
+  *       200:
+  *         description: user object
+  *         content:
+  *           application/json:
+  *             schema:
+  *               type: object
+  *               properties:
+  *                 data:
+  *                   type: object
+  *       400:
+  *         description: error in request processing
+  *         content:
+  *           application/json:
+  *             schema:
+  *               type: object
+  *               properties:
+  *                 message:
+  *                   type: string
+  *                 status:
+  *                   type: integer
+  *                   example: 400
+ */
+ let sendCashPickupOTP = (req, res, next) => {
+    let userid = req.user ? req.user.userId : null;
+    let transaction_id = req.params.transaction_id;
+    return merchantManager
+        .sendCashPickupOTP(userid, req,transaction_id)
+        .then(data => {
+            let result = {
+                status: 200,
+                data: data
+            }
+            return res.json(result);
+        })
+        .catch(next);
+}
+/**
+  * @swagger
+  * /api/v1/merchant/validate_cash_pick_up_otp/{transaction_id}:
+  *   post:
+  *     summary: validate_cash_pick_up_otp.
+  *     tags:
+  *      - Merchant
+  *     parameters :
+  *     - name: x-auth-api-key
+  *       in: header   
+  *       description: an authorization header
+  *       required: true
+  *       type: string 
+  *     - name: x-auth-token
+  *       in: header   
+  *       description: an authorization header
+  *       required: true
+  *       type: string
+  *     - name: x-is-merchant
+  *       in: header   
+  *       description: an authorization header
+  *       required: true
+  *       type: string
+  *     - name: transaction_id
+  *       in: path
+  *       description: transaction_id
+  *       required: true  
+  *     - name: Accept-Language
+  *       in: header   
+  *       description: Language
+  *       required: false
+  *       type: string
+  *     requestBody:
+  *       required: true
+  *       content:
+  *         application/json:
+  *           schema:
+  *             type: object
+  *             properties:   
+  *               otp:
+  *                 type: string
+  *                 example: 123456
+  *                 paramType: body
+  *     responses:
+  *       200:
+  *         description: user object
+  *         content:
+  *           application/json:
+  *             schema:
+  *               type: object
+  *               properties:
+  *                 data:
+  *                   type: object
+  *       400:
+  *         description: error in request processing
+  *         content:
+  *           application/json:
+  *             schema:
+  *               type: object
+  *               properties:
+  *                 message:
+  *                   type: string
+  *                 status:
+  *                   type: integer
+  *                   example: 400
+ */
+ let validateCashPickupOTP = (req, res, next) => {
+    let userid = req.user ? req.user.userId : null;
+    let transaction_id = req.params.transaction_id;
+    return merchantManager
+        .validateCashPickupOTP(userid, req,transaction_id)
+        .then(data => {
+            let result = {
+                status: 200,
+                data: data
+            }
+            return res.json(result);
+        })
+        .catch(next);
+}
+/**
+  * @swagger
+  * /api/v1/merchant/claim_cash_pickup/{transaction_id}:
+  *   post:
+  *     summary: claim_cash_pickup.
+  *     tags:
+  *      - Merchant
+  *     parameters :
+  *     - name: x-auth-api-key
+  *       in: header   
+  *       description: an authorization header
+  *       required: true
+  *       type: string 
+  *     - name: x-auth-token
+  *       in: header   
+  *       description: an authorization header
+  *       required: true
+  *       type: string
+  *     - name: x-is-merchant
+  *       in: header   
+  *       description: an authorization header
+  *       required: true
+  *       type: string
+  *     - name: transaction_id
+  *       in: path
+  *       description: transaction_id
+  *       required: true   
+  *     - name: Accept-Language
+  *       in: header   
+  *       description: Language
+  *       required: false
+  *       type: string
+  *     requestBody:
+  *       required: true
+  *       content:
+  *         multipart/form-data:
+  *           schema:
+  *             type: object
+  *             properties:   
+  *               uploaded_id_document1:
+  *                 type: file  
+  *                 required: true
+  *                 paramType: body
+  *               uploaded_id_document2:
+  *                 type: file  
+  *                 required: false
+  *                 paramType: body
+  *     responses:
+  *       200:
+  *         description: user object
+  *         content:
+  *           application/json:
+  *             schema:
+  *               type: object
+  *               properties:
+  *                 data:
+  *                   type: object
+  *       400:
+  *         description: error in request processing
+  *         content:
+  *           application/json:
+  *             schema:
+  *               type: object
+  *               properties:
+  *                 message:
+  *                   type: string
+  *                 status:
+  *                   type: integer
+  *                   example: 400
+ */
+ let claimCashPickup = (req, res, next) => {
+    let userid = req.user ? req.user.userId : null;
+    let transaction_id = req.params.transaction_id;
+    return merchantManager
+        .claimCashPickup(userid, req,transaction_id)
+        .then(data => {
+            let result = {
+                status: 200,
+                data: data
+            }
+            return res.json(result);
+        })
+        .catch(next);
+}
+
+/**
+  * @swagger
+  * /api/v1/merchant/transaction_history:
+  *   post:
+  *     summary: transaction_history.
+  *     tags:
+  *      - Merchant
+  *     parameters :
+  *     - name: x-auth-api-key
+  *       in: header   
+  *       description: an authorization header
+  *       required: true
+  *       type: string 
+  *     - name: x-auth-token
+  *       in: header   
+  *       description: an authorization header
+  *       required: true
+  *       type: string
+  *     - name: x-is-merchant
+  *       in: header   
+  *       description: an authorization header
+  *       required: true
+  *       type: string  
+  *     - name: Accept-Language
+  *       in: header   
+  *       description: Language
+  *       required: false
+  *       type: string
+  *     - name: page
+  *       in: query   
+  *       description: page
+  *       required: false
+  *       type: number
+  *     - name: limit
+  *       in: query   
+  *       description: page
+  *       required: false
+  *       type: number
+  *     - name: from_date
+  *       in: query   
+  *       description: from_date
+  *       required: false
+  *       type: text
+  *     - name: to_date
+  *       in: query   
+  *       description: to_date
+  *       required: false
+  *       type: text  
+  *     - name: searchtext
+  *       in: query   
+  *       description: searchtext
+  *       required: false
+  *       type: text  
+  *     responses:
+  *       200:
+  *         description: user object
+  *         content:
+  *           application/json:
+  *             schema:
+  *               type: object
+  *               properties:
+  *                 data:
+  *                   type: object
+  *       400:
+  *         description: error in request processing
+  *         content:
+  *           application/json:
+  *             schema:
+  *               type: object
+  *               properties:
+  *                 message:
+  *                   type: string
+  *                 status:
+  *                   type: integer
+  *                   example: 400
+ */
+ let transactionHistory = (req, res, next) => {
+    let userid = req.user ? req.user.userId : null;
+    let transaction_id = req.params.transaction_id;
+    return merchantManager
+        .transactionHistory(userid, req,transaction_id)
+        .then(data => {
+            let result = {
+                status: 200,
+                data: data
+            }
+            return res.json(result);
+        })
+        .catch(next);
+}
+/**
+ * @swagger
+ * /api/v1/merchant/bank_transfer:
+ *   post:
+ *     summary: Submit Bank Transfer Request.
+ *     tags:
+ *      - Merchant
+ *     parameters :
+ *     - name: x-auth-api-key
+ *       in: header   
+ *       description: an authorization header
+ *       required: true
+ *       type: string 
+ *     - name: x-auth-token
+ *       in: header   
+ *       description: an authorization header
+ *       required: true
+ *       type: string 
+ *     - name: Accept-Language
+ *       in: header   
+ *       description: Language
+ *       required: false
+ *       type: string
+ *     - name: x-is-merchant
+ *       in: header   
+ *       description: an authorization header
+ *       required: true
+ *       type: string    
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties: 
+ *               name:
+ *                 type: string
+ *                 example: johm Smith
+ *                 paramType: body
+ *               address:
+ *                 type: string
+ *                 example: "A-18" 
+ *                 paramType: body
+ *               phone:
+ *                 type: string
+ *                 example: "+919377690348"
+ *                 paramType: body 
+ *               bank_name:
+ *                 type: string
+ *                 example: "ABC bank"
+ *                 paramType: body
+ *               bank_account:
+ *                 type: string
+ *                 example: "1234567890"
+ *                 paramType: body
+ *               country:
+ *                 type: string
+ *                 example: "india"
+ *                 paramType: body
+ *               amount:
+ *                 type: integer
+ *                 example: 50
+ *                 paramType: body  
+ *     responses:
+ *       200:
+ *         description: user object
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: object
+ *       400:
+ *         description: error in request processing
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 status:
+ *                   type: integer
+ *                   example: 400
+*/
+let bankTransfer = (req, res, next) => {
+    let userid = req.user ? req.user.userId : null;
+    return merchantManager
+        .bankTransfer(userid, req)
+        .then(data => {
+            let result = {
+                status: 200,
+                data: data
+            }
+            return res.json(result);
+        })
+        .catch(next);
+}
  module.exports = {     
     merchantRegistration: merchantRegistration,
-    merchantUpgrade:merchantUpgrade
+    merchantUpgrade:merchantUpgrade,
+    getCashpickupDetails:getCashpickupDetails,
+    sendCashPickupOTP:sendCashPickupOTP,
+    validateCashPickupOTP:validateCashPickupOTP,
+    claimCashPickup:claimCashPickup,
+    transactionHistory:transactionHistory,
+    bankTransfer:bankTransfer
  
  };

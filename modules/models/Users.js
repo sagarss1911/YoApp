@@ -110,6 +110,10 @@ const UsersModal = sequelize_mysql.define("users",
             type: Sequelize.NUMBER,
             defaultValue: 0            
         }, 
+        merchantbalance: {
+            type: Sequelize.NUMBER,
+            defaultValue: 0            
+        }, 
         reference_id: {
             type: Sequelize.STRING        
         },

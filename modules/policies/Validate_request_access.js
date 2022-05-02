@@ -62,9 +62,47 @@ let isValidAdmin = (req,res,next)=>{
         next(error);
       })
 }
+let isValidMerchant = (req,res,next)=>{
+  let auth_token = req.get("x-auth-token");
+  let isMerchant = req.get("x-is-merchant");
+  if(!isMerchant){
+    throw new AccessDeniedError("Invalid Merchant ");
+  }
+  
+  let sqlQuery = 'select id,username,isMerchant,isMerchantVerified,isMerchantEnabled from users where isactive=1 and id=\
+                  (select userid from users_auth where token=:auth_token limit 1) limit 1;'
+                 
+  CustomQueryModel
+  .query(sqlQuery,{
+    replacements: {
+        'auth_token' : auth_token
+      },
+      type: SequelizeObj.QueryTypes.SELECT,
+      raw:true
+    })
+    .then(user =>{
+      if(!user || user.length == 0){
+        throw new AccessDeniedError("You are not authorized to access api ");
+      }else if(user[0].isMerchant == 0 || user[0].isMerchantVerified == 0 || user[0].isMerchantEnabled == 0){
+        throw new AccessDeniedError("You are not authorized to access api ");
+      } else {          
+        req.user = {
+          userId: user[0].id,
+          userName: user[0].username
+        };
+
+        next();
+      }
+    })
+    .catch(error => {
+      next(error);
+    })
+}
+
 module.exports = {
   isValidAdmin: isValidAdmin,
   isValidUser: isValidUser,
+  isValidMerchant: isValidMerchant,
 };
 
 
