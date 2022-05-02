@@ -264,7 +264,7 @@ let transactionHistory = async (userid, req) => {
         }
         if (req.query.from_date) {
             let from_date = moment(req.query.from_date).format('YYYY-MM-DD');
-            from_date += " 00:00:00"            
+            from_date += " 00:00:00"             
             SearchKeywordsQuery += " and  m.createdAt >= '" + from_date + "'";
         }
         if (req.query.to_date) {
