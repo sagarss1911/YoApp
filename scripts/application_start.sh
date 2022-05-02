@@ -15,5 +15,5 @@ pm2 kill
 #install node modules
 npm install
 
-#start our node app in the background
+#start 111our node app in the background
 pm2 start app.js
