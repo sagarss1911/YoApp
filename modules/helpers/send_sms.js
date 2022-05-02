@@ -73,8 +73,16 @@ let paymentReceivedSMS = async (amount, senderPhone, receiverPhone) => {
 let paymentCashPickUpSenderSMS = async (amount, senderPhone, receiverPhone, trans_id) => {
   let msgbody = "Cash Pickup Request Received for " + receiverPhone + " with amount: " + amount + " D. Use Transaction ID: " + trans_id + " Please Do Not Share With Anyone."
   return commonSMS(msgbody, senderPhone)
-
 };
+let paymentCashPickUpCompletedMerchantSMS = async (amount, senderPhone, receiverPhone) => {
+  let msgbody = "Cash Pickup Request Completed for " + receiverPhone + " with amount: " + amount + " D. Amount is Credited To Your Wallet Successfully."
+  return commonSMS(msgbody, senderPhone)
+};
+let paymentCashPickUpCompletedSenderSMS = async (amount, senderPhone, receiverPhone) => {
+  let msgbody = "Cash Pickup Request Completed for " + receiverPhone + " with amount: " + amount + " D. Amount is Given in Cash."
+  return commonSMS(msgbody, senderPhone)
+};
+
 let paymentCashPickUpReceiverSMS = async (amount, senderPhone, receiverPhone, trans_id) => {
   let msgbody = "You have received Cash Pickup Request from " + senderPhone + " with amount: " + amount + " D. Use Transaction ID: " + trans_id + " Please Do Not Share With Anyone."
   return commonSMS(msgbody, receiverPhone)
@@ -122,6 +130,10 @@ let TransactionalOTPForRecharge = async (otp, receiverPhone) => {
   let msgbody = "Use OTP: " + otp + " to complete your Recharge. Please Do Not Share With Anyone."
   return commonSMS(msgbody, receiverPhone)
 };
+let OTPForCashPickupRequestedByMerchant = async (otp, receiverPhone) => {
+  let msgbody = "Use OTP: " + otp + " to complete your CashPickup. Please Share This OTP with Merchant."
+  return commonSMS(msgbody, receiverPhone)
+};
 let DummySMS = async (receiverPhone) => {
   let msgbody = "This is test message"
   return commonSMS(msgbody, receiverPhone)
@@ -146,5 +158,8 @@ module.exports = {
   TransactionalOTPForCashPickup: TransactionalOTPForCashPickup,
   TransactionalOTPForWalletTransfer: TransactionalOTPForWalletTransfer,
   TransactionalOTPForRecharge: TransactionalOTPForRecharge,
+  OTPForCashPickupRequestedByMerchant:OTPForCashPickupRequestedByMerchant,
+  paymentCashPickUpCompletedMerchantSMS:paymentCashPickUpCompletedMerchantSMS,
+  paymentCashPickUpCompletedSenderSMS:paymentCashPickUpCompletedSenderSMS,
   DummySMS: DummySMS
 }
