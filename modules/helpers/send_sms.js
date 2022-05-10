@@ -9,7 +9,7 @@ let commonSMS = async (message, phone) => {
         body: message,
         messagingServiceSid: process.env.MESSAGE_SERVICE_SID,
         to: phone
-      });
+      });    
     return sentmessage.sid
 
   }
@@ -71,7 +71,7 @@ let paymentReceivedSMS = async (amount, senderPhone, receiverPhone) => {
   return commonSMS(msgbody, receiverPhone)
 };
 let paymentCashPickUpSenderSMS = async (amount, senderPhone, receiverPhone, trans_id) => {
-  let msgbody = "Cash Pickup Request Received for " + receiverPhone + " with amount: " + amount + " D. Use Transaction ID: " + trans_id + " Please Do Not Share With Anyone."
+  let msgbody = "Cash Pickup Request Generated for " + receiverPhone + " with amount: " + amount + " D. Use Transaction ID: " + trans_id + " Please Do Not Share With Anyone."
   return commonSMS(msgbody, senderPhone)
 };
 let paymentCashPickUpCompletedMerchantSMS = async (amount, senderPhone, receiverPhone) => {
@@ -134,6 +134,10 @@ let OTPForCashPickupRequestedByMerchant = async (otp, receiverPhone) => {
   let msgbody = "Use OTP: " + otp + " to complete your CashPickup. Please Share This OTP with Merchant."
   return commonSMS(msgbody, receiverPhone)
 };
+let cashTopupReceivedSMS = async (amount,  receiverPhone) => {
+  let msgbody = "Cash Topup With Amount " + amount + " D."+" is Successfully Completed. Have a great day."
+  return commonSMS(msgbody, receiverPhone)
+};
 let DummySMS = async (receiverPhone) => {
   let msgbody = "This is test message"
   return commonSMS(msgbody, receiverPhone)
@@ -161,5 +165,6 @@ module.exports = {
   OTPForCashPickupRequestedByMerchant:OTPForCashPickupRequestedByMerchant,
   paymentCashPickUpCompletedMerchantSMS:paymentCashPickUpCompletedMerchantSMS,
   paymentCashPickUpCompletedSenderSMS:paymentCashPickUpCompletedSenderSMS,
+  cashTopupReceivedSMS:cashTopupReceivedSMS,
   DummySMS: DummySMS
 }
