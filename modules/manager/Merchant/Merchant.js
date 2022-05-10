@@ -275,7 +275,7 @@ let transactionHistory = async (userid, req) => {
         }
     }
     
-    var SearchSql = "SELECT m.amount,c.name,c.email,c.phone,c.transaction_id,m.createdAt FROM merchant_wallet m inner join cash_pickup c ON m.cashpickupId=c.id   " + SearchKeywordsQuery + " order by m.id desc ";
+    var SearchSql = "SELECT m.amount,c.name,c.email,c.phone,c.transaction_id,m.createdAt,c.receiver_id_document,c.uploaded_id_document1,c.uploaded_id_document2 FROM merchant_wallet m inner join cash_pickup c ON m.cashpickupId=c.id   " + SearchKeywordsQuery + " order by m.id desc ";
     if(limit){
         SearchSql += " limit " + offset + "," + limit;
     }    

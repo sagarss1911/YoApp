@@ -39,6 +39,7 @@ module.exports = app => {
     
     app.use('/api/v1/admin/bank_transfer', require('./modules/routes/Admin/Bank_transfer'));
     app.use('/api/v1/admin/bank_transfer_merchant', require('./modules/routes/Admin/Bank_transfer_merchant'));
+    app.use('/api/v1/admin/cash_topup', require('./modules/routes/Admin/Cash_topup'));
     app.use('/api/v1/admin/merchant', require('./modules/routes/Admin/Merchant'));
     app.use('/api/v1/admin/cash_pickup', require('./modules/routes/Admin/Cash_pickup'));
     app.use('/api/v1/admin/cash_pickup_merchant', require('./modules/routes/Admin/Cash_pickup_merchant'));
