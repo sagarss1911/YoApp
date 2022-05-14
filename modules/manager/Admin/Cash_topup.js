@@ -45,6 +45,7 @@ let addBalanceToUserWallet = async (body,adminId) => {
         userId: receiverInfo.id,
         order_date: new Date(),
         amount: Number(body.amount) * 100,
+        amountpaid: Number(body.amount) * 100,
         order_status: 'success',
         ordertype: '6',
         trans_id: await CommonHelper.getUniqueTransactionId(),
@@ -80,10 +81,88 @@ let addBalanceToUserWallet = async (body,adminId) => {
     await NotificationHelper.sendFriendRequestNotificationToUser(receiverInfo.id, notificationDataReceiver);
 
     SEND_SMS.cashTopupReceivedSMS(parseFloat(body.amount),  receiverInfo.phone);
-    return true;
+    var SearchSql = "SELECT (w.amount/100) AS amount,w.trans_id,w.order_date,u.name,u.username,u.email,u.phone,u.user_unique_id FROM wallet w INNER JOIN users u ON w.userId=u.id where w.id="+receiverWalletInfo.id ;        
+    return CustomQueryModel.query(SearchSql, {
+        type: SequelizeObj.QueryTypes.SELECT,
+        raw: true
+    });    
+}
+let getAllCashTopup = async (body,adminId) => {
+    let limit = (body.limit) ? parseInt(body.limit) : 10;
+    let page = body.page || 1;
+    let offset = (page - 1) * limit;
+    let SearchKeywordsQuery = "WHERE ordertype=6 and source_adminId = " + adminId;
+    if (body.filters) {
+      
+        if (body.filters.searchtext) {
+            SearchKeywordsQuery += "and (u.name like '%" + body.filters.searchtext + "%' or u.email like '%" + body.filters.searchtext + "%' or u.phone like '%" + body.filters.searchtext + "%' or w.amount like '%" + body.filters.searchtext + "%' or w.trans_id like '%" + body.filters.searchtext + "' or u.user_unique_id like '%" + body.filters.searchtext + "%')";
+        }
+        if (body.filters.from_date) {
+            let from_date = moment(body.filters.from_date).format('YYYY-MM-DD');
+            from_date += " 00:00:00"         
+            SearchKeywordsQuery += " and w.order_date >= '" + from_date + "'";
+        }
+        if (body.filters.to_date) {
+            let to_date = moment(body.filters.to_date).format('YYYY-MM-DD');
+            to_date += " 23:59:59"            
+            SearchKeywordsQuery += " and w.order_date <= '" + to_date + "'";
+        }
+        if (body.filters.selectedUser) {            
+            SearchKeywordsQuery += " and w.userId = "+body.filters.selectedUser;
+        }
+    }
+
+    var SearchSql = "SELECT (w.amount/100) AS amount,w.trans_id,w.order_date,u.name,u.username,u.email,u.phone,u.user_unique_id FROM wallet w INNER JOIN users u ON w.userId=u.id " + SearchKeywordsQuery + " order by w.id desc LIMIT " + offset + "," + limit;        
+    let allCashTopup = await CustomQueryModel.query(SearchSql, {
+        type: SequelizeObj.QueryTypes.SELECT,
+        raw: true
+    });
+
+
+    let allRequestCountQuery = "SELECT (w.amount/100) AS amount,w.trans_id,w.order_date,u.name,u.username,u.email,u.phone,u.user_unique_id FROM wallet w INNER JOIN users u ON w.userId=u.id " + SearchKeywordsQuery + " order by w.id desc";
+    let allRequestCount = await CustomQueryModel.query(allRequestCountQuery, {
+        type: SequelizeObj.QueryTypes.SELECT,
+        raw: true
+    });
+
+    let _result = { total_count: 0 };
+    _result.slides = allCashTopup;
+    _result.total_count = allRequestCount.length;
+    return _result;
+}
+let exportAllCashTopup = async (body,adminId) => {
+    
+    let SearchKeywordsQuery = "WHERE ordertype=6 and source_adminId = " + adminId;
+    if (body.filters) {
+      
+        if (body.filters.searchtext) {
+            SearchKeywordsQuery += "and (u.name like '%" + body.filters.searchtext + "%' or u.email like '%" + body.filters.searchtext + "%' or u.phone like '%" + body.filters.searchtext + "%' or w.amount like '%" + body.filters.searchtext + "%' or w.trans_id like '%" + body.filters.searchtext + "' or u.user_unique_id like '%" + body.filters.searchtext + "%')";
+        }
+        if (body.filters.from_date) {
+            let from_date = moment(body.filters.from_date).format('YYYY-MM-DD');
+            from_date += " 00:00:00"         
+            SearchKeywordsQuery += " and w.order_date >= '" + from_date + "'";
+        }
+        if (body.filters.to_date) {
+            let to_date = moment(body.filters.to_date).format('YYYY-MM-DD');
+            to_date += " 23:59:59"            
+            SearchKeywordsQuery += " and w.order_date <= '" + to_date + "'";
+        }
+        if (body.filters.selectedUser) {            
+            SearchKeywordsQuery += " and w.userId = "+body.filters.selectedUser;
+        }
+    }
+
+    var SearchSql = "SELECT (w.amount/100) AS amount,w.trans_id,w.order_date,u.name,u.username,u.email,u.phone,u.user_unique_id FROM wallet w INNER JOIN users u ON w.userId=u.id " + SearchKeywordsQuery + " order by w.id desc ";        
+    return CustomQueryModel.query(SearchSql, {
+        type: SequelizeObj.QueryTypes.SELECT,
+        raw: true
+    });
 }
 module.exports = {
     getAllUsers:getAllUsers,
-    addBalanceToUserWallet:addBalanceToUserWallet
+    addBalanceToUserWallet:addBalanceToUserWallet,
+    getAllCashTopup:getAllCashTopup,
+    exportAllCashTopup:exportAllCashTopup
 
 }

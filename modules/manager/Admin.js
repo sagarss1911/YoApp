@@ -22,13 +22,17 @@ let Login = async (req_body) => {
     if (helper.undefinedOrNull(req_body.password)) {
         throw new BadRequestError("password is required");
     }
-    let user = await UserModel.findOne({ where: { email: req_body.email,password:md5(req_body.password) }, attributes: ['id','email'] ,raw:true})
+    let user = await UserModel.findOne({ where: { email: req_body.email,password:md5(req_body.password) }, attributes: ['id','email','type','modules','isEnabled'] ,raw:true})
     if(!user){
         throw new BadRequestError("no user found");
     }
+    if(!user.isEnabled){
+        throw new BadRequestError("user is disabled");
+    }
     let authToken = md5(Date.now() + user.email);
     await UserModel.update({ token: authToken }, { where: { id: user.id }, raw: true });
-    return { userId:user.id,accessToken :authToken};
+    user.accessToken = authToken;
+    return user;
 
 }
 let changePassword = async (adminid,req_body) => {
