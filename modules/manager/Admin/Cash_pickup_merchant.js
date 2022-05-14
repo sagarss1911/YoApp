@@ -30,8 +30,7 @@ let getAllCashPickupDetails = async (body) => {
             to_date += " 23:59:59"            
             SearchKeywordsQuery += " and c.createdAt <= '" + to_date + "'";
         }
-        if (body.filters.selectedMerchant) {
-            
+        if (body.filters.selectedMerchant) {            
             SearchKeywordsQuery += " and c.claimed_by = "+body.filters.selectedMerchant;
         }
     }

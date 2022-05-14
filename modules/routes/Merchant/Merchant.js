@@ -14,5 +14,7 @@ router.post("/validate_cash_pick_up_otp/:transaction_id",validateAccess.isValidM
 router.post("/claim_cash_pickup/:transaction_id",validateAccess.isValidMerchant, fileUploadHelper.uploadUserProfileImage.fields([{ name: 'uploaded_id_document1'},{ name: 'uploaded_id_document2'}]),controller.claimCashPickup);
 router.post("/transaction_history",validateAccess.isValidMerchant, controller.transactionHistory);
 router.post("/bank_transfer", validateAccess.isValidMerchant, controller.bankTransfer);
+router.post("/cash_topup", validateAccess.isValidMerchant, controller.cashTopupOtherUser);
+router.post("/cash_topup_transaction_history",validateAccess.isValidMerchant, controller.cashTopupTransactionHistory);
 
 module.exports = router;

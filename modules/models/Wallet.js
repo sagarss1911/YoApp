@@ -98,6 +98,10 @@ const WalletModal = sequelize_mysql.define("walletModal",
         source_adminId: {
             type: Sequelize.INTEGER,            
         },  
+        source_merchantId: {
+            type: Sequelize.INTEGER,            
+        },  
+        
         createdAt: {
             type: Sequelize.DATE,
             defaultValue: ()=>new Date()

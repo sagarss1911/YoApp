@@ -69,7 +69,10 @@ const UsersModal = sequelize_mysql.define("users",
         },       
         notification_token: {
             type: Sequelize.STRING,            
-        },       
+        },
+        merchant_due_payment: {
+            type: Sequelize.DECIMAL,            
+        },
         createdAt: {
             type: Sequelize.DATE,
             defaultValue: ()=>new Date()

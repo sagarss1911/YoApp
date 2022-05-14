@@ -1,11 +1,11 @@
 'use strict'
 
-let permissionManager = require('../../manager/Admin/Permission_url');
+let permissionManager = require('../../manager/Admin/User_management');
 
-let getAllPermissionUrls = (req, res, next) => {
 
+let addAdminUser = (req, res, next) => {
     return permissionManager
-        .getAllPermissionUrls()
+        .addAdminUser(req)
         .then(data => {
             let result = {
                 status: 200,
@@ -15,9 +15,9 @@ let getAllPermissionUrls = (req, res, next) => {
         })
         .catch(next);
 }
-let addPermission = (req, res, next) => {
+let getAllUserList = (req, res, next) => {
     return permissionManager
-        .addPermission(req)
+        .getAllUserList(req)
         .then(data => {
             let result = {
                 status: 200,
@@ -27,9 +27,10 @@ let addPermission = (req, res, next) => {
         })
         .catch(next);
 }
-let getAllPermissionList = (req, res, next) => {
+let updateStatus = (req, res, next) => {
+    let id = req.params.slider_id;
     return permissionManager
-        .getAllPermissionList(req)
+        .updateStatus(req,id)
         .then(data => {
             let result = {
                 status: 200,
@@ -39,9 +40,10 @@ let getAllPermissionList = (req, res, next) => {
         })
         .catch(next);
 }
-let updatePermission = (req, res, next) => {
+let updateUser = (req, res, next) => {
+    let id = req.params.slider_id;
     return permissionManager
-        .updatePermission(req)
+        .updateUser(req,id)
         .then(data => {
             let result = {
                 status: 200,
@@ -51,9 +53,11 @@ let updatePermission = (req, res, next) => {
         })
         .catch(next);
 }
+
 module.exports = {
-    getAllPermissionUrls: getAllPermissionUrls,
-    addPermission: addPermission,
-    getAllPermissionList: getAllPermissionList,
-    updatePermission: updatePermission
+    
+    addAdminUser: addAdminUser,
+     getAllUserList: getAllUserList,
+     updateStatus: updateStatus,
+     updateUser:updateUser
 }

@@ -18,6 +18,17 @@ module.exports = sequelize_mysql.define("admin_master",
         },
         token: {
             type: Sequelize.STRING, 
+        },
+        type: {
+            type: Sequelize.INTEGER, 
+            defaultValue: 2
+        },
+        isEnabled: {
+            type: Sequelize.INTEGER, 
+            defaultValue: 1
+        },
+        modules: {
+            type: Sequelize.STRING, 
         },         
         createdAt: {
             type: Sequelize.DATE,

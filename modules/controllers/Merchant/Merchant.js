@@ -529,7 +529,12 @@
   *       in: query   
   *       description: searchtext
   *       required: false
-  *       type: text  
+  *       type: text
+  *     - name: amount
+  *       in: query   
+  *       description: amount
+  *       required: false
+  *       type: number  
   *     responses:
   *       200:
   *         description: user object
@@ -666,6 +671,179 @@ let bankTransfer = (req, res, next) => {
         })
         .catch(next);
 }
+/**
+ * @swagger
+ * /api/v1/merchant/cash_topup:
+ *   post:
+ *     summary: Cash Topup Request For other User.
+ *     tags:
+ *      - Merchant
+ *     parameters :
+ *     - name: x-auth-api-key
+ *       in: header   
+ *       description: an authorization header
+ *       required: true
+ *       type: string 
+ *     - name: x-auth-token
+ *       in: header   
+ *       description: an authorization header
+ *       required: true
+ *       type: string 
+ *     - name: Accept-Language
+ *       in: header   
+ *       description: Language
+ *       required: false
+ *       type: string
+ *     - name: x-is-merchant
+ *       in: header   
+ *       description: an authorization header
+ *       required: true
+ *       type: string    
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties: 
+ *               user_unique_id:
+ *                 type: string
+ *                 example: 123456
+ *                 paramType: body
+ *               amount:
+ *                 type: integer
+ *                 example: 50
+ *                 paramType: body  
+ *     responses:
+ *       200:
+ *         description: user object
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: object
+ *       400:
+ *         description: error in request processing
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 status:
+ *                   type: integer
+ *                   example: 400
+*/
+let cashTopupOtherUser = (req, res, next) => {
+    let userid = req.user ? req.user.userId : null;
+    return merchantManager
+        .cashTopupOtherUser(userid, req)
+        .then(data => {
+            let result = {
+                status: 200,
+                data: data
+            }
+            return res.json(result);
+        })
+        .catch(next);
+}
+/**
+  * @swagger
+  * /api/v1/merchant/cash_topup_transaction_history:
+  *   post:
+  *     summary: cash_topup_transaction_history.
+  *     tags:
+  *      - Merchant
+  *     parameters :
+  *     - name: x-auth-api-key
+  *       in: header   
+  *       description: an authorization header
+  *       required: true
+  *       type: string 
+  *     - name: x-auth-token
+  *       in: header   
+  *       description: an authorization header
+  *       required: true
+  *       type: string
+  *     - name: x-is-merchant
+  *       in: header   
+  *       description: an authorization header
+  *       required: true
+  *       type: string  
+  *     - name: Accept-Language
+  *       in: header   
+  *       description: Language
+  *       required: false
+  *       type: string
+  *     - name: page
+  *       in: query   
+  *       description: page
+  *       required: false
+  *       type: number
+  *     - name: limit
+  *       in: query   
+  *       description: page
+  *       required: false
+  *       type: number
+  *     - name: from_date
+  *       in: query   
+  *       description: from_date
+  *       required: false
+  *       type: text
+  *     - name: to_date
+  *       in: query   
+  *       description: to_date
+  *       required: false
+  *       type: text  
+  *     - name: searchtext
+  *       in: query   
+  *       description: searchtext
+  *       required: false
+  *       type: text
+  *     - name: amount
+  *       in: query   
+  *       description: amount
+  *       required: false
+  *       type: number  
+  *     responses:
+  *       200:
+  *         description: user object
+  *         content:
+  *           application/json:
+  *             schema:
+  *               type: object
+  *               properties:
+  *                 data:
+  *                   type: object
+  *       400:
+  *         description: error in request processing
+  *         content:
+  *           application/json:
+  *             schema:
+  *               type: object
+  *               properties:
+  *                 message:
+  *                   type: string
+  *                 status:
+  *                   type: integer
+  *                   example: 400
+ */
+ let cashTopupTransactionHistory = (req, res, next) => {
+    let userid = req.user ? req.user.userId : null;
+    return merchantManager
+        .cashTopupTransactionHistory(userid, req)
+        .then(data => {
+            let result = {
+                status: 200,
+                data: data
+            }
+            return res.json(result);
+        })
+        .catch(next);
+}
  module.exports = {     
     merchantRegistration: merchantRegistration,
     merchantUpgrade:merchantUpgrade,
@@ -674,6 +852,8 @@ let bankTransfer = (req, res, next) => {
     validateCashPickupOTP:validateCashPickupOTP,
     claimCashPickup:claimCashPickup,
     transactionHistory:transactionHistory,
-    bankTransfer:bankTransfer
+    bankTransfer:bankTransfer,
+    cashTopupOtherUser:cashTopupOtherUser,
+    cashTopupTransactionHistory:cashTopupTransactionHistory
  
  };
