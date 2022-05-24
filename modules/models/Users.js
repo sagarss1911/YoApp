@@ -70,6 +70,13 @@ const UsersModal = sequelize_mysql.define("users",
         notification_token: {
             type: Sequelize.STRING,            
         },
+        isCashTopupEnabled: {
+            type: Sequelize.INTEGER,            
+            defaultValue: 0        
+        },
+        cash_topup_limit: {
+            type: Sequelize.DECIMAL,            
+        },
         merchant_due_payment: {
             type: Sequelize.DECIMAL,            
         },
