@@ -40,7 +40,7 @@ let getAllMerchant = async(body) => {
         }       
     }
     
-    var SearchSql = "select p.planname,u.id,u.merchant_name,u.merchant_address,u.merchant_phone,u.licence_proof,u.address_proof,u.utility_proof,u.upgraded_image1,u.upgraded_image2,u.upgraded_image3,u.upgraded_image4,u.membershipId,u.merchantCreatedAt,u.isMerchantVerified,u.isMerchantEnabled,u.isUpgradeRequestSubmitted,u.isMerchantUpgraded from users u left join plans p on p.id=u.membershipId where u.isMerchant=1 "+SearchKeywordsQuery+"  order by u.merchantCreatedAt desc LIMIT " + offset + "," + limit;
+    var SearchSql = "select u.isCashTopupEnabled,u.cash_topup_limit,p.planname,u.id,u.merchant_name,u.merchant_address,u.merchant_phone,u.licence_proof,u.address_proof,u.utility_proof,u.upgraded_image1,u.upgraded_image2,u.upgraded_image3,u.upgraded_image4,u.membershipId,u.merchantCreatedAt,u.isMerchantVerified,u.isMerchantEnabled,u.isUpgradeRequestSubmitted,u.isMerchantUpgraded from users u left join plans p on p.id=u.membershipId where u.isMerchant=1 "+SearchKeywordsQuery+"  order by u.merchantCreatedAt desc LIMIT " + offset + "," + limit;
    
     let allMerchant = await CustomQueryModel.query(SearchSql, {
         type: SequelizeObj.QueryTypes.SELECT,
@@ -89,8 +89,7 @@ let exportAllMerchant = async (body) => {
         } 
         
     }
-    var SearchSql = "select p.planname,u.id,u.merchant_name,u.merchant_address,u.merchant_phone,u.licence_proof,u.address_proof,u.utility_proof,u.upgraded_image1,u.upgraded_image2,u.upgraded_image3,u.upgraded_image4,u.membershipId,u.merchantCreatedAt,u.isMerchantVerified,u.isMerchantEnabled,u.isUpgradeRequestSubmitted,u.isMerchantUpgraded from users u left join plans p on p.id=u.membershipId where u.isMerchant=1 "+SearchKeywordsQuery+"  order by u.merchantCreatedAt desc ";    
-    console.log(SearchSql)
+    var SearchSql = "select u.isCashTopupEnabled,u.cash_topup_limit,p.planname,u.id,u.merchant_name,u.merchant_address,u.merchant_phone,u.licence_proof,u.address_proof,u.utility_proof,u.upgraded_image1,u.upgraded_image2,u.upgraded_image3,u.upgraded_image4,u.membershipId,u.merchantCreatedAt,u.isMerchantVerified,u.isMerchantEnabled,u.isUpgradeRequestSubmitted,u.isMerchantUpgraded from users u left join plans p on p.id=u.membershipId where u.isMerchant=1 "+SearchKeywordsQuery+"  order by u.merchantCreatedAt desc ";     
     return CustomQueryModel.query(SearchSql, {
         type: SequelizeObj.QueryTypes.SELECT,
         raw: true
@@ -111,6 +110,8 @@ let updateMerchantStatus = async (req) => {
         await UserModel.update({isMerchantEnabled:body.status}, { where: { id: req.params.slider_id }, raw: true });
     }else if(body.field == "isMerchantUpgraded"){
         await UserModel.update({isMerchantUpgraded:body.status}, { where: { id: req.params.slider_id }, raw: true });
+    }else if(body.field == "isCashTopupEnabled"){
+        await UserModel.update({isCashTopupEnabled:body.status}, { where: { id: req.params.slider_id }, raw: true });
     }
     
     return true
@@ -125,7 +126,7 @@ let merchantUpdate = async (req) => {
             throw new BadRequestError(x + ' is required');
         }
     }); 
-    let optionalFiled = ['merchant_name', 'merchant_phone', 'merchant_address','membershipId'];
+    let optionalFiled = ['merchant_name', 'merchant_phone', 'merchant_address','membershipId','cash_topup_limit'];
     optionalFiled.forEach(x => {
         updatedData[x] = body[x]
     });
@@ -148,7 +149,7 @@ let merchantUpdate = async (req) => {
     await UserModel.update(updatedData, { where: { id: req.params.merchant_id }, raw: true });
     let planData = await PlanModel.findOne({ where: { id: body.membershipId }, raw: true });
 
- let userData =  await UserModel.findOne({ where: { id: req.params.merchant_id } ,  raw: true,attributes: ['id', 'merchant_name', 'merchant_address', 'merchant_phone', 'licence_proof', 'address_proof', 'utility_proof', 'merchantCreatedAt', 'isMerchantVerified', 'isMerchantEnabled','upgraded_image1','upgraded_image2','upgraded_image3','upgraded_image4','membershipId','isUpgradeRequestSubmitted','isMerchantUpgraded'] });
+ let userData =  await UserModel.findOne({ where: { id: req.params.merchant_id } ,  raw: true,attributes: ['id', 'merchant_name', 'merchant_address', 'merchant_phone', 'licence_proof', 'address_proof', 'utility_proof', 'merchantCreatedAt', 'isMerchantVerified', 'isMerchantEnabled','upgraded_image1','upgraded_image2','upgraded_image3','upgraded_image4','membershipId','isUpgradeRequestSubmitted','isMerchantUpgraded','cash_topup_limit','isCashTopupEnabled'] });
  userData.planname = planData.planname 
  return userData
 }

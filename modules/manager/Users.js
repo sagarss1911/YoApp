@@ -12,7 +12,7 @@ let helper = require("../helpers/helpers"),
     UserModel = require("../models/Users"),
     TermsConditionModel = require("../models/TermsCondition"),
     UserAuthModel = require("../models/Users_auth"),
-    WalletModel  =  require("../models/Wallet"),
+    WalletModel = require("../models/Wallet"),
     TransactionalOTPModel = require("../models/Transactional_otp"),
     BalanceLogModel = require("../models/Balance_log"),
     CommonHelper = require('../helpers/helpers'),
@@ -60,12 +60,12 @@ let sendOtpForRegistration = async (req) => {
     }
     try {
         let referralData;
-            if (body.reference_code) {
-                referralData = await WalletClaimsModel.findOne({ where: { reference_id: body.reference_code,isClaimed:0 },raw: true});
-                if(!referralData){
-                    throw new BadRequestError(req.t("reference_code_not_exist"));
-                }
+        if (body.reference_code) {
+            referralData = await WalletClaimsModel.findOne({ where: { reference_id: body.reference_code, isClaimed: 0 }, raw: true });
+            if (!referralData) {
+                throw new BadRequestError(req.t("reference_code_not_exist"));
             }
+        }
         let otp = await generateOTP();
         let authRecord = {
             otp: otp
@@ -109,130 +109,130 @@ let signup = async (req) => {
             throw new BadRequestError(req.t("email_exist"));
         }
     }
-   
-        user = await UserModel
-            .findOne({ where: { phone: { $like: `%${body.phone.trim()}%` } }, attributes: ['id', 'phone'] });
 
-        if (user) {
-            throw new BadRequestError(req.t("phone_exist"));
+    user = await UserModel
+        .findOne({ where: { phone: { $like: `%${body.phone.trim()}%` } }, attributes: ['id', 'phone'] });
+
+    if (user) {
+        throw new BadRequestError(req.t("phone_exist"));
+    }
+
+
+    let createData = {
+        name: body.name.trim(),
+        email: body.email.trim(),
+        phone: body.phone.trim(),
+        region: body.region.trim(),
+        username: body.username.trim(),
+        password: md5(body.password.trim()),
+        gender: body.gender,
+        latitude: body.latitude,
+        longitude: body.longitude,
+        notification_token: body.notification_token,
+        isVerified: 1,
+        isTermsConditionAccepted: body.termscondition,
+        user_unique_id: Date.now().toString()
+    }
+    let referralData;
+    if (body.reference_code) {
+        referralData = await WalletClaimsModel.findOne({ where: { reference_id: body.reference_code, isClaimed: 0 }, raw: true });
+        if (!referralData) {
+            throw new BadRequestError(req.t("reference_code_not_exist"));
         }
+    }
+    try {
 
+        let _customer;
+        let custId = await StripeFunc.createCustomer({ phone: body.phone.trim(), name: body.name.trim() });
+        createData["customer_id"] = custId;
+        let customer = await UserModel.create(createData);
 
-        let createData = {
-            name: body.name.trim(),
-            email: body.email.trim(),
-            phone: body.phone.trim(),
-            region: body.region.trim(),
-            username: body.username.trim(),
-            password: md5(body.password.trim()),
-            gender: body.gender,
-            latitude: body.latitude,
-            longitude: body.longitude,
-            notification_token: body.notification_token,
-            isVerified: 1,
-            isTermsConditionAccepted: body.termscondition,
-            user_unique_id: Date.now().toString()
+        _customer = customer.toJSON();
+        let authToken = await generateAuthToken(_customer.phone);
+        let authRecord = {
+            userid: _customer.id,
+            token: authToken,
         }
-        let referralData;
+        await UserAuthModel.destroy({ where: { userid: _customer.id } });
+        await UserAuthModel.create(authRecord);
+        delete authRecord.userid;
+
+        //create comechat user start
+        const data = {
+            uid: _customer.user_unique_id,
+            name: _customer.name,
+        };
+        const headers = {
+            'apiKey': process.env.COMECHAT_API_KEY,
+            'Content-Type': 'application/json',
+        };
+        let url = "https://" + process.env.COMECHAT_APP_ID + ".api-" + process.env.COMECHAT_REGION + ".cometchat.io/v3/users";
+        let resp = await axios.post(url, data, { headers: headers })
+
+        if (resp.status != 200) {
+            await UserModel.destroy({ where: { id: _customer.id } });
+            throw new BadRequestError(req.t("comechat_user_create_error"));
+        }
+        //create comechat user ends
+        //add wallet info to user
+
         if (body.reference_code) {
-            referralData = await WalletClaimsModel.findOne({ where: { reference_id: body.reference_code,isClaimed:0 },raw: true});
-            if(!referralData){
-                throw new BadRequestError(req.t("reference_code_not_exist"));
+            let senderWalletInfo = await WalletModel.findOne({ where: { id: referralData.senderWalletId }, raw: true });
+            let senderInfo = await UserModel.findOne({ where: { id: senderWalletInfo.userId }, raw: true });
+            await WalletModel.update({ destination_userId: _customer.id }, { where: { id: senderWalletInfo.id } });
+            let receiverWalletData = {
+                userId: _customer.id,
+                order_date: new Date(),
+                amount: Number(referralData.amount) * 100,
+                order_status: 'success',
+                ordertype: '2',
+                trans_id: await CommonHelper.getUniqueTransactionId(),
+                source_userId: senderWalletInfo.userId,
+                source_wallet_id: senderWalletInfo.id
             }
+            let receiverWalletInfo = await WalletModel.create(receiverWalletData);
+
+            //update receiver wallet
+            let receiverBalanceLogData = {
+                userId: _customer.id,
+                amount: Number(referralData.amount),
+                oldbalance: 0,
+                newbalance: Number(referralData.amount),
+                transaction_type: '1',
+                wallet_id: receiverWalletInfo.id
+            }
+            await BalanceLogModel.create(receiverBalanceLogData);
+            await WalletClaimsModel.update({ isClaimed: 1, receiverWalletId: receiverWalletInfo.id }, { where: { id: referralData.id } });
+            await UserModel.update({ balance: Number(referralData.amount) }, { where: { id: _customer.id } });
+            let receiverCountry;
+            if (_customer.region) {
+                receiverCountry = await CountryModel.findOne({ where: { iso_code_2: _customer.region }, raw: true })
+                if (receiverCountry) {
+                    _customer.phone = "+" + receiverCountry.isd_code + _customer.phone;
+                }
+            }
+            let notificationDataReceiver = {
+                title: "Congrats! You have received money from " + senderInfo.phone,
+                subtitle: referralData.amount + " Successfully Transfered from " + senderInfo.phone + " to Your Wallet",
+                redirectscreen: "payment_received_wallet",
+                wallet_id: receiverWalletInfo.id,
+                transaction_id: receiverWalletInfo.trans_id
+            }
+            await NotificationHelper.sendFriendRequestNotificationToUser(_customer.id, notificationDataReceiver);
+            let country = await CountryModel.findOne({ where: { iso_code_2: senderInfo.region }, raw: true })
+            SEND_SMS.paymentReceivedSMS(parseFloat(body.amount), "+" + country.isd_code + senderInfo.phone, _customer.phone);
         }
-        try {
-            
-            let _customer;
-            let custId = await StripeFunc.createCustomer({ phone: body.phone.trim(), name: body.name.trim() });
-            createData["customer_id"] = custId;
-            let customer = await UserModel.create(createData);
+        return authRecord;
+    } catch (error) {
+        console.log(error)
+        if (error && error.errors && error.errors[0] && error.errors[0].message && error.errors[0].message.indexOf("unique") != -1) {
+            let uniqueText = error.errors[0].path == "email" ? req.t("alternate_login_option_error_email") : req.t("alternate_login_error_option_mobile")
+            throw new BadRequestError(uniqueText);
+        } else {
+            throw new BadRequestError(error);
+        };
+    }
 
-            _customer = customer.toJSON();
-            let authToken = await generateAuthToken(_customer.phone);
-            let authRecord = {
-                userid: _customer.id,
-                token: authToken,
-            }
-            await UserAuthModel.destroy({ where: { userid: _customer.id } });
-            await UserAuthModel.create(authRecord);
-            delete authRecord.userid;
-
-            //create comechat user start
-            const data = {
-                uid: _customer.user_unique_id,
-                name: _customer.name,
-            };
-            const headers = {
-                'apiKey': process.env.COMECHAT_API_KEY,
-                'Content-Type': 'application/json',
-            };
-            let url = "https://" + process.env.COMECHAT_APP_ID + ".api-" + process.env.COMECHAT_REGION + ".cometchat.io/v3/users";
-            let resp = await axios.post(url, data, { headers: headers })
-
-            if (resp.status != 200) {
-                await UserModel.destroy({ where: { id: _customer.id } });
-                throw new BadRequestError(req.t("comechat_user_create_error"));
-            }
-            //create comechat user ends
-            //add wallet info to user
-            
-            if (body.reference_code) {                
-                let senderWalletInfo  = await WalletModel.findOne({ where: { id: referralData.senderWalletId }, raw: true });             
-                let senderInfo = await UserModel.findOne({ where: { id: senderWalletInfo.userId }, raw: true });           
-                await WalletModel.update({ destination_userId:_customer.id  }, { where: { id: senderWalletInfo.id } });
-                let receiverWalletData = {
-                    userId: _customer.id,
-                    order_date: new Date(),
-                    amount: Number(referralData.amount) * 100,
-                    order_status: 'success',
-                    ordertype: '2',
-                    trans_id: await CommonHelper.getUniqueTransactionId(),
-                    source_userId: senderWalletInfo.userId,
-                    source_wallet_id: senderWalletInfo.id
-                }
-                let receiverWalletInfo = await WalletModel.create(receiverWalletData);
-        
-                //update receiver wallet
-                let receiverBalanceLogData = {
-                    userId: _customer.id,
-                    amount: Number(referralData.amount),
-                    oldbalance: 0,
-                    newbalance:  Number(referralData.amount),
-                    transaction_type: '1',
-                    wallet_id: receiverWalletInfo.id
-                }
-                await BalanceLogModel.create(receiverBalanceLogData);
-                await WalletClaimsModel.update({ isClaimed: 1,receiverWalletId:receiverWalletInfo.id}, { where: { id: referralData.id } });
-                await UserModel.update({ balance: Number(referralData.amount)  }, { where: { id: _customer.id } });
-                let receiverCountry;
-                if (_customer.region) {
-                    receiverCountry = await CountryModel.findOne({ where: { iso_code_2: _customer.region }, raw: true })
-                    if (receiverCountry) {
-                        _customer.phone = "+" + receiverCountry.isd_code + _customer.phone;
-                    }
-                }
-                let notificationDataReceiver = {
-                    title: "Congrats! You have received money from " + senderInfo.phone,
-                    subtitle: referralData.amount + " Successfully Transfered from " + senderInfo.phone + " to Your Wallet",
-                    redirectscreen: "payment_received_wallet",
-                    wallet_id: receiverWalletInfo.id,
-                    transaction_id: receiverWalletInfo.trans_id
-                }
-                await NotificationHelper.sendFriendRequestNotificationToUser(_customer.id, notificationDataReceiver);
-                let country = await CountryModel.findOne({ where: { iso_code_2: senderInfo.region }, raw: true })
-                SEND_SMS.paymentReceivedSMS(parseFloat(body.amount), "+" + country.isd_code + senderInfo.phone, _customer.phone);
-            }
-            return authRecord;
-        } catch (error) {
-            console.log(error)
-            if (error && error.errors && error.errors[0] && error.errors[0].message && error.errors[0].message.indexOf("unique") != -1) {
-                let uniqueText = error.errors[0].path == "email" ? req.t("alternate_login_option_error_email") : req.t("alternate_login_error_option_mobile")
-                throw new BadRequestError(uniqueText);
-            } else {
-                throw new BadRequestError(error);
-            };
-        }
-  
 
 }
 let loginWithSocial = async (body, req) => {
@@ -473,7 +473,7 @@ let countryList = async () => {
 
 }
 let faqList = async () => {
-    return FAQModel.findAll({ order: [['id', 'DESC']], raw: true })   
+    return FAQModel.findAll({ order: [['id', 'DESC']], raw: true })
 
 }
 let generateAuthToken = async (phone) => {
@@ -488,16 +488,17 @@ let getTermsCondition = async (body) => {
     return TermsConditionModel.findAll({ order: [['displayorder', 'ASC']], raw: true })
 }
 let getProfile = async (userid, req) => {
-let userData = await UserModel.findOne({ where: { id: userid }, attributes: ['user_unique_id', 'name', 'profileimage', 'username', 'email','merchantbalance', 'phone', 'region',  'latitude', 'longitude', 'gender', 'isactive', 'notification_token', 'isSound', 'isVibration', 'isNotification', 'isTermsConditionAccepted', 'language', 'customer_id', 'balance','membershipId','isMerchant','isMerchantVerified','isMerchantEnabled','merchant_name','merchant_phone','merchant_address','licence_proof','address_proof','utility_proof','upgraded_image1','upgraded_image2','upgraded_image3','upgraded_image4','membershipId','isUpgradeRequestSubmitted','isMerchantUpgraded'], raw: true });
-userData.planDetails = await PlansModel.findOne({ where: { id: userData.membershipId }, raw: true})
-return userData;
+    let userData = await UserModel.findOne({ where: { id: userid }, attributes: ['user_unique_id', 'name', 'profileimage', 'username', 'email', 'merchantbalance', 'phone', 'region', 'latitude', 'longitude', 'gender', 'isactive', 'notification_token', 'isSound', 'isVibration', 'isNotification', 'isTermsConditionAccepted', 'language', 'customer_id', 'balance', 'membershipId', 'isMerchant', 'isMerchantVerified', 'isMerchantEnabled', 'merchant_name', 'merchant_phone', 'merchant_address', 'licence_proof', 'address_proof', 'utility_proof', 'upgraded_image1', 'upgraded_image2', 'upgraded_image3', 'upgraded_image4', 'membershipId', 'isUpgradeRequestSubmitted', 'isMerchantUpgraded', 'isCashTopupEnabled', 'cash_topup_limit'], raw: true });
+    userData.planDetails = await PlansModel.findOne({ where: { id: userData.membershipId }, raw: true })
+    userData.cash_topup_limit = userData.cash_topup_limit ? userData.cash_topup_limit : userData.planDetails.cash_topup_limit
+    return userData;
 }
 let getProfileById = async (uuid) => {
 
-    let userData = await UserModel
-        .findOne({ where: { user_unique_id: uuid }, attributes: ['user_unique_id', 'name', 'profileimage', 'username', 'email', 'phone', 'region', 'latitude','merchantbalance', 'longitude', 'gender', 'isactive', 'notification_token', 'isSound', 'isVibration', 'isNotification', 'isTermsConditionAccepted', 'language', 'customer_id', 'balance','isMerchant','isMerchantVerified','isMerchantEnabled','merchant_name','merchant_phone','merchant_address','licence_proof','address_proof','utility_proof','upgraded_image1','upgraded_image2','upgraded_image3','upgraded_image4','membershipId','isUpgradeRequestSubmitted','isMerchantUpgraded'], raw: true });
-        userData.planDetails = await PlansModel.findOne({ where: { id: userData.membershipId }, raw: true})
-        return userData; 
+    let userData = await UserModel.findOne({ where: { user_unique_id: uuid }, attributes: ['user_unique_id', 'name', 'profileimage', 'username', 'email', 'phone', 'region', 'latitude', 'merchantbalance', 'longitude', 'gender', 'isactive', 'notification_token', 'isSound', 'isVibration', 'isNotification', 'isTermsConditionAccepted', 'language', 'customer_id', 'balance', 'isMerchant', 'isMerchantVerified', 'isMerchantEnabled', 'merchant_name', 'merchant_phone', 'merchant_address', 'licence_proof', 'address_proof', 'utility_proof', 'upgraded_image1', 'upgraded_image2', 'upgraded_image3', 'upgraded_image4', 'membershipId', 'isUpgradeRequestSubmitted', 'isMerchantUpgraded', 'isCashTopupEnabled', 'cash_topup_limit'], raw: true });
+    userData.planDetails = await PlansModel.findOne({ where: { id: userData.membershipId }, raw: true })
+    userData.cash_topup_limit = userData.cash_topup_limit ? userData.cash_topup_limit : userData.planDetails.cash_topup_limit
+    return userData;
 }
 
 let updateProfile = async (userid, req) => {
@@ -666,39 +667,39 @@ let deleteUser = async (uuid) => {
     };
     let resp = await axios(options);
 }
-let verifyTransactionalOTP = async (userid, body, req) => {    
-    let matchedResult = await TransactionalOTPModel.findOne({ where: { otp: body.otp, hash: body.hash,userId:userid,type:body.type }, order: [['id', 'DESC']],raw: true });    
+let verifyTransactionalOTP = async (userid, body, req) => {
+    let matchedResult = await TransactionalOTPModel.findOne({ where: { otp: body.otp, hash: body.hash, userId: userid, type: body.type }, order: [['id', 'DESC']], raw: true });
     if (!matchedResult) {
         throw new BadRequestError(req.t("otp_invalid"));
     }
     await TransactionalOTPModel.destroy({ where: { id: matchedResult.id } });
     return true;
 }
-let sendTestSMS = async (body) => {    
+let sendTestSMS = async (body) => {
     await SEND_SMS.DummySMS(body.phone);
     return true;
 }
 
 let generateTransactionalOTP = async (userid, body, req) => {
-    let user = await UserModel.findOne({ where: { id: userid }, attributes: ['id', 'region', 'phone'], raw: true })    
-    let otp = await generateOTP();    
+    let user = await UserModel.findOne({ where: { id: userid }, attributes: ['id', 'region', 'phone'], raw: true })
+    let otp = await generateOTP();
     let country = await CountryModel.findOne({ where: { iso_code_2: user.region }, raw: true })
-    let data = { otp: otp, hash: body.hash,userId:userid,type:body.type}
-    await TransactionalOTPModel.create(data);    
-    if(body.type == 1){
+    let data = { otp: otp, hash: body.hash, userId: userid, type: body.type }
+    await TransactionalOTPModel.create(data);
+    if (body.type == 1) {
         await SEND_SMS.TransactionalOTPForBankTransfer(otp, "+" + country.isd_code + user.phone);
-    }else if(body.type == 2){
+    } else if (body.type == 2) {
         await SEND_SMS.TransactionalOTPForCashPickup(otp, "+" + country.isd_code + user.phone);
-    }else if(body.type == 3){
+    } else if (body.type == 3) {
         await SEND_SMS.TransactionalOTPForWalletTransfer(otp, "+" + country.isd_code + user.phone);
-    }else if (body.type == 4){
+    } else if (body.type == 4) {
         await SEND_SMS.TransactionalOTPForRecharge(otp, "+" + country.isd_code + user.phone);
     }
     return true;
 }
 module.exports = {
     countryList: countryList,
-    faqList:faqList,
+    faqList: faqList,
     signup: signup,
     sendOtpForRegistration: sendOtpForRegistration,
     resendOTP: resendOTP,
@@ -720,7 +721,7 @@ module.exports = {
     updatePhone: updatePhone,
     getTermsCondition: getTermsCondition,
     deleteUser: deleteUser,
-    generateTransactionalOTP:generateTransactionalOTP,
-    verifyTransactionalOTP:verifyTransactionalOTP,
-    sendTestSMS:sendTestSMS
+    generateTransactionalOTP: generateTransactionalOTP,
+    verifyTransactionalOTP: verifyTransactionalOTP,
+    sendTestSMS: sendTestSMS
 };

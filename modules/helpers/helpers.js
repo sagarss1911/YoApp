@@ -101,9 +101,9 @@ let capitalize = (value) => {
 let merchantCashTopupLimit = async (merchantid) => {
     let startOfMonth = new Date(moment().startOf('month').format('YYYY-MM-DD hh:mm:ss'));
     let endOfMonth   = new Date(moment().endOf('month').format('YYYY-MM-DD hh:mm:ss'));    
-    let merchantData  =  await UserModel.findOne({ where: { id: merchantid }, raw: true,attributes: ['membershipId','merchant_due_payment'] });
+    let merchantData  =  await UserModel.findOne({ where: { id: merchantid }, raw: true,attributes: ['membershipId','merchant_due_payment','isCashTopupEnabled','cash_topup_limit'] });
     let planData =  await PlanModel.findOne({ where: { id: merchantData.membershipId }, raw: true});
-    
+    let totalLimit =  merchantData.cash_topup_limit ? merchantData.cash_topup_limit : planData.cash_topup_limit;
     let totalAmount = await MerchantCashTopupModel.findAll({
         where: { createdAt: { $gte: startOfMonth, $lte: endOfMonth },merchantId:merchantid },
         attributes: [
@@ -113,7 +113,11 @@ let merchantCashTopupLimit = async (merchantid) => {
         group: ['merchantId'],
         raw: true
       });
-      return {totalLimit: planData.cash_topup_limit, usedLimit: totalAmount[0].total_amount, pendingLimit: planData.cash_topup_limit -totalAmount[0].total_amount,merchantDueBalance:merchantData.merchant_due_payment }
+      return {isCashTopupEnabled:merchantData.isCashTopupEnabled,
+        totalLimit: totalLimit, 
+        usedLimit: totalAmount[0].total_amount,
+         pendingLimit: totalLimit -totalAmount[0].total_amount,
+         merchantDueBalance:merchantData.merchant_due_payment }
       
    
 }
