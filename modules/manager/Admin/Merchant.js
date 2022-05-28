@@ -194,6 +194,7 @@ let getTopUpMerchantHistory = async(req) => {
     }
     let MerchantTopUpPaid = await MerchantCashTopupPaidModel.findAll({ where: { merchant_id: req.params.merchant_id }, raw: true, attributes: [ 'amount_due', 'amount_paid', 'total_pending'], limit, offset, order: [['id', 'DESC']] });
     let MerchantTopUpPaidCount = await MerchantCashTopupPaidModel.count({        
+        where: { merchant_id: req.params.merchant_id },
         order: [['id', 'DESC']],
         raw: true
     });
