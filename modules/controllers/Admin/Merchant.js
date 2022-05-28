@@ -52,11 +52,38 @@ let merchantUpdate = (req, res, next) => {
         })
         .catch(next);
 }
+let merchantDuePaymentUpdate = (req, res, next) => {
+    return merchantManager
+        .merchantDuePaymentUpdate(req)
+        .then(data => {
+            let result = {
+                status: 200,
+                data: data
+            }
+            return res.json(result);
+        })
+        .catch(next);
+}
+
+let getTopUpMerchantHistory = (req, res, next) => {
+    return merchantManager
+        .getTopUpMerchantHistory(req)
+        .then(data => {
+            let result = {
+                status: 200,
+                data: data
+            }
+            return res.json(result)
+        })
+        .catch(next);
+}
+
 
 module.exports = {
     getAllMerchant: getAllMerchant,
     exportAllMerchant:exportAllMerchant,
     updateMerchantStatus:updateMerchantStatus,
-    merchantUpdate:merchantUpdate
-
+    merchantUpdate:merchantUpdate,
+    merchantDuePaymentUpdate:merchantDuePaymentUpdate,
+    getTopUpMerchantHistory:getTopUpMerchantHistory
 }

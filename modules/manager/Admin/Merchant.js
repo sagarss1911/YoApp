@@ -4,6 +4,7 @@
 
 let BadRequestError = require('../../errors/badRequestError'),
     UserModel = require('../../models/Users'),
+    MerchantCashTopupPaidModel = require('../../models/MerchantCashTopupPaid'),
     PlanModel = require('../../models/Admin/Plans'),
     CustomQueryModel = require("../../models/Custom_query"),
     s3Helper = require('../../helpers/awsS3Helper'),
@@ -40,13 +41,12 @@ let getAllMerchant = async(body) => {
         }       
     }
     
-    var SearchSql = "select u.isCashTopupEnabled,u.cash_topup_limit,p.planname,u.id,u.merchant_name,u.merchant_address,u.merchant_phone,u.licence_proof,u.address_proof,u.utility_proof,u.upgraded_image1,u.upgraded_image2,u.upgraded_image3,u.upgraded_image4,u.membershipId,u.merchantCreatedAt,u.isMerchantVerified,u.isMerchantEnabled,u.isUpgradeRequestSubmitted,u.isMerchantUpgraded from users u left join plans p on p.id=u.membershipId where u.isMerchant=1 "+SearchKeywordsQuery+"  order by u.merchantCreatedAt desc LIMIT " + offset + "," + limit;
+    var SearchSql = "select u.isCashTopupEnabled,u.cash_topup_limit,u.merchant_due_payment,p.planname,p.cash_topup_limit as planTopUpLimit,u.id,u.merchant_name,u.merchant_address,u.merchant_phone,u.licence_proof,u.address_proof,u.utility_proof,u.upgraded_image1,u.upgraded_image2,u.upgraded_image3,u.upgraded_image4,u.membershipId,u.merchantCreatedAt,u.isMerchantVerified,u.isMerchantEnabled,u.isUpgradeRequestSubmitted,u.isMerchantUpgraded from users u left join plans p on p.id=u.membershipId where u.isMerchant=1 "+SearchKeywordsQuery+"  order by u.merchantCreatedAt desc LIMIT " + offset + "," + limit;
    
     let allMerchant = await CustomQueryModel.query(SearchSql, {
         type: SequelizeObj.QueryTypes.SELECT,
         raw: true
-    });
- 
+    }); 
     
     let allRequestCountQuery  = "select id,merchant_name,merchant_address,merchant_phone,licence_proof,address_proof,utility_proof,merchantCreatedAt,isMerchantEnabled from users where isMerchant=1"+SearchKeywordsQuery+"  order by merchantCreatedAt desc";
     let allRequestCount = await CustomQueryModel.query(allRequestCountQuery, {
@@ -154,10 +154,61 @@ let merchantUpdate = async (req) => {
  return userData
 }
 
+let merchantDuePaymentUpdate = async (req) => {
+    let body = req.body.body ? JSON.parse(req.body.body) : req.body;  
+    if(!body['amount_paid']){
+        throw new BadRequestError('amount_paid is required');
+    }
+    if(isNaN(body.amount_paid)) {
+        throw new BadRequestError('Enter amount in proper format');
+    }
+    let merchant = await UserModel.findOne({ where: { id: req.params.merchant_id }, raw: true });
+    if(!merchant){
+        throw new BadRequestError('Invalid merchant');
+    }
+    if(body.amount_paid > merchant.merchant_due_payment) {
+        throw new BadRequestError('Payable amount should be less then due amount');
+    }
+    let addLog = {
+        merchant_id : req.params.merchant_id, 
+        admin_id : req.admin.adminid,
+        amount_due : Number(merchant.merchant_due_payment),
+        amount_paid : Number(body.amount_paid),
+        total_pending : Number(merchant.merchant_due_payment - body.amount_paid)
+    };
+    let duePaidLog = await MerchantCashTopupPaidModel.create(addLog);
+    if(duePaidLog) {
+        await UserModel.update({merchant_due_payment : duePaidLog.total_pending},{where : {id : duePaidLog.merchant_id}});
+    }
+    return {amount_due : duePaidLog.amount_due , amount_paid: duePaidLog.amount_paid, total_pending: duePaidLog.total_pending};
+}
+
+
+let getTopUpMerchantHistory = async(req) => {
+    let body = req.body;
+    let limit = (body.limit) ? parseInt(body.limit) : 10;
+    let page = body.page || 1;
+    let offset = (page - 1) * limit;
+    if(!req.params.merchant_id){
+        throw new BadRequestError('merchant_id is required');
+    }
+    let MerchantTopUpPaid = await MerchantCashTopupPaidModel.findAll({ where: { merchant_id: req.params.merchant_id }, raw: true, attributes: [ 'amount_due', 'amount_paid', 'total_pending'], limit, offset, order: [['id', 'DESC']] });
+    let MerchantTopUpPaidCount = await MerchantCashTopupPaidModel.count({        
+        order: [['id', 'DESC']],
+        raw: true
+    });
+
+    let _result = { total_count: 0 };
+    _result.slides = MerchantTopUpPaid;
+    _result.total_count = MerchantTopUpPaidCount;
+    return _result;
+}
+
 module.exports = {
     getAllMerchant: getAllMerchant,
     exportAllMerchant:exportAllMerchant,
     updateMerchantStatus:updateMerchantStatus,
-    merchantUpdate:merchantUpdate
-
+    merchantUpdate:merchantUpdate,
+    merchantDuePaymentUpdate:merchantDuePaymentUpdate,
+    getTopUpMerchantHistory:getTopUpMerchantHistory
 }
