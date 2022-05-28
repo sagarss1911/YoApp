@@ -3,43 +3,43 @@ const authToken = process.env.TWILIO_AUTH_TOKEN;
 const client = require('twilio')(accountSid, authToken);
 let axios = require("axios")
 let commonSMS = async (message, phone) => {
-  try {
+  //twillio first and if it fails send sms from alcophony
+//   try {
+//     let sentmessage = await client.messages
+//       .create({
+//         body: message,
+//         messagingServiceSid: process.env.MESSAGE_SERVICE_SID,
+//         to: phone
+//       });    
+//     return sentmessage.sid
+
+//   }
+//   catch (e) {
+//     console.log(e)
+//     let Url = "https://alchemytelco.com:9443/api?action=sendmessage&originator=alchemy&username=" + process.env.ALCOPHONY_INTERNAL_SMS_USERNAME + "&password=" + process.env.ALCOPHONY_INTERNAL_SMS_PASSWORD + "&recipient=" + phone + "&messagetype=SMS:TEXT&messagedata=" + message
+//     const headers = {
+//       'Content-Type': 'application/json',
+//     };
+//     await axios.get(Url, { headers: headers })
+// }
+  //alcophony first and if it fails send sms from twillio
+  let Url = "https://alchemytelco.com:9443/api?action=sendmessage&originator=alchemy&username=" + process.env.ALCOPHONY_INTERNAL_SMS_USERNAME + "&password=" + process.env.ALCOPHONY_INTERNAL_SMS_PASSWORD + "&recipient=" + phone + "&messagetype=SMS:TEXT&messagedata=" + message
+  const headers = {
+    'Content-Type': 'application/json',
+  };
+  let sentSMSData = await axios.get(Url, { headers: headers })
+  if (sentSMSData.data.response.data.acceptreport.statuscode > 0) {
     let sentmessage = await client.messages
       .create({
         body: message,
         messagingServiceSid: process.env.MESSAGE_SERVICE_SID,
         to: phone
-      });    
+      });
     return sentmessage.sid
 
+  } else {
+    return sentSMSData.data.response.data.acceptreport.messageid    
   }
-  catch (e) {
-    console.log(e)
-    let Url = "https://alchemytelco.com:9443/api?action=sendmessage&originator=alchemy&username=" + process.env.ALCOPHONY_INTERNAL_SMS_USERNAME + "&password=" + process.env.ALCOPHONY_INTERNAL_SMS_PASSWORD + "&recipient=" + phone + "&messagetype=SMS:TEXT&messagedata=" + message
-    const headers = {
-      'Content-Type': 'application/json',
-    };
-    await axios.get(Url, { headers: headers })
-
-
-  }
-  // let Url = "https://alchemytelco.com:9443/api?action=sendmessage&originator=alchemy&username=" + process.env.ALCOPHONY_INTERNAL_SMS_USERNAME + "&password=" + process.env.ALCOPHONY_INTERNAL_SMS_PASSWORD + "&recipient=" + phone + "&messagetype=SMS:TEXT&messagedata=" + message
-  // const headers = {
-  //   'Content-Type': 'application/json',
-  // };
-  // let sentSMSData = await axios.get(Url, { headers: headers })
-  // if (sentSMSData.data.response.data.acceptreport.statuscode > 0) {
-  //   let sentmessage = await client.messages
-  //     .create({
-  //       body: message,
-  //       messagingServiceSid: process.env.MESSAGE_SERVICE_SID,
-  //       to: phone
-  //     });
-  //   return sentmessage.sid
-
-  // } else {
-  //   return sentSMSData.data.response.data.acceptreport.messageid    
-  // }
 
 }
 let sms = async (message, phone) => {
