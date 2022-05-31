@@ -489,15 +489,19 @@ let getTermsCondition = async (body) => {
 }
 let getProfile = async (userid, req) => {
     let userData = await UserModel.findOne({ where: { id: userid }, attributes: ['user_unique_id', 'name', 'profileimage', 'username', 'email', 'merchantbalance', 'phone', 'region', 'latitude', 'longitude', 'gender', 'isactive', 'notification_token', 'isSound', 'isVibration', 'isNotification', 'isTermsConditionAccepted', 'language', 'customer_id', 'balance', 'membershipId', 'isMerchant', 'isMerchantVerified', 'isMerchantEnabled', 'merchant_name', 'merchant_phone', 'merchant_address', 'licence_proof', 'address_proof', 'utility_proof', 'upgraded_image1', 'upgraded_image2', 'upgraded_image3', 'upgraded_image4', 'membershipId', 'isUpgradeRequestSubmitted', 'isMerchantUpgraded', 'isCashTopupEnabled', 'cash_topup_limit'], raw: true });
-    userData.planDetails = await PlansModel.findOne({ where: { id: userData.membershipId }, raw: true })
-    userData.cash_topup_limit = userData.cash_topup_limit ? userData.cash_topup_limit : userData.planDetails.cash_topup_limit
+    if (userData.membershipId) {
+        userData.planDetails = await PlansModel.findOne({ where: { id: userData.membershipId }, raw: true })
+        userData.cash_topup_limit = userData.cash_topup_limit ? userData.cash_topup_limit : userData.planDetails.cash_topup_limit
+    }
     return userData;
 }
 let getProfileById = async (uuid) => {
 
     let userData = await UserModel.findOne({ where: { user_unique_id: uuid }, attributes: ['user_unique_id', 'name', 'profileimage', 'username', 'email', 'phone', 'region', 'latitude', 'merchantbalance', 'longitude', 'gender', 'isactive', 'notification_token', 'isSound', 'isVibration', 'isNotification', 'isTermsConditionAccepted', 'language', 'customer_id', 'balance', 'isMerchant', 'isMerchantVerified', 'isMerchantEnabled', 'merchant_name', 'merchant_phone', 'merchant_address', 'licence_proof', 'address_proof', 'utility_proof', 'upgraded_image1', 'upgraded_image2', 'upgraded_image3', 'upgraded_image4', 'membershipId', 'isUpgradeRequestSubmitted', 'isMerchantUpgraded', 'isCashTopupEnabled', 'cash_topup_limit'], raw: true });
-    userData.planDetails = await PlansModel.findOne({ where: { id: userData.membershipId }, raw: true })
-    userData.cash_topup_limit = userData.cash_topup_limit ? userData.cash_topup_limit : userData.planDetails.cash_topup_limit
+    if (userData.membershipId) {
+        userData.planDetails = await PlansModel.findOne({ where: { id: userData.membershipId }, raw: true })
+        userData.cash_topup_limit = userData.cash_topup_limit ? userData.cash_topup_limit : userData.planDetails.cash_topup_limit
+    }
     return userData;
 }
 
