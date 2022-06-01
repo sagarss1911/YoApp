@@ -113,6 +113,9 @@ let merchantCashTopupLimit = async (merchantid) => {
         group: ['merchantId'],
         raw: true
       });
+      if(!totalAmount.length){
+        totalAmount.push({total_amount:0})
+      }
       return {isCashTopupEnabled:merchantData.isCashTopupEnabled,
         totalLimit: totalLimit, 
         usedLimit: totalAmount[0].total_amount,
