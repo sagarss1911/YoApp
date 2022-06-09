@@ -353,13 +353,24 @@ let transactionHistory = async (userid, req) => {
 
     let findData = {}
     findData["$or"] = [{ "order_status": 'success' }, { "order_status": 'failed' }]    
-    findData["$and"] = [{ "userId": userid,"ordertype":{$lt:5} }]
-    let allTransactions = await WalletModel.findAll({ where: findData, raw: true, attributes: ['id', 'order_date', 'amount', 'order_status', 'ordertype', 'source_userId', 'destination_userId', 'source_wallet_id', 'currency', 'cashpickupId', 'trans_id', 'bank_transfer_id'], limit, offset, order: [['id', 'DESC']] });
+    findData["$and"] = [{ "userId": userid,"ordertype":{$in:[1,2,3,4,6]} }]
+    let allTransactions = await WalletModel.findAll({ where: findData, raw: true, attributes: ['id', 'order_date', 'amount', 'order_status', 'ordertype', 'source_userId', 'destination_userId', 'source_wallet_id', 'currency', 'cashpickupId', 'trans_id', 'bank_transfer_id','source_adminId','source_merchantId'], limit, offset, order: [['id', 'DESC']] });
 
     for (let i = 0; i < allTransactions.length; i++) {
         allTransactions[i].amount = parseFloat(Number(allTransactions[i].amount) / 100);
         // delete allTransactions[i].id;
-        if (allTransactions[i].ordertype == '4') {
+        if (allTransactions[i].ordertype == '6') {
+            allTransactions[i].type = 'Cash Topup';
+            delete allTransactions[i].destination_userId;
+            delete allTransactions[i].bank_transfer_id;
+            delete allTransactions[i].trans_id;
+            delete allTransactions[i].source_userId;
+            delete allTransactions[i].source_wallet_id;
+            delete allTransactions[i].currency;
+            // allTransactions[i].cash_pickup_details = await CashPickupModel.findOne({ where: { id: allTransactions[i].cashpickupId }, raw: true, attributes: ['name', 'email', 'phone',  'amount', 'transaction_id', 'receiver_id_document'] });
+            // allTransactions[i].trans_id = allTransactions[i].cash_pickup_details.transaction_id;
+
+        }else if (allTransactions[i].ordertype == '4') {
             allTransactions[i].type = 'Cash Pickup';
             delete allTransactions[i].destination_userId;
             delete allTransactions[i].bank_transfer_id;
