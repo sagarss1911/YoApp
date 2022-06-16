@@ -430,7 +430,7 @@ let transactionStatus = (req, res, next) => {
   * @swagger
   * /api/v1/wallet/transaction_history:
   *   get:
-  *     summary: Complete Transaction History(Topup Wallet, Wallet to wallet Transfer, Bank Transfer, Cash Pickup requests).
+  *     summary: Complete Transaction History(Topup Wallet, Wallet to wallet Transfer, Bank Transfer, Cash Pickup requests, Cash Topup , Send/Request Money).
   *     tags:
   *      - Wallet
   *     parameters :

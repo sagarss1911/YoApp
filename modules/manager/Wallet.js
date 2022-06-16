@@ -353,13 +353,37 @@ let transactionHistory = async (userid, req) => {
 
     let findData = {}
     findData["$or"] = [{ "order_status": 'success' }, { "order_status": 'failed' }]    
-    findData["$and"] = [{ "userId": userid,"ordertype":{$in:[1,2,3,4,6]} }]
+    findData["$and"] = [{ "userId": userid,"ordertype":{$in:[1,2,3,4,6,7]} }]
     let allTransactions = await WalletModel.findAll({ where: findData, raw: true, attributes: ['id', 'order_date', 'amount', 'order_status', 'ordertype', 'source_userId', 'destination_userId', 'source_wallet_id', 'currency', 'cashpickupId', 'trans_id', 'bank_transfer_id','source_adminId','source_merchantId'], limit, offset, order: [['id', 'DESC']] });
 
     for (let i = 0; i < allTransactions.length; i++) {
         allTransactions[i].amount = parseFloat(Number(allTransactions[i].amount) / 100);
         // delete allTransactions[i].id;
-        if (allTransactions[i].ordertype == '6') {
+        if (allTransactions[i].ordertype == '7') {
+            allTransactions[i].type = 'Request/Sent Money';
+            if(allTransactions[i].source_wallet_id){
+                allTransactions[i].type = 'Request Money';
+                allTransactions[i].request_details = await UserModel.findOne({ where: { id: allTransactions[i].source_userId }, raw: true, attributes: ['name', 'email', 'phone',  'user_unique_id'] });
+                delete allTransactions[i].destination_userId
+                delete allTransactions[i].currency
+                delete allTransactions[i].cashpickupId  
+                delete allTransactions[i].bank_transfer_id
+                delete allTransactions[i].source_adminId
+                delete allTransactions[i].source_merchantId
+            }
+            if(allTransactions[i].destination_userId){
+                allTransactions[i].type = 'Sent Money';
+                allTransactions[i].sent_details = await UserModel.findOne({ where: { id: allTransactions[i].destination_userId }, raw: true, attributes: ['name', 'email', 'phone',  'user_unique_id'] });
+                delete allTransactions[i].destination_userId
+                delete allTransactions[i].currency
+                delete allTransactions[i].cashpickupId  
+                delete allTransactions[i].bank_transfer_id
+                delete allTransactions[i].source_adminId
+                delete allTransactions[i].source_merchantId
+            }
+            
+
+        }else if (allTransactions[i].ordertype == '6') {
             allTransactions[i].type = 'Cash Topup';
             delete allTransactions[i].destination_userId;
             delete allTransactions[i].bank_transfer_id;
