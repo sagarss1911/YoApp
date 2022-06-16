@@ -138,6 +138,22 @@ let cashTopupReceivedSMS = async (amount,  receiverPhone) => {
   let msgbody = "Cash Topup With Amount " + amount + " D."+" is Successfully Completed. Have a great day."
   return commonSMS(msgbody, receiverPhone)
 };
+let requestMoneyRequestSentForSenderSMS = async (amount,  receiverPhone) => {
+  let msgbody = "Request Money With Amount " + amount + " D."+" is Successfully Generated and Sent. Have a great day."
+  return commonSMS(msgbody, receiverPhone)
+};
+let requestMoneyRequestReceivedFromSMS = async (amount,  senderPhone,receiverPhone) => {  
+  let msgbody = "Money Request Received From "+senderPhone+"  With Amount D" + amount + "."
+  return commonSMS(msgbody, receiverPhone)
+};
+let requestMoneyRequestDeclinedForSenderSMS = async (amount, senderPhone, receiverPhone) => {
+  let msgbody = "Your Money Request with Amount: "+amount +"D from "+receiverPhone+ " is Declined"
+  return commonSMS(msgbody, senderPhone)
+};
+let requestMoneyRequestDeclinedForReceiverSMS = async (amount,  senderPhone,receiverPhone) => {  
+  let msgbody = "Money Request with Amount: "+amount +"D from "+ senderPhone+ " is Declined by You."
+  return commonSMS(msgbody, receiverPhone)
+};
 let DummySMS = async (receiverPhone) => {
   let msgbody = "This is test message"
   return commonSMS(msgbody, receiverPhone)
@@ -165,6 +181,10 @@ module.exports = {
   OTPForCashPickupRequestedByMerchant:OTPForCashPickupRequestedByMerchant,
   paymentCashPickUpCompletedMerchantSMS:paymentCashPickUpCompletedMerchantSMS,
   paymentCashPickUpCompletedSenderSMS:paymentCashPickUpCompletedSenderSMS,
+  requestMoneyRequestReceivedFromSMS:requestMoneyRequestReceivedFromSMS,
   cashTopupReceivedSMS:cashTopupReceivedSMS,
+  requestMoneyRequestDeclinedForSenderSMS:requestMoneyRequestDeclinedForSenderSMS,
+  requestMoneyRequestDeclinedForReceiverSMS:requestMoneyRequestDeclinedForReceiverSMS,
+  requestMoneyRequestSentForSenderSMS:requestMoneyRequestSentForSenderSMS,
   DummySMS: DummySMS
 }

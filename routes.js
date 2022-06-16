@@ -32,6 +32,7 @@ module.exports = app => {
     app.use('/api/v1/merchant', require('./modules/routes/Merchant/Merchant'));
     app.use('/api/v1/support_category', require('./modules/routes/Support_category'));
     app.use('/api/v1/support_request', require('./modules/routes/support_request'));
+    app.use('/api/v1/request_money', require('./modules/routes/Request_money'));
     app.use('/api/v1/admin/support_category', require('./modules/routes/Admin/Support_category'));
     app.use('/api/v1/admin/support_request', require('./modules/routes/Admin/Support_request'));
     app.use('/api/v1/admin/user_management', require('./modules/routes/Admin/User_management'));

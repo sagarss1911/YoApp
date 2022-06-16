@@ -431,7 +431,7 @@ let allUserList = async (userid, req) => {
     if (body.keyword) {
         SearchKeywordsQuery = " and (u.name like '%" + body.keyword + "%' or u.username like '%" + body.keyword + "%' or u.email like '%" + body.keyword + "%' or u.phone like '%" + body.keyword + "%')";
     }
-    let SearchSql = "SELECT u.id,u.username,u.user_unique_id,u.name,u.profileimage, ( SELECT COUNT(*)" +
+    let SearchSql = "SELECT u.id,u.username,u.user_unique_id,u.name,u.email,u.phone,u.profileimage, ( SELECT COUNT(*)" +
         "from friends f1 join " +
         "friends f2 " +
         "on f1.friend_two = f2.friend_two " +
