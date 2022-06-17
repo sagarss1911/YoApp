@@ -497,8 +497,12 @@ let getProfile = async (userid, req) => {
     return userData;
 }
 let getProfileById = async (uuid) => {
-
+    
     let userData = await UserModel.findOne({ where: { user_unique_id: uuid }, attributes: ['id','user_unique_id', 'name', 'profileimage', 'username', 'email', 'phone', 'region', 'latitude', 'merchantbalance', 'longitude', 'gender', 'isactive', 'notification_token', 'isSound', 'isVibration', 'isNotification', 'isTermsConditionAccepted', 'language', 'customer_id', 'balance', 'isMerchant', 'isMerchantVerified', 'isMerchantEnabled', 'merchant_name', 'merchant_phone', 'merchant_address', 'licence_proof', 'address_proof', 'utility_proof', 'upgraded_image1', 'upgraded_image2', 'upgraded_image3', 'upgraded_image4', 'membershipId', 'isUpgradeRequestSubmitted', 'isMerchantUpgraded', 'isCashTopupEnabled', 'cash_topup_limit'], raw: true });
+    if(!userData)
+    {
+        throw new BadRequestError("User not found");
+    }
     if (userData.membershipId) {       
         userData.planDetails = await PlansModel.findOne({ where: { id: userData.membershipId }, raw: true })
         let merchantBalanceInfo = await CommonHelper.merchantCashTopupLimit(userData.id)
@@ -704,6 +708,8 @@ let generateTransactionalOTP = async (userid, body, req) => {
     }
     return true;
 }
+
+
 module.exports = {
     countryList: countryList,
     faqList: faqList,
