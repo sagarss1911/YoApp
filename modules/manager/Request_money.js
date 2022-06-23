@@ -255,7 +255,7 @@ let sentHistory = async (userid, req) => {
     let limit = (req.query.limit) ? parseInt(req.query.limit) : 0;
     let page = req.query.page || 1;
     let offset = (page - 1) * limit;
-    let SearchKeywordsQuery = " where  rm.status='Completed' AND rm.destination_userId= " + userid;
+    let SearchKeywordsQuery = " where  (rm.status='Completed' or rm.status='Pending') AND rm.source_userId= " + userid ;
     if (req.query) {
 
         if (req.query.searchtext) {
@@ -278,7 +278,7 @@ let sentHistory = async (userid, req) => {
         }
     }
      
-    var SearchSql = "SELECT u.user_unique_id,u.name,u.username,u.phone,u.email,rm.* FROM request_money rm INNER JOIN users u ON u.id=rm.source_userId " + SearchKeywordsQuery + " order by rm.id desc ";
+    var SearchSql = "SELECT u.user_unique_id,u.name,u.username,u.phone,u.email,rm.* FROM request_money rm INNER JOIN users u ON u.id=rm.destination_userId " + SearchKeywordsQuery + " order by rm.id desc ";
     if (limit) {
         SearchSql += " limit " + offset + "," + limit;
     }
@@ -287,7 +287,7 @@ let sentHistory = async (userid, req) => {
         raw: true
     });
 
-    var allSentRequestQuery = "SELECT u.user_unique_id,u.name,u.username,u.phone,u.email,rm.* FROM request_money rm INNER JOIN users u ON u.id=rm.source_userId   " + SearchKeywordsQuery + " order by rm.id desc";
+    var allSentRequestQuery = "SELECT u.user_unique_id,u.name,u.username,u.phone,u.email,rm.* FROM request_money rm INNER JOIN users u ON u.id=rm.destination_userId   " + SearchKeywordsQuery + " order by rm.id desc";
     let allSentRequest = await CustomQueryModel.query(allSentRequestQuery, {
         type: SequelizeObj.QueryTypes.SELECT,
         raw: true
