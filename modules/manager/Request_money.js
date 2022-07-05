@@ -134,6 +134,12 @@ let payRequest = async (userid, id) => {
         throw new BadRequestError("You are not Authorization to Proceed with this request");
     }
     let senderInfo = await UserModel.findOne({ where: { id: isRequestExist.destination_userId }, raw: true });
+    if (isRequestExist.amount <= 0) {
+        throw new BadRequestError("Amount should be greater than 0");
+    }
+    if (senderInfo.balance < isRequestExist.amount) {
+        throw new BadRequestError("Insufficient Balance");
+    }
     let receiverInfo = await UserModel.findOne({ where: { id: isRequestExist.source_userId }, raw: true });
     let senderWalletData = {
         userId: senderInfo.id,
