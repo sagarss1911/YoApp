@@ -98,35 +98,32 @@ let capitalize = (value) => {
     if (!value) return null;
     return value.charAt(0).toUpperCase() + value.slice(1);
 }
-let merchantCashTopupLimit = async (merchantid) => {
-    let startOfMonth = new Date(moment().startOf('month').format('YYYY-MM-DD hh:mm:ss'));
-    let endOfMonth   = new Date(moment().endOf('month').format('YYYY-MM-DD hh:mm:ss'));    
-    let merchantData  =  await UserModel.findOne({ where: { id: merchantid }, raw: true,attributes: ['membershipId','merchant_due_payment','isCashTopupEnabled','cash_topup_limit'] });
-    if(!merchantData.isCashTopupEnabled){
-        return 0;
+    let merchantCashTopupLimit = async (merchantid) => {
+        let startOfMonth = new Date(moment().startOf('month').format('YYYY-MM-DD hh:mm:ss'));
+        let endOfMonth   = new Date(moment().endOf('month').format('YYYY-MM-DD hh:mm:ss'));    
+        let merchantData  =  await UserModel.findOne({ where: { id: merchantid }, raw: true,attributes: ['membershipId','merchant_due_payment','isCashTopupEnabled','cash_topup_limit'] });    
+        let planData =  await PlanModel.findOne({ where: { id: merchantData.membershipId }, raw: true});
+        let totalLimit =  merchantData.cash_topup_limit ? merchantData.cash_topup_limit : planData.cash_topup_limit ?  planData.cash_topup_limit : 0;
+        let totalAmount = await MerchantCashTopupModel.findAll({
+            where: { createdAt: { $gte: startOfMonth, $lte: endOfMonth },merchantId:merchantid },
+            attributes: [
+            'merchantId',
+            [sequelize.fn('sum', sequelize.col('amount')), 'total_amount'],
+            ],
+            group: ['merchantId'],
+            raw: true
+        });
+        if(!totalAmount.length){
+            totalAmount.push({total_amount:0})
+        }
+        return {isCashTopupEnabled:merchantData.isCashTopupEnabled,
+            totalLimit: totalLimit, 
+            usedLimit: totalAmount[0].total_amount,
+            pendingLimit: totalLimit -totalAmount[0].total_amount,
+            merchantDueBalance:merchantData.merchant_due_payment }
+        
+    
     }
-    let planData =  await PlanModel.findOne({ where: { id: merchantData.membershipId }, raw: true});
-    let totalLimit =  merchantData.cash_topup_limit ? merchantData.cash_topup_limit : planData.cash_topup_limit;
-    let totalAmount = await MerchantCashTopupModel.findAll({
-        where: { createdAt: { $gte: startOfMonth, $lte: endOfMonth },merchantId:merchantid },
-        attributes: [
-          'merchantId',
-          [sequelize.fn('sum', sequelize.col('amount')), 'total_amount'],
-        ],
-        group: ['merchantId'],
-        raw: true
-      });
-      if(!totalAmount.length){
-        totalAmount.push({total_amount:0})
-      }
-      return {isCashTopupEnabled:merchantData.isCashTopupEnabled,
-        totalLimit: totalLimit, 
-        usedLimit: totalAmount[0].total_amount,
-         pendingLimit: totalLimit -totalAmount[0].total_amount,
-         merchantDueBalance:merchantData.merchant_due_payment }
-      
-   
-}
 
 module.exports = {
     undefinedOrNull : undefinedOrNull,
