@@ -380,6 +380,9 @@ let bankTransfer = async (userid, req) => {
 let cashTopupOtherUser = async (userid, req) => {
     let body = req.body
     let merchantBalanceInfo = await CommonHelper.merchantCashTopupLimit(userid)
+    if(!merchantBalanceInfo){
+        throw new BadRequestError("Cash Topup is Disabled");
+    }
     let receiverInfo = await UserModel.findOne({ where: { user_unique_id: body.user_unique_id }, raw: true });
     if (!receiverInfo) {
         throw new BadRequestError("User not found");
