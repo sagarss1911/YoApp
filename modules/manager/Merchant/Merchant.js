@@ -485,6 +485,37 @@ let cashTopupTransactionHistory = async (userid, req) => {
     _result.total_count = allRequestCount.length;
     return _result;
 }
+let merchantResubmitImages = async (userid, req) => {
+
+    let body = req.body;
+    if (helper.undefinedOrNull(body)) {
+        throw new BadRequestError(req.t("body_empty"));
+    }
+    let updatedData = {}
+
+
+    let user = await UserModel
+        .findOne({ where: { id: userid }, raw: true });
+
+    if (!user.image_reuploaded_needed) {
+        throw new BadRequestError('You are not allowed to upload images');
+    }
+
+    let uploadedFields = user.image_reuploaded_fields.split(',');
+
+    for(let i=0;i<uploadedFields.length;i++){
+        if (req.files[uploadedFields[i]] && req.files[uploadedFields[i]].length > 0) {
+            const result = await s3Helper.uploadFile(req.files[uploadedFields[i]][0])
+            updatedData[uploadedFields[i]] = result.Location
+            updatedData[uploadedFields[i] + "_bucketkey"] = result.Key
+            await unlinkFile(req.files[uploadedFields[i]][0].path)
+        }    
+    }
+
+    updatedData.image_reuploaded = 1;    
+    await UserModel.update(updatedData, { where: { id: userid }, raw: true });
+    return { message: 'Image Reuploaded successfully' };
+}
 module.exports = {
     merchantRegistration: merchantRegistration,
     merchantUpgrade: merchantUpgrade,
@@ -495,5 +526,6 @@ module.exports = {
     transactionHistory: transactionHistory,
     bankTransfer: bankTransfer,
     cashTopupOtherUser: cashTopupOtherUser,
-    cashTopupTransactionHistory:cashTopupTransactionHistory
+    cashTopupTransactionHistory:cashTopupTransactionHistory,
+    merchantResubmitImages:merchantResubmitImages
 };

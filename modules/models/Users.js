@@ -202,6 +202,17 @@ const UsersModal = sequelize_mysql.define("users",
         upgraded_image4_bucketkey: {
             type: Sequelize.STRING        
         },
+        image_reuploaded_needed: {
+            type: Sequelize.INTEGER,           
+            defaultValue: 0        
+        },
+        image_reuploaded_fields: {
+            type: Sequelize.STRING       
+        },
+        image_reuploaded: {
+            type: Sequelize.INTEGER,           
+            defaultValue: 0      
+        },
     },
     {
         freezeTableName: true,

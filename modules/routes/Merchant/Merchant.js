@@ -7,6 +7,7 @@ let express = require("express"),
     validateAccess = require('../../policies/Validate_request_access');
 
 router.post("/merchant_registration",validateAccess.isValidUser,fileUploadHelper.uploadUserProfileImage.fields([{ name: 'address_proof'},{ name: 'licence_proof'},{name: 'utility_proof'}]), controller.merchantRegistration);
+router.post("/merchant_resubmit_images",validateAccess.isValidUser,fileUploadHelper.uploadUserProfileImage.fields([{ name: 'address_proof'},{ name: 'licence_proof'},{name: 'utility_proof'},{ name: 'upgraded_image1'},{ name: 'upgraded_image2'},{name: 'upgraded_image3'},{name: 'upgraded_image4'}]), controller.merchantResubmitImages);
 router.post("/upgrade_account",validateAccess.isValidUser,fileUploadHelper.uploadUserProfileImage.fields([{ name: 'upgraded_image1'},{ name: 'upgraded_image2'},{name: 'upgraded_image3'},{name: 'upgraded_image4'}]), controller.merchantUpgrade);
 router.get("/get_cash_pick_details/:transaction_id",validateAccess.isValidMerchant, controller.getCashpickupDetails);
 router.post("/send_cash_pick_up_otp/:transaction_id",validateAccess.isValidMerchant, controller.sendCashPickupOTP);

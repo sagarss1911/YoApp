@@ -7,7 +7,10 @@ let BadRequestError = require('../../errors/badRequestError'),
     MerchantCashTopupPaidModel = require('../../models/MerchantCashTopupPaid'),
     PlanModel = require('../../models/Admin/Plans'),
     CustomQueryModel = require("../../models/Custom_query"),
+    CountryModel= require("../../models/Country"),
     s3Helper = require('../../helpers/awsS3Helper'),
+    NotificationHelper = require('../../helpers/notifications'),
+    SEND_SMS =  require('../../helpers/send_sms'),
     SequelizeObj = require("sequelize"), moment = require("moment");
 
 
@@ -39,9 +42,14 @@ let getAllMerchant = async(body) => {
             }
             SearchKeywordsQuery += " u.merchantCreatedAt <= '" + to_date + "'";
         }       
+       
+    }
+    if(body.isReuploaded){   
+            SearchKeywordsQuery += " and u.image_reuploaded_needed = 1 and u.image_reuploaded=1 ";         
     }
     
-    var SearchSql = "select u.isCashTopupEnabled,u.cash_topup_limit,u.merchant_due_payment,p.planname,p.cash_topup_limit as planTopUpLimit,u.id,u.merchant_name,u.merchant_address,u.merchant_phone,u.licence_proof,u.address_proof,u.utility_proof,u.upgraded_image1,u.upgraded_image2,u.upgraded_image3,u.upgraded_image4,u.membershipId,u.merchantCreatedAt,u.isMerchantVerified,u.isMerchantEnabled,u.isUpgradeRequestSubmitted,u.isMerchantUpgraded from users u left join plans p on p.id=u.membershipId where u.isMerchant=1 "+SearchKeywordsQuery+"  order by u.merchantCreatedAt desc LIMIT " + offset + "," + limit;
+    
+    var SearchSql = "select u.image_reuploaded_needed,u.image_reuploaded_fields,u.image_reuploaded,u.isCashTopupEnabled,u.cash_topup_limit,u.merchant_due_payment,p.planname,p.cash_topup_limit as planTopUpLimit,u.id,u.merchant_name,u.merchant_address,u.merchant_phone,u.licence_proof,u.address_proof,u.utility_proof,u.upgraded_image1,u.upgraded_image2,u.upgraded_image3,u.upgraded_image4,u.membershipId,u.merchantCreatedAt,u.isMerchantVerified,u.isMerchantEnabled,u.isUpgradeRequestSubmitted,u.isMerchantUpgraded from users u left join plans p on p.id=u.membershipId where u.isMerchant=1 "+SearchKeywordsQuery+"  order by u.merchantCreatedAt desc LIMIT " + offset + "," + limit;
    
     let allMerchant = await CustomQueryModel.query(SearchSql, {
         type: SequelizeObj.QueryTypes.SELECT,
@@ -117,6 +125,16 @@ let updateMerchantStatus = async (req) => {
     return true
     
 }
+let acceptMerchantImageRequest = async (req) => {
+    let senderInfo =  await UserModel.findOne({ where: { id: req.params.merchant_id } ,  raw: true});
+    if(!senderInfo){
+        throw new BadRequestError('Invalid Merchant'); 
+    }
+    await UserModel.update({image_reuploaded_needed:0,image_reuploaded_fields:'',image_reuploaded:0}, { where: { id: senderInfo.id }, raw: true });    
+    return true
+    
+}
+
 let merchantUpdate = async (req) => {
     let body = req.body.body ? JSON.parse(req.body.body) : req.body;    
     let updatedData = {}
@@ -153,7 +171,40 @@ let merchantUpdate = async (req) => {
  userData.planname = planData.planname 
  return userData
 }
+let resetMerchantImages = async (req) => {
+    let body = req.body.body ? JSON.parse(req.body.body) : req.body;    
+  
+    if(!body.selected_fields.length)
+    {
+        throw new BadRequestError('Fields not Given '); 
+    }
+    let senderInfo =  await UserModel.findOne({ where: { id: req.params.merchant_id } ,  raw: true});
+    if(!senderInfo){
+        throw new BadRequestError('Invalid Merchant'); 
+    }
+    let updatedData = {}    
+    updatedData["image_reuploaded_needed"] = 1
+    updatedData["image_reuploaded_fields"] = body.selected_fields.join()
+    
+    let notificationDataSender = {
+        title: "Admin Has Reviewed your documents and found some issue. please resubmit your documents",
+        subtitle: "Admin Has Reviewed your documents and found some issue. please resubmit your documents",
+        redirectscreen: "merchant_document_resubmit",        
+        merchant_id: senderInfo.id
 
+    }
+    let country = await CountryModel.findOne({ where: { iso_code_2: senderInfo.region }, raw: true })
+    await NotificationHelper.sendFriendRequestNotificationToUser(senderInfo.id, notificationDataSender);
+    SEND_SMS.imageResetSMSToMerchant("+" + country.isd_code + senderInfo.merchant_phone);
+    
+    await UserModel.update(updatedData, { where: { id: senderInfo.id }, raw: true });
+    
+
+  let userData =  await UserModel.findOne({ where: { id: req.params.merchant_id } ,  raw: true,attributes: ['id', 'merchant_name', 'merchant_address', 'merchant_phone', 'licence_proof', 'address_proof', 'utility_proof', 'merchantCreatedAt', 'isMerchantVerified', 'isMerchantEnabled','upgraded_image1','upgraded_image2','upgraded_image3','upgraded_image4','membershipId','isUpgradeRequestSubmitted','isMerchantUpgraded','cash_topup_limit','isCashTopupEnabled'] });
+  let planData = await PlanModel.findOne({ where: { id: userData.membershipId }, raw: true });
+  userData.planname = planData?.planname 
+  return userData
+}
 let merchantDuePaymentUpdate = async (req) => {
     let body = req.body.body ? JSON.parse(req.body.body) : req.body;  
     if(!body['amount_paid']){
@@ -210,6 +261,8 @@ module.exports = {
     exportAllMerchant:exportAllMerchant,
     updateMerchantStatus:updateMerchantStatus,
     merchantUpdate:merchantUpdate,
+    acceptMerchantImageRequest:acceptMerchantImageRequest,
+    resetMerchantImages:resetMerchantImages,
     merchantDuePaymentUpdate:merchantDuePaymentUpdate,
     getTopUpMerchantHistory:getTopUpMerchantHistory
 }
