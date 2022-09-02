@@ -158,6 +158,10 @@ let DummySMS = async (receiverPhone) => {
   let msgbody = "This is test message"
   return commonSMS(msgbody, receiverPhone)
 };
+let imageResetSMSToMerchant = async (senderPhone) => {
+  let msgbody = "Admin Has Reviewed your documents and found some issue. please resubmit your documents"
+  return commonSMS(msgbody, senderPhone)
+};
 module.exports = {
   sms: sms,
   paymentSuccessSMS: paymentSuccessSMS,
@@ -180,6 +184,7 @@ module.exports = {
   TransactionalOTPForRecharge: TransactionalOTPForRecharge,
   OTPForCashPickupRequestedByMerchant:OTPForCashPickupRequestedByMerchant,
   paymentCashPickUpCompletedMerchantSMS:paymentCashPickUpCompletedMerchantSMS,
+  imageResetSMSToMerchant:imageResetSMSToMerchant,
   paymentCashPickUpCompletedSenderSMS:paymentCashPickUpCompletedSenderSMS,
   requestMoneyRequestReceivedFromSMS:requestMoneyRequestReceivedFromSMS,
   cashTopupReceivedSMS:cashTopupReceivedSMS,

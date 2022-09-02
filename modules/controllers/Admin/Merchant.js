@@ -28,6 +28,31 @@ let exportAllMerchant = (req, res, next) => {
         .catch(next);
 }
 
+let resetMerchantImages = (req, res, next) => {
+    return merchantManager
+        .resetMerchantImages(req)
+        .then(data => {
+            let result = {
+                status: 200,
+                data: data
+            }
+            return res.json(result);
+        })
+        .catch(next);
+}
+let acceptMerchantImageRequest = (req, res, next) => {
+    return merchantManager
+        .acceptMerchantImageRequest(req)
+        .then(data => {
+            let result = {
+                status: 200,
+                data: data
+            }
+            return res.json(result);
+        })
+        .catch(next);
+}
+
 let updateMerchantStatus = (req, res, next) => {
     return merchantManager
         .updateMerchantStatus(req)
@@ -83,6 +108,8 @@ module.exports = {
     getAllMerchant: getAllMerchant,
     exportAllMerchant:exportAllMerchant,
     updateMerchantStatus:updateMerchantStatus,
+    resetMerchantImages:resetMerchantImages,
+    acceptMerchantImageRequest:acceptMerchantImageRequest,
     merchantUpdate:merchantUpdate,
     merchantDuePaymentUpdate:merchantDuePaymentUpdate,
     getTopUpMerchantHistory:getTopUpMerchantHistory
