@@ -497,8 +497,12 @@ let getProfile = async (userid, req) => {
     return userData;
 }
 let getProfileById = async (uuid) => {
-    
-    let userData = await UserModel.findOne({ where: { user_unique_id: uuid }, attributes: ['id','user_unique_id', 'name', 'profileimage', 'username', 'email', 'phone', 'region', 'latitude', 'merchantbalance', 'longitude', 'gender', 'isactive', 'notification_token', 'isSound', 'isVibration', 'isNotification', 'isTermsConditionAccepted', 'language', 'customer_id', 'balance', 'isMerchant', 'isMerchantVerified', 'isMerchantEnabled', 'merchant_name', 'merchant_phone', 'merchant_address', 'licence_proof', 'address_proof', 'utility_proof', 'upgraded_image1', 'upgraded_image2', 'upgraded_image3', 'upgraded_image4', 'membershipId', 'isUpgradeRequestSubmitted', 'isMerchantUpgraded', 'isCashTopupEnabled', 'cash_topup_limit','image_reuploaded_needed','image_reuploaded_fields','image_reuploaded'], raw: true });
+    let findData = {}
+    findData["$or"] = [
+        { user_unique_id: { $eq: uuid } },
+        { phone: { $eq: uuid } }
+    ]
+    let userData = await UserModel.findOne({ where: findData, attributes: ['id','user_unique_id', 'name', 'profileimage', 'username', 'email', 'phone', 'region', 'latitude', 'merchantbalance', 'longitude', 'gender', 'isactive', 'notification_token', 'isSound', 'isVibration', 'isNotification', 'isTermsConditionAccepted', 'language', 'customer_id', 'balance', 'isMerchant', 'isMerchantVerified', 'isMerchantEnabled', 'merchant_name', 'merchant_phone', 'merchant_address', 'licence_proof', 'address_proof', 'utility_proof', 'upgraded_image1', 'upgraded_image2', 'upgraded_image3', 'upgraded_image4', 'membershipId', 'isUpgradeRequestSubmitted', 'isMerchantUpgraded', 'isCashTopupEnabled', 'cash_topup_limit','image_reuploaded_needed','image_reuploaded_fields','image_reuploaded'], raw: true });
     if(!userData)
     {
         throw new BadRequestError("User not found");
