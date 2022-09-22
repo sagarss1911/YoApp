@@ -184,6 +184,7 @@ let resetMerchantImages = async (req) => {
     }
     let updatedData = {}    
     updatedData["image_reuploaded_needed"] = 1
+    updatedData["image_reuploaded"] = 0
     updatedData["image_reuploaded_fields"] = body.selected_fields.join()
     
     let notificationDataSender = {
