@@ -148,22 +148,22 @@ const UsersModal = sequelize_mysql.define("users",
         merchant_address: {
             type: Sequelize.STRING        
         },
-        licence_proof: {
+        valid_ID: {
             type: Sequelize.STRING        
         },
         address_proof: {
             type: Sequelize.STRING        
         },
-        utility_proof: {
+        TIN_card: {
             type: Sequelize.STRING        
         },
-        licence_proof_bucketkey: {
+        valid_ID_bucketkey: {
             type: Sequelize.STRING        
         },
         address_proof_bucketkey: {
             type: Sequelize.STRING        
         },
-        utility_proof_bucketkey: {
+        TIN_card_bucketkey: {
             type: Sequelize.STRING        
         },
         membershipId: {

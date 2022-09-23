@@ -39,10 +39,10 @@
   *               address_proof:
   *                 type: file 
   *                 paramType: body
-  *               licence_proof:
+  *               valid_ID:
   *                 type: file 
   *                 paramType: body
-  *               utility_proof:
+  *               TIN_card:
   *                 type: file 
   *                 paramType: body 
   *               merchant_name:
@@ -127,10 +127,10 @@
   *               address_proof:
   *                 type: file 
   *                 paramType: body
-  *               licence_proof:
+  *               valid_ID:
   *                 type: file 
   *                 paramType: body
-  *               utility_proof:
+  *               TIN_card:
   *                 type: file 
   *                 paramType: body
   *               upgraded_image1:
