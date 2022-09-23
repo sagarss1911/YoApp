@@ -45,11 +45,11 @@ let merchantRegistration = async (userid, req) => {
     if (!req.files.address_proof || !req.files.address_proof.length) {
         throw new BadRequestError('Address proof is required');
     }
-    if (!req.files.licence_proof || !req.files.licence_proof.length) {
-        throw new BadRequestError('Licence proof is required');
+    if (!req.files.valid_ID || !req.files.valid_ID.length) {
+        throw new BadRequestError('Valid ID proof is required');
     }
-    if (!req.files.utility_proof || !req.files.utility_proof.length) {
-        throw new BadRequestError('Utility proof is required');
+    if (!req.files.TIN_card || !req.files.TIN_card.length) {
+        throw new BadRequestError('TIn Card proof is required');
     }
     let optionalFiled = ['merchant_name', 'merchant_phone', 'merchant_address'];
     optionalFiled.forEach(x => {
@@ -70,17 +70,17 @@ let merchantRegistration = async (userid, req) => {
         updatedData.address_proof_bucketkey = result.Key
         await unlinkFile(req.files.address_proof[0].path)
     }
-    if (req.files.licence_proof && req.files.licence_proof.length > 0) {
-        const result = await s3Helper.uploadFile(req.files.licence_proof[0])
-        updatedData.licence_proof = result.Location
-        updatedData.licence_proof_bucketkey = result.Key
-        await unlinkFile(req.files.licence_proof[0].path)
+    if (req.files.valid_ID && req.files.valid_ID.length > 0) {
+        const result = await s3Helper.uploadFile(req.files.valid_ID[0])
+        updatedData.valid_ID = result.Location
+        updatedData.valid_ID_bucketkey = result.Key
+        await unlinkFile(req.files.valid_ID[0].path)
     }
-    if (req.files.utility_proof && req.files.utility_proof.length > 0) {
-        const result = await s3Helper.uploadFile(req.files.utility_proof[0])
-        updatedData.utility_proof = result.Location
-        updatedData.utility_proof_bucketkey = result.Key
-        await unlinkFile(req.files.utility_proof[0].path)
+    if (req.files.TIN_card && req.files.TIN_card.length > 0) {
+        const result = await s3Helper.uploadFile(req.files.TIN_card[0])
+        updatedData.TIN_card = result.Location
+        updatedData.TIN_card_bucketkey = result.Key
+        await unlinkFile(req.files.TIN_card[0].path)
     }
     updatedData.isMerchant = 1;
     updatedData.merchantCreatedAt = new Date();
