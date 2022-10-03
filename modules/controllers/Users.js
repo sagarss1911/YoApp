@@ -875,8 +875,8 @@ let getProfile = (req, res, next) => {
 }
 /**
  * @swagger
- * /api/v1/user/get_profile_by_id/{uuid}:
- *   get:
+ * /api/v1/user/get_profile_by_id:
+ *   post:
  *     summary: get_profile_by_id.
  *     tags:
  *      - Profile
@@ -896,11 +896,21 @@ let getProfile = (req, res, next) => {
  *       description: Language
  *       required: false
  *       type: string
- *     - name: uuid
- *       in: path   
- *       description: uuid of user
+ *     requestBody:
  *       required: true
- *       type: string   
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties: 
+ *               uuid:
+ *                 type: string
+ *                 example: ABC
+ *                 paramType: body
+ *               region:
+ *                 type: string
+ *                 example: IN
+ *                 paramType: body    
  *     responses:
  *       200:
  *         description: user object
@@ -926,7 +936,7 @@ let getProfile = (req, res, next) => {
 */
 let getProfileById = (req, res, next) => {
     return usersManager
-        .getProfileById(req.params.uuid)
+        .getProfileById(req.body)
         .then(data => {
             let result = {
                 status: 200,
