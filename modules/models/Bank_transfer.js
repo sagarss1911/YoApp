@@ -27,6 +27,9 @@ const CashPickupModal = sequelize_mysql.define("bank_transfer",
         },       
         phone: {
             type: Sequelize.STRING,            
+        }, 
+        region: {
+            type: Sequelize.STRING,            
         },               
         amount: {
             type: Sequelize.NUMBER,            
