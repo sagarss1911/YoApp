@@ -56,6 +56,10 @@
   *               merchant_address:
   *                 type: string
   *                 example: johm Smith
+  *                 paramType: body
+  *               merchant_region:
+  *                 type: string
+  *                 example: IN
   *                 paramType: body  
   *     responses:
   *       200:
@@ -705,7 +709,11 @@
  *                 paramType: body
  *               phone:
  *                 type: string
- *                 example: "+919377690348"
+ *                 example: "9377690348"
+ *                 paramType: body
+ *               region:
+ *                 type: string
+ *                 example: "IN"
  *                 paramType: body 
  *               bank_name:
  *                 type: string
