@@ -36,7 +36,7 @@ let merchantRegistration = async (userid, req) => {
         throw new BadRequestError(req.t("body_empty"));
     }
     let updatedData = {}
-    let requiredFields = ['merchant_name', 'merchant_phone', 'merchant_address'];
+    let requiredFields = ['merchant_name', 'merchant_phone', 'merchant_address','merchant_region'];
     requiredFields.forEach(x => {
         if (!body[x]) {
             throw new BadRequestError(x + ' is required');
@@ -51,7 +51,7 @@ let merchantRegistration = async (userid, req) => {
     if (!req.files.TIN_card || !req.files.TIN_card.length) {
         throw new BadRequestError('TIn Card proof is required');
     }
-    let optionalFiled = ['merchant_name', 'merchant_phone', 'merchant_address'];
+    let optionalFiled = ['merchant_name', 'merchant_phone', 'merchant_address','merchant_region'];
     optionalFiled.forEach(x => {
         updatedData[x] = body[x]
     });
@@ -160,6 +160,12 @@ let sendCashPickupOTP = async (userid, req, transaction_id) => {
         throw new BadRequestError('Cashpickup already claimed');
     }
     let otp = await UserManaer.generateOTP();
+    if (CashPickupData.region) {
+        let receiverCountry = await CountryModel.findOne({ where: { iso_code_2: CashPickupData.region }, raw: true })
+        if (receiverCountry) {
+            CashPickupData.phone = "+" + receiverCountry.isd_code +CashPickupData.phone;
+        }
+    }
     SEND_SMS.OTPForCashPickupRequestedByMerchant(otp, CashPickupData.phone);
     await CashPickupModel.update({ confirmation_pin: otp }, { where: { transaction_id: transaction_id, id: CashPickupData.id }, raw: true });
     return true
@@ -193,6 +199,12 @@ let claimCashPickup = async (userid, req, transaction_id) => {
         throw new BadRequestError('Transaction id is required');
     }
     let CashPickupData = await CashPickupModel.findOne({ where: { transaction_id: transaction_id, }, raw: true });
+    if (CashPickupData.region) {
+        let receiverCountry = await CountryModel.findOne({ where: { iso_code_2: CashPickupData.region }, raw: true })
+        if (receiverCountry) {
+            CashPickupData.phone = "+" + receiverCountry.isd_code +CashPickupData.phone;
+        }
+    }
     if (!CashPickupData) {
         throw new BadRequestError('Cashpickup not found');
     }
@@ -241,6 +253,12 @@ let claimCashPickup = async (userid, req, transaction_id) => {
     }
     await NotificationHelper.sendFriendRequestNotificationToUser(userid, notificationDataReceiver);
     // send sms to merchant account
+    if (UserData.merchant_region) {
+        let receiverCountry = await CountryModel.findOne({ where: { iso_code_2: UserData.merchant_region }, raw: true })
+        if (receiverCountry) {
+            UserData.merchant_phone = "+" + receiverCountry.isd_code +UserData.merchant_phone;
+        }
+    }
     SEND_SMS.paymentCashPickUpCompletedMerchantSMS(parseFloat(CashPickupData.amount), UserData.merchant_phone, CashPickupData.phone);
     //let country = await CountryModel.findOne({ where: { iso_code_2: UserData.region }, raw: true })
 
@@ -285,7 +303,7 @@ let transactionHistory = async (userid, req) => {
         }
     }
 
-    var SearchSql = "SELECT m.amount,c.name,c.email,c.phone,c.transaction_id,m.createdAt,c.receiver_id_document,c.uploaded_id_document1,c.uploaded_id_document2 FROM merchant_wallet m inner join cash_pickup c ON m.cashpickupId=c.id   " + SearchKeywordsQuery + " order by m.id desc ";
+    let SearchSql = "SELECT m.amount,c.name,c.email,c.phone,c.region,c.transaction_id,c.region,m.createdAt,c.receiver_id_document,c.uploaded_id_document1,c.uploaded_id_document2 FROM merchant_wallet m inner join cash_pickup c ON m.cashpickupId=c.id   " + SearchKeywordsQuery + " order by m.id desc ";
     if (limit) {
         SearchSql += " limit " + offset + "," + limit;
     }
@@ -354,6 +372,7 @@ let bankTransfer = async (userid, req) => {
     addedData["sender_userId"] = senderInfo.id;
     addedData["wallet_id"] = senderWalletInfo.id;
     addedData["transaction_id"] = await CommonHelper.getUniqueTransactionId();
+    addedData["region"] = body.region;
 
     let BankTransferData = await MerchantBankTransferModel.create(addedData);
     let updateWalletData = {
@@ -361,6 +380,12 @@ let bankTransfer = async (userid, req) => {
     }
     await MerchantWalletModel.update(updateWalletData, { where: { id: senderWalletInfo.id } });
     let country = await CountryModel.findOne({ where: { iso_code_2: senderInfo.region }, raw: true })
+    if (body.region) {
+        let receiverCountry = await CountryModel.findOne({ where: { iso_code_2: body.region }, raw: true })
+        if (receiverCountry) {
+            body.phone = "+" + receiverCountry.isd_code +body.phone;
+        }
+    }
     let notificationDataSender = {
         title: "Congrats! Bank Transfer request generated for: " + body.phone,
         subtitle: "Amount: " + body.amount + " Successfully Debited and In 3-5 working days money will be credited to " + body.name + "'s account",
@@ -370,6 +395,7 @@ let bankTransfer = async (userid, req) => {
 
     }
     await NotificationHelper.sendFriendRequestNotificationToUser(senderInfo.id, notificationDataSender);
+    
     SEND_SMS.paymentBankTransferSenderSMS(parseFloat(body.amount), "+" + country.isd_code + senderInfo.phone, body.phone, BankTransferData.transaction_id);
     SEND_SMS.paymentBankTransferReceiverSMS(parseFloat(body.amount), "+" + country.isd_code + senderInfo.phone, body.phone, BankTransferData.transaction_id);
     return { transaction_id: BankTransferData.transaction_id };
