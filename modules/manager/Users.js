@@ -8,6 +8,8 @@ let helper = require("../helpers/helpers"),
     CountryModel = require("../models/Country"),
     FAQModel = require("../models/faqs"),
     PlansModel = require("../models/Admin/Plans"),
+    CustomQueryModel = require("../models/Custom_query"),
+    SequelizeObj = require("sequelize"),
     WalletClaimsModel = require("../models/Wallet_claims"),
     UserModel = require("../models/Users"),
     TermsConditionModel = require("../models/TermsCondition"),
@@ -488,7 +490,7 @@ let getTermsCondition = async (body) => {
     return TermsConditionModel.findAll({ order: [['displayorder', 'ASC']], raw: true })
 }
 let getProfile = async (userid, req) => {
-    let userData = await UserModel.findOne({ where: { id: userid }, attributes: ['user_unique_id', 'name', 'profileimage', 'username', 'email', 'merchantbalance', 'phone', 'region', 'latitude', 'longitude', 'gender', 'isactive', 'notification_token', 'isSound', 'isVibration', 'isNotification', 'isTermsConditionAccepted', 'language', 'customer_id', 'balance', 'membershipId', 'isMerchant', 'isMerchantVerified', 'isMerchantEnabled', 'merchant_name', 'merchant_phone', 'merchant_address', 'valid_ID', 'address_proof', 'TIN_card', 'upgraded_image1', 'upgraded_image2', 'upgraded_image3', 'upgraded_image4', 'membershipId', 'isUpgradeRequestSubmitted', 'isMerchantUpgraded', 'isCashTopupEnabled', 'cash_topup_limit','image_reuploaded_needed','image_reuploaded_fields','image_reuploaded'], raw: true });
+    let userData = await UserModel.findOne({ where: { id: userid }, attributes: ['user_unique_id', 'name', 'profileimage', 'username', 'email', 'merchantbalance', 'phone', 'region', 'latitude', 'longitude', 'gender', 'isactive', 'notification_token', 'isSound', 'isVibration', 'isNotification', 'isTermsConditionAccepted', 'language', 'customer_id', 'balance', 'membershipId', 'isMerchant', 'isMerchantVerified', 'isMerchantEnabled', 'merchant_name', 'merchant_phone','merchant_region', 'merchant_address', 'valid_ID', 'address_proof', 'TIN_card', 'upgraded_image1', 'upgraded_image2', 'upgraded_image3', 'upgraded_image4', 'membershipId', 'isUpgradeRequestSubmitted', 'isMerchantUpgraded', 'isCashTopupEnabled', 'cash_topup_limit','image_reuploaded_needed','image_reuploaded_fields','image_reuploaded'], raw: true });
     if (userData.membershipId) {
         let merchantBalanceInfo = await CommonHelper.merchantCashTopupLimit(userid)        
         userData.planDetails = await PlansModel.findOne({ where: { id: userData.membershipId }, raw: true })
@@ -496,17 +498,20 @@ let getProfile = async (userid, req) => {
     }
     return userData;
 }
-let getProfileById = async (uuid) => {
-    let findData = {}
-    findData["$or"] = [
-        { user_unique_id: { $eq: uuid } },
-        { phone: { $eq: uuid } }
-    ]
-    let userData = await UserModel.findOne({ where: findData, attributes: ['id','user_unique_id', 'name', 'profileimage', 'username', 'email', 'phone', 'region', 'latitude', 'merchantbalance', 'longitude', 'gender', 'isactive', 'notification_token', 'isSound', 'isVibration', 'isNotification', 'isTermsConditionAccepted', 'language', 'customer_id', 'balance', 'isMerchant', 'isMerchantVerified', 'isMerchantEnabled', 'merchant_name', 'merchant_phone', 'merchant_address', 'valid_ID', 'address_proof', 'TIN_card', 'upgraded_image1', 'upgraded_image2', 'upgraded_image3', 'upgraded_image4', 'membershipId', 'isUpgradeRequestSubmitted', 'isMerchantUpgraded', 'isCashTopupEnabled', 'cash_topup_limit','image_reuploaded_needed','image_reuploaded_fields','image_reuploaded'], raw: true });
-    if(!userData)
+let getProfileById = async (body) => {    
+    let query = "select id,user_unique_id, name, profileimage, username, email, phone, region, latitude, merchantbalance, longitude, gender, isactive, notification_token, isSound, isVibration, isNotification, isTermsConditionAccepted, language, customer_id, balance, isMerchant, isMerchantVerified, isMerchantEnabled, merchant_name, merchant_phone,'merchant_region', merchant_address, valid_ID, address_proof, TIN_card, upgraded_image1, upgraded_image2, upgraded_image3, upgraded_image4, membershipId, isUpgradeRequestSubmitted, isMerchantUpgraded, isCashTopupEnabled, cash_topup_limit,image_reuploaded_needed,image_reuploaded_fields,image_reuploaded from users";
+    let condition = " where user_unique_id='"+body.uuid+"' or (phone='"+body.uuid+"' and region='"+body.region+"')"
+    let finalquery = query + condition
+    let userData = await CustomQueryModel.query(finalquery, {
+        type: SequelizeObj.QueryTypes.SELECT,
+        raw: true
+    }); 
+    
+    if(!userData.length)
     {
         throw new BadRequestError("User not found");
     }
+    userData = userData[0]
     if (userData.membershipId) {       
         userData.planDetails = await PlansModel.findOne({ where: { id: userData.membershipId }, raw: true })
         let merchantBalanceInfo = await CommonHelper.merchantCashTopupLimit(userData.id)
@@ -668,7 +673,7 @@ let deleteUser = async (uuid) => {
     await UserAuthModel.destroy({ where: { userid: user.id } });
     await UserModel.destroy({ where: { id: user.id } });
     let url = "https://" + process.env.COMECHAT_APP_ID + ".api-" + process.env.COMECHAT_REGION + ".cometchat.io/v3/users/" + uuid;
-    var options = {
+    let options = {
         method: 'delete',
         url: url,
         headers: {

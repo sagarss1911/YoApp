@@ -18,6 +18,9 @@ module.exports = sequelize_mysql.define("wallet_claims",
         amount: {
             type: Sequelize.STRING,            
         },
+        region: {
+            type: Sequelize.STRING,            
+        },
         senderWalletId: {
             type: Sequelize.INTEGER,            
         },   

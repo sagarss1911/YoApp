@@ -145,6 +145,9 @@ const UsersModal = sequelize_mysql.define("users",
         merchant_phone: {
             type: Sequelize.STRING        
         },
+        merchant_region: {
+            type: Sequelize.STRING        
+        },
         merchant_address: {
             type: Sequelize.STRING        
         },

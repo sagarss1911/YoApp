@@ -18,7 +18,7 @@ router.post("/forgot_password", controller.forgotPassword);
 router.post("/change_password", validateAccess.isValidUser, controller.changePassword);
 router.post("/login_with_social", controller.loginWithSocial);
 router.get("/get_profile",validateAccess.isValidUser, controller.getProfile);
-router.get("/get_profile_by_id/:uuid",validateAccess.isValidUser, controller.getProfileById);
+router.post("/get_profile_by_id",validateAccess.isValidUser, controller.getProfileById);
 router.post("/update_profile",validateAccess.isValidUser,fileUploadHelper.uploadUserProfileImage.fields([{ name: 'profileimage'}]), controller.updateProfile);
 router.post("/update_username",validateAccess.isValidUser, controller.updateUsername);
 router.post("/update_email",validateAccess.isValidUser, controller.updateEmail);

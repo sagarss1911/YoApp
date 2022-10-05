@@ -183,6 +183,10 @@ let transactionStatus = (req, res, next) => {
   *                 type: string
   *                 example: 123456010
   *                 paramType: body 
+  *               region:
+  *                 type: string
+  *                 example: IN
+  *                 paramType: body 
   *     responses:
   *       200:
   *         description: user object
@@ -384,11 +388,15 @@ let transactionStatus = (req, res, next) => {
  *                 paramType: body
  *               phone:
  *                 type: string
- *                 example: "+919377690348"
+ *                 example: "9377690348"
  *                 paramType: body
  *               amount:
  *                 type: integer
  *                 example: 50
+ *                 paramType: body 
+ *               region:
+ *                 type: string
+ *                 example: IN
  *                 paramType: body  
  *     responses:
  *       200:
@@ -536,7 +544,7 @@ let transactionStatus = (req, res, next) => {
  *                 paramType: body
  *               phone:
  *                 type: string
- *                 example: "+919377690348"
+ *                 example: "9377690348"
  *                 paramType: body 
  *               bank_name:
  *                 type: string
@@ -553,7 +561,11 @@ let transactionStatus = (req, res, next) => {
  *               amount:
  *                 type: integer
  *                 example: 50
- *                 paramType: body  
+ *                 paramType: body
+ *               region:
+ *                 type: string
+ *                 example: IN
+ *                 paramType: body    
  *     responses:
  *       200:
  *         description: user object
